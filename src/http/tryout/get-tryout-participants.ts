@@ -51,9 +51,9 @@ export const useGetTryoutParticipants = (
   search: string,
   status: string,
   perPage: number,
-  options?: Partial<UseQueryOptions<GetTryoutParticipantsResponse, AxiosError>>,
+  options?: Pick<UseQueryOptions<GetTryoutParticipantsResponse, AxiosError>, "enabled">,
 ) => {
-  return useQuery<GetTryoutParticipantsResponse>({
+  return useQuery({
     queryKey: ["tryout-participants", id, page, search, status, perPage],
     queryFn: () =>
       getTryoutParticipants(id, token, page, search, status, perPage),
