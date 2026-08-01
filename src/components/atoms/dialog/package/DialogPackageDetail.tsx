@@ -48,7 +48,7 @@ export default function DialogPackageDetail({
           {thumbnailUrl && (
             <div className="flex flex-col gap-1">
               <h3 className="text-muted-foreground">Thumbnail</h3>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img
                 src={thumbnailUrl}
                 alt={data?.data?.name ?? "Thumbnail"}

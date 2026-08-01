@@ -45,7 +45,7 @@ export const createQuestionBankHandler = async (
     formData.append(`options[${index}][option_text]`, option.option_text);
   });
 
-  const { data } = await api.post(`/admin/question-bank`, formData, {
+  const { data } = await api.post(`/admin/subtests/${body.subtest_id}/questions`, formData, {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "multipart/form-data",

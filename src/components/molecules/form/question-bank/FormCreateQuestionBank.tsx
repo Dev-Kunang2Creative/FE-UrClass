@@ -67,10 +67,16 @@ const difficultyOptions = [
   { label: "Sulit", value: "hard" },
 ];
 
+const categoryOptions = [
+  { label: "UTBK", value: "utbk" },
+  { label: "CPNS", value: "cpns" },
+];
+
 export default function FormCreateQuestionBank() {
   const { data: session, status } = useSession();
 
   const [openSubtest, setOpenSubtest] = useState(false);
+  const [category, setCategory] = useState<string>("");
 
   const [questionPreview, setQuestionPreview] = useState<string | null>(null);
   const [discussionPreview, setDiscussionPreview] = useState<string | null>(
@@ -83,6 +89,10 @@ export default function FormCreateQuestionBank() {
       enabled: status === "authenticated",
     },
   });
+
+  const filteredSubtests = category
+    ? data?.data?.filter((s) => s.exam_type === category)
+    : data?.data;
 
   const form = useForm<QuestionBankType>({
     resolver: zodResolver(questionBankSchema),
@@ -121,7 +131,7 @@ export default function FormCreateQuestionBank() {
       toast.success("Soal berhasil dibuat!");
 
       queryClient.invalidateQueries({
-        queryKey: ["get-all-question-banks"],
+        queryKey: ["get-all-subtests"],
       });
 
       router.push("/dashboard/admin/question-bank");
@@ -137,6 +147,31 @@ export default function FormCreateQuestionBank() {
       <CardContent>
         <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup className="grid md:grid-cols-2 gap-6">
+            {/* CATEGORY */}
+            <Field>
+              <FieldLabel>Jenis Ujian</FieldLabel>
+
+              <Select
+                value={category}
+                onValueChange={(val) => {
+                  setCategory(val);
+                  form.setValue("subtest_id", "");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih jenis ujian" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {categoryOptions.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
             {/* SUBTEST */}
             <Controller
               control={form.control}
@@ -157,7 +192,9 @@ export default function FormCreateQuestionBank() {
                         {field.value
                           ? data?.data?.find((item) => item.id === field.value)
                               ?.name
-                          : "Pilih subtest"}
+                          : category
+                            ? "Pilih subtest"
+                            : "Pilih jenis ujian dulu"}
 
                         <ChevronsUpDown className="opacity-50" />
                       </Button>
@@ -169,7 +206,7 @@ export default function FormCreateQuestionBank() {
                         <CommandEmpty>Subtest tidak ditemukan</CommandEmpty>
 
                         <CommandGroup>
-                          {data?.data?.map((subtest) => (
+                          {filteredSubtests?.map((subtest) => (
                             <CommandItem
                               key={subtest.id}
                               value={subtest.name}

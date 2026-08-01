@@ -47,7 +47,7 @@ export default function FormAuthLogin() {
       description: "Selamat datang, anda akan diarahkan ke dashboard.",
     });
 
-    router.push("/dashboard");
+    router.push("/pilih-kategori");
   };
 
   return (

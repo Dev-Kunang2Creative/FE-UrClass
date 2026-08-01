@@ -41,6 +41,7 @@ export default function FormCreateSubtest() {
     defaultValues: {
       name: "",
       category: "",
+      exam_type: "utbk",
       max_questions: 15,
     },
     mode: "onChange",
@@ -132,6 +133,36 @@ export default function FormCreateSubtest() {
                     <SelectContent>
                       <SelectItem value="TPS">TPS</SelectItem>
                       <SelectItem value="Literasi">Literasi</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {fieldState.error && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="exam_type"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>
+                    Jenis Ujian <span className="text-red-500">*</span>
+                  </FieldLabel>
+
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih jenis ujian" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="utbk">UTBK</SelectItem>
+                      <SelectItem value="cpns">CPNS</SelectItem>
                     </SelectContent>
                   </Select>
 

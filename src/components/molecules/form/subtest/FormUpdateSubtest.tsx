@@ -55,6 +55,7 @@ export default function FormUpdateSubtest({
     defaultValues: {
       name: "",
       category: "",
+      exam_type: "utbk",
       max_questions: 15,
     },
   });
@@ -65,6 +66,7 @@ export default function FormUpdateSubtest({
     form.reset({
       name: defaultData.name ?? "",
       category: defaultData.category ?? "",
+      exam_type: defaultData.exam_type ?? "utbk",
       max_questions: defaultData.max_questions ?? 15,
     });
   }, [defaultData, form]);
@@ -149,6 +151,34 @@ export default function FormUpdateSubtest({
                     <SelectContent>
                       <SelectItem value="TPS">TPS</SelectItem>
                       <SelectItem value="Literasi">Literasi</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {fieldState.error && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="exam_type"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>
+                    Jenis Ujian <span className="text-red-500">*</span>
+                  </FieldLabel>
+                  <Select
+                    key={field.value}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih jenis ujian" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="utbk">UTBK</SelectItem>
+                      <SelectItem value="cpns">CPNS</SelectItem>
                     </SelectContent>
                   </Select>
                   {fieldState.error && (

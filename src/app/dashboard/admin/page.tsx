@@ -12,7 +12,6 @@ import {
   FileQuestion,
   Package,
   Activity,
-  Trophy,
 } from "lucide-react";
 import {
   Card,
@@ -29,7 +28,6 @@ import {
   CartesianGrid,
   PieChart,
   Pie,
-  Cell,
   LineChart,
   Line,
 } from "recharts";

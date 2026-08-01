@@ -7,7 +7,6 @@ import {
   type SalesReportRow,
 } from "@/http/sales-report/get-sales-report";
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -30,42 +29,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Table,
-  TableBody,
   TableCell,
   TableFooter,
-  TableHead,
-  TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
   Cell,
   Line,
   LineChart,
   Pie,
   PieChart,
-  ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import {
   Banknote,
   Boxes,
-  ChevronDown,
-  ChevronUp,
   CircleDollarSign,
   FileSpreadsheet,
   FileText,
-  ReceiptText,
-  TrendingUp,
   Users,
 } from "lucide-react";
 import { formatPrice } from "@/utils/format-price";
-import { formatJakartaDate } from "@/utils/date-time";
 import DashboardTitle from "@/components/atoms/typography/DashboardTitle";
 import { DataTable } from "@/components/molecules/datatable/DataTable";
 import {

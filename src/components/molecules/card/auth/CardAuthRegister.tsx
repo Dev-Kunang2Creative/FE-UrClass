@@ -32,7 +32,9 @@ export default function CardAuthRegister() {
           src={"/images/logo/urclass.png"}
           alt="Logo UrClass"
           width={200}
-          height={100}
+          height={200}
+          priority
+          className="h-24 w-auto"
         />
       </div>
       <Card className="p-4 border-0 shadow-none" size="sm">

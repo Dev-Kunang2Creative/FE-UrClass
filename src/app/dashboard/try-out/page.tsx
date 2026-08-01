@@ -48,7 +48,7 @@ export default function TryoutPage() {
     token,
   });
 
-  const tryouts = tryoutsData?.data || [];
+  const tryouts = useMemo(() => tryoutsData?.data || [], [tryoutsData]);
 
   const {
     data: historyData,

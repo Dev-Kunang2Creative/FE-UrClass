@@ -80,8 +80,9 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                   src={"/images/logo/urclass.png"}
                   alt="UrClass"
                   width={150}
-                  height={32}
-                  className="object-contain"
+                  height={150}
+                  priority
+                  className="h-8 w-auto object-contain"
                 />
               </Link>
             </div>

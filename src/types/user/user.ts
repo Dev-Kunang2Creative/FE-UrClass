@@ -7,6 +7,7 @@ export interface User {
   email_verified_at?: string;
   password: string;
   role: "admin" | "user";
+  kategori?: "utbk" | "cpns" | null;
   remember_token?: string;
   birth_date?: string;
   gender?: string;

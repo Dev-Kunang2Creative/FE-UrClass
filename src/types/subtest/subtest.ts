@@ -2,6 +2,7 @@ export interface Subtest {
   id: string;
   name: string;
   category: string;
+  exam_type: "utbk" | "cpns";
   max_questions: number;
   questions_count?: number;
   created_at: Date;

@@ -97,7 +97,7 @@ export default function AuditLogPage() {
     if (urlPage !== page) {
       setPage(urlPage);
     }
-  }, [urlPage]);
+  }, [urlPage, page]);
 
   const updatePage = (newPage: number) => {
     setPage(newPage);

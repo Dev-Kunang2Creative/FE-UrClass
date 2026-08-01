@@ -171,7 +171,7 @@ export default function FormCreatePackage() {
                     <div className="flex flex-col gap-3">
                       {thumbnailPreview ? (
                         <div className="relative w-full max-w-sm">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          { }
                           <img
                             src={thumbnailPreview}
                             alt="Preview thumbnail"

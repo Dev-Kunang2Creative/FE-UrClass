@@ -26,7 +26,7 @@ function OAuthCallbackHandler() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/pilih-kategori");
     });
   }, [params, router]);
 
