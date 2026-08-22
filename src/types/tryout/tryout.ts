@@ -13,6 +13,7 @@ export interface Tryout {
   updated_at: Date;
   creator: User;
   category: string;
+  kategori?: "utbk" | "cpns" | null;
   start_date: Date | null;
   end_date: Date | null;
   image_url: string | null;

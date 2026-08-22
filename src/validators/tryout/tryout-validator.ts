@@ -40,6 +40,11 @@ export const tryoutSchema = z.object({
     })
     .optional()
     .nullable(),
+
+  // Exam track. Decides which dashboard the tryout shows up on.
+  kategori: z.enum(["utbk", "cpns"], {
+    message: "Jalur harus UTBK atau CPNS",
+  }),
 });
 
 export type TryoutType = z.infer<typeof tryoutSchema>;

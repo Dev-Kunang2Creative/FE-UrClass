@@ -6,6 +6,8 @@
 
 @theme inline {
   --bg-main: url("/images/background/bg-main.webp");
+  --bg-login: url("/images/background/bg-login.webp");
+  --bg-onboarding: url("/images/background/bg-onboarding.webp");
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-rubik: var(--font-rubik);
@@ -135,5 +137,13 @@ body {
 @layer utilities {
   .bg-main {
     background-image: var(--bg-main);
+  }
+
+  .bg-login {
+    background-image: var(--bg-login);
+  }
+
+  .bg-onboarding {
+    background-image: var(--bg-onboarding);
   }
 }

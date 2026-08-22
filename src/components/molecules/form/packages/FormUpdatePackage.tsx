@@ -419,6 +419,35 @@ export default function FormUpdatePackage({
 
             <Controller
               control={form.control}
+              name="kategori"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>
+                    Jalur <span className="text-red-500">*</span>
+                  </FieldLabel>
+
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value ?? "utbk"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih jalur" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="utbk">UTBK</SelectItem>
+                      <SelectItem value="cpns">CPNS</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {fieldState.error && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              control={form.control}
               name="is_active"
               render={({ field }) => (
                 <Field>

@@ -12,6 +12,7 @@ export interface Kelas {
   image: string | null;
   image_url: string | null;
   is_active: boolean;
+  kategori?: "utbk" | "cpns" | null;
   enrollments_count?: number;
   created_at: string;
   updated_at: string;

@@ -1,14 +1,14 @@
 export default function LiveClassSection() {
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-bold text-gray-900">
-        Jadwal Live Class Gratis 🎓
+    <section className="flex flex-col gap-3">
+      <h2 className="text-base font-semibold text-gray-900">
+        Jadwal Live Class Gratis
       </h2>
-      <div className="w-full min-h-[200px] rounded-2xl border-2 border-dashed border-gray-200 bg-white flex flex-col items-center justify-center gap-3 p-8">
-        <div className="text-4xl">📅</div>
-        <p className="text-gray-400 text-sm text-center">
+      <div className="rounded-xl border border-gray-200 bg-white px-6 py-10 text-center">
+        <p className="text-sm text-gray-500">
           Belum ada jadwal live class saat ini.
-          <br />
+        </p>
+        <p className="mt-1 text-xs text-gray-400">
           Nantikan informasi selanjutnya ya!
         </p>
       </div>

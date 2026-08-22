@@ -38,6 +38,10 @@ export const CreateTryoutHandler = async (
     formData.append("category", body.category);
   }
 
+  if (body.kategori) {
+    formData.append("kategori", body.kategori);
+  }
+
   if (body.is_published !== undefined) {
     formData.append("is_published", body.is_published ? "1" : "0");
   }

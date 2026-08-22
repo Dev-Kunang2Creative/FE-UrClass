@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,6 +45,7 @@ export default function FormCreateKelas() {
       meet_link: "",
       image: null,
       is_active: true,
+      kategori: "utbk",
     },
     mode: "onChange",
   });
@@ -270,6 +278,35 @@ export default function FormCreateKelas() {
                 )}
               />
             </div>
+
+            <Controller
+              control={form.control}
+              name="kategori"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>
+                    Jalur <span className="text-red-500">*</span>
+                  </FieldLabel>
+
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value ?? "utbk"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih jalur" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="utbk">UTBK</SelectItem>
+                      <SelectItem value="cpns">CPNS</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {fieldState.error && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
 
             <Controller
               control={form.control}

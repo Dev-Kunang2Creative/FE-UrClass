@@ -10,6 +10,7 @@ export interface PackageBE {
   ticket_amount: number;
   currency: string;
   is_active: boolean;
+  kategori?: "utbk" | "cpns" | null;
   created_by: string;
   created_at: string;
   updated_at: string;

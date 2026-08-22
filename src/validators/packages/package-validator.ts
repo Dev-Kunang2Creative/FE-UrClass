@@ -43,6 +43,9 @@ export const packageSchema = z
       .default("IDR"),
 
     is_active: z.boolean().optional().default(true),
+
+    // Exam track this package belongs to.
+    kategori: z.enum(["utbk", "cpns"]).default("utbk"),
   })
   .refine(
     (data) => data.discount_price == null || data.discount_price < data.price,

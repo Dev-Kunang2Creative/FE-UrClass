@@ -25,6 +25,7 @@ export const UpdateTryoutHandler = async (
   if (body.start_date) formData.append("start_date", body.start_date);
   if (body.end_date) formData.append("end_date", body.end_date);
   if (body.category) formData.append("category", body.category);
+  if (body.kategori) formData.append("kategori", body.kategori);
   if (body.is_published !== undefined)
     formData.append("is_published", body.is_published ? "1" : "0");
   if (body.is_free !== undefined)

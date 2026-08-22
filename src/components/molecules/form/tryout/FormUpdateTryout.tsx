@@ -28,6 +28,7 @@ import { useGetDetailTryout } from "@/http/tryout/get-detail-tryout";
 
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -71,6 +72,7 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
       title: "",
       description: "",
       category: "UTBK",
+      kategori: "utbk",
       start_date: "",
       end_date: "",
       is_published: false,
@@ -95,6 +97,7 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
       title: defaultData.title ?? "",
       description: defaultData.description ?? "",
       category: normalizeCategory(defaultData.category),
+      kategori: defaultData.kategori === "cpns" ? "cpns" : "utbk",
       start_date: formatDate(defaultData.start_date),
       end_date: formatDate(defaultData.end_date),
       is_published: defaultData.is_published ?? false,
@@ -140,6 +143,7 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
       body: {
         ...body,
         category: body.category ?? normalizeCategory(defaultData?.category),
+      kategori: body.kategori ?? (defaultData?.kategori === "cpns" ? "cpns" : "utbk"),
       },
     });
   };
@@ -194,6 +198,36 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>Deskripsi</FieldLabel>
                   <Input {...field} placeholder="Masukkan deskripsi tryout" />
+                  {fieldState.error && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="kategori"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>
+                    Jalur <span className="text-red-500">*</span>
+                  </FieldLabel>
+
+                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih jalur" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="utbk">UTBK</SelectItem>
+                      <SelectItem value="cpns">CPNS</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <FieldDescription>
+                    Menentukan dashboard mana yang menampilkan tryout ini.
+                  </FieldDescription>
+
                   {fieldState.error && (
                     <FieldError errors={[fieldState.error]} />
                   )}

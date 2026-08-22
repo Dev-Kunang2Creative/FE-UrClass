@@ -22,6 +22,9 @@ export const kelasSchema = z
       .or(z.literal("")),
     image: z.instanceof(File).optional().nullable(),
     is_active: z.boolean(),
+
+    // Exam track this kelas belongs to.
+    kategori: z.enum(["utbk", "cpns"]),
   })
   .refine(
     (data) => {

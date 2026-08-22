@@ -11,46 +11,31 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
+import { useKategori } from "@/hooks/useKategori";
+import { KATEGORI_CONFIG, type Kategori } from "@/lib/kategori";
 
-const INFO_CARDS = [
-  {
-    src: "/images/tryout/tryout-01.webp",
-    alt: "Tryout 01",
-    href: "/dashboard/try-out",
-  },
-  {
-    src: "/images/tryout/tryout-02.webp",
-    alt: "Tryout 02",
-    href: "/dashboard/try-out",
-  },
-  {
-    src: "/images/tryout/tryout-03.webp",
-    alt: "Tryout 03",
-    href: "/dashboard/try-out",
-  },
-  {
-    src: "/images/ticket/starter.webp",
-    alt: "Info UTBK Starter",
-    href: "/dashboard/pembelian",
-  },
-  {
-    src: "/images/ticket/ambis.webp",
-    alt: "Info UTBK Ambis",
-    href: "/dashboard/pembelian",
-  },
-  {
-    src: "/images/ticket/booster.webp",
-    alt: "Info UTBK Booster",
-    href: "/dashboard/pembelian",
-  },
-  {
-    src: "/images/ticket/ultimate.webp",
-    alt: "Info UTBK Ultimate",
-    href: "/dashboard/pembelian",
-  },
-];
+const INFO_CARDS: Record<Kategori, { src: string; alt: string; href: string }[]> = {
+  utbk: [
+    { src: "/images/tryout/tryout-01.webp", alt: "Tryout 01", href: "/dashboard/try-out" },
+    { src: "/images/tryout/tryout-02.webp", alt: "Tryout 02", href: "/dashboard/try-out" },
+    { src: "/images/tryout/tryout-03.webp", alt: "Tryout 03", href: "/dashboard/try-out" },
+    { src: "/images/ticket/starter.webp", alt: "Info UTBK Starter", href: "/dashboard/pembelian" },
+    { src: "/images/ticket/ambis.webp", alt: "Info UTBK Ambis", href: "/dashboard/pembelian" },
+    { src: "/images/ticket/booster.webp", alt: "Info UTBK Booster", href: "/dashboard/pembelian" },
+    { src: "/images/ticket/ultimate.webp", alt: "Info UTBK Ultimate", href: "/dashboard/pembelian" },
+  ],
+  // No CPNS-specific artwork exists yet, so reuse the neutral tryout/ticket art.
+  cpns: [
+    { src: "/images/tryout/tryout-01.webp", alt: "Tryout SKD", href: "/dashboard/try-out" },
+    { src: "/images/tryout/tryout-02.webp", alt: "Simulasi CAT BKN", href: "/dashboard/try-out" },
+    { src: "/images/ticket/starter.webp", alt: "Paket SKD Starter", href: "/dashboard/pembelian" },
+    { src: "/images/ticket/booster.webp", alt: "Paket SKD Intensif", href: "/dashboard/pembelian" },
+  ],
+};
 
 export default function InfoCardCarousel() {
+  const { kategori } = useKategori();
+  const cards = INFO_CARDS[kategori];
   const [api, setApi] = useState<CarouselApi>();
   const [activeIndex, setActiveIndex] = useState(0);
   const [snapCount, setSnapCount] = useState(0);
@@ -82,8 +67,8 @@ export default function InfoCardCarousel() {
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-bold text-gray-900">
-        Buat amunisian yang mau kejar UTBK
+      <h2 className="text-base font-semibold text-gray-900">
+        {KATEGORI_CONFIG[kategori].heading}
       </h2>
 
       <Carousel
@@ -102,14 +87,14 @@ export default function InfoCardCarousel() {
         className="w-full"
       >
         <CarouselContent className="-ml-3">
-          {INFO_CARDS.map((card, index) => (
+          {cards.map((card, index) => (
             <CarouselItem
               key={index}
               className="pl-3 basis-[75%] sm:basis-[55%] md:basis-[40%] lg:basis-[30%]"
             >
               <Link
                 href={card.href}
-                className="block group relative w-full h-[280px] rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="block group relative w-full h-[280px] rounded-xl overflow-hidden border border-gray-200 transition-colors duration-300 hover:border-gray-300"
               >
                 <Image
                   src={card.src}
@@ -136,7 +121,7 @@ export default function InfoCardCarousel() {
             className={cn(
               "rounded-full transition-all duration-300 ease-out",
               index === activeIndex
-                ? "w-6 h-2 bg-primary"
+                ? cn("w-6 h-2", KATEGORI_CONFIG[kategori].theme.dot)
                 : "w-2 h-2 bg-gray-300 hover:bg-gray-400",
             )}
             aria-label={`Go to slide ${index + 1}`}

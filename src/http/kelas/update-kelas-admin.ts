@@ -33,6 +33,7 @@ export const UpdateKelasAdminHandler = async (
   formData.append("meet_link", body.meet_link ?? "");
   if (body.image instanceof File) formData.append("image", body.image);
   formData.append("is_active", body.is_active ? "1" : "0");
+  formData.append("kategori", body.kategori ?? "utbk");
 
   const { data } = await api.post<UpdateKelasAdminResponse>(
     `/admin/kelas/${id}`,

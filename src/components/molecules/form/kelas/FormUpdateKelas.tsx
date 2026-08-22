@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,6 +59,7 @@ export default function FormUpdateKelas({ kelasId }: FormUpdateKelasProps) {
       meet_link: "",
       image: null,
       is_active: true,
+      kategori: "utbk",
     },
   });
 
@@ -79,6 +87,7 @@ export default function FormUpdateKelas({ kelasId }: FormUpdateKelasProps) {
       meet_link: defaultData.meet_link ?? "",
       image: null,
       is_active: defaultData.is_active ?? true,
+      kategori: defaultData.kategori === "cpns" ? "cpns" : "utbk",
     });
     if (defaultData.image_url) {
       setPreview(defaultData.image_url);
@@ -333,6 +342,35 @@ export default function FormUpdateKelas({ kelasId }: FormUpdateKelasProps) {
                 )}
               />
             </div>
+
+            <Controller
+              control={form.control}
+              name="kategori"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>
+                    Jalur <span className="text-red-500">*</span>
+                  </FieldLabel>
+
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value ?? "utbk"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih jalur" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="utbk">UTBK</SelectItem>
+                      <SelectItem value="cpns">CPNS</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {fieldState.error && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
 
             <Controller
               control={form.control}
