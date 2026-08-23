@@ -1,0 +1,83 @@
+name: Deploy app.urclass.id
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Hostinger builds on the server; two overlapping builds would fight over
+# the same hbuilds/current symlink.
+concurrency:
+  group: deploy-app-urclass
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Upload, build on Hostinger, verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    env:
+      BASE_URL: https://app.urclass.id
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # No npm install and no next build here: Hostinger's Node hosting runs
+      # the build itself from an uploaded source archive, and serves the
+      # result through Passenger. Building here too would just be discarded.
+      - name: Upload source and build on Hostinger
+        env:
+          HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+          # This repo is public, so the hosting account name is a secret too.
+          HOSTINGER_USERNAME: ${{ secrets.HOSTINGER_USERNAME }}
+          FE_ENV_PRODUCTION: ${{ secrets.FE_ENV_PRODUCTION }}
+        run: python -u scripts/deploy-hostinger.py
+
+      - name: Verify the site
+        run: |
+          fail=0
+          probe() { # label, expected status, curl args...
+            label="$1"; want="$2"; shift 2
+            for i in 1 2 3 4 5; do
+              code=$(curl -s -o /tmp/body -w '%{http_code}' "$@")
+              [ "$code" = "$want" ] && break
+              sleep 6
+            done
+            if [ "$code" = "$want" ]; then
+              echo "  PASS  $label  -> $code"
+            else
+              echo "  FAIL  $label  -> $code (expected $want)"
+              head -c 300 /tmp/body; echo
+              fail=1
+            fi
+          }
+          echo "===== verification ====="
+
+          # Passenger boots the Next server on the first request, so this is
+          # also the cold-start check.
+          probe "/                 next server via passenger"  200 "$BASE_URL/"
+          probe "/login            client route renders"       200 "$BASE_URL/login"
+
+          # next-auth's own endpoint - proves the server-side route works,
+          # not just static pages.
+          probe "/api/auth/providers  next-auth route" 200 \
+            -H 'Accept: application/json' "$BASE_URL/api/auth/providers"
+
+          # Source must never be reachable over HTTP: Passenger serves the app
+          # from hbuilds/, outside the document root.
+          probe "/.env.production  env not web-readable"       404 "$BASE_URL/.env.production"
+          probe "/package.json     source not web-readable"    404 "$BASE_URL/package.json"
+
+          echo "--- security headers on /"
+          curl -sI "$BASE_URL/" | grep -iE 'content-security-policy|strict-transport|x-frame-options' \
+            | cut -c1-120 || echo "  (none found)"
+
+          [ "$fail" = 0 ] || { echo "::error::verification failed"; exit 1; }
+          echo "===== FE is live ====="
