@@ -137,13 +137,24 @@ body {
 @layer utilities {
   .bg-main {
     background-image: var(--bg-main);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 
   .bg-login {
     background-image: var(--bg-login);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 
   .bg-onboarding {
     background-image: var(--bg-onboarding);
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 }

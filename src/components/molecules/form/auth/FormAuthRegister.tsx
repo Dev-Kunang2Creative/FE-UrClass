@@ -72,7 +72,7 @@ export default function FormAuthRegister() {
 
   return (
     <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
-      <FieldGroup>
+      <FieldGroup className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <Controller
           control={form.control}
           name="name"
@@ -143,7 +143,7 @@ export default function FormAuthRegister() {
                   {...field}
                   type={showConfirmPassword ? "text" : "password"}
                   id="password_confirmation"
-                  placeholder="Masukkan Kata Sandi"
+                  placeholder="Konfirmasi Kata Sandi"
                   className="pr-10"
                 />
                 <button
