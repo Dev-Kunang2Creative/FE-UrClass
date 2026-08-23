@@ -86,6 +86,14 @@ jobs:
           probe "/api/auth/providers  next-auth route"          200 \
             -H 'Accept: application/json' "$BASE_URL/api/auth/providers"
 
+          # next-auth v4 refuses to run in production without a secret, so a
+          # 200 here proves AUTH_SECRET reached the Node process at runtime -
+          # not merely that it was present at build time. That distinction
+          # matters: Hostinger's env-var UI is empty, and .env.production is
+          # shipped inside the archive instead.
+          probe "/api/auth/csrf      server env at runtime"     200 \
+            -H 'Accept: application/json' "$BASE_URL/api/auth/csrf"
+
           # Passenger serves from hbuilds/, outside the document root, so
           # source and env must not be fetchable at all.
           blocked "/.env.production  env not web-readable"    "$BASE_URL/.env.production"
@@ -124,18 +132,37 @@ jobs:
           # current FE_ENV_PRODUCTION. Catches "secret updated, rebuild
           # forgotten", which is the standard trap of this deploy model.
           echo "--- build-time env actually inlined"
-          html=$(curl -s "$BASE_URL/login")
-          for var in NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY NEXT_PUBLIC_API_URL; do
-            want=$(printf '%s' "$FE_ENV_PRODUCTION" | grep "^$var=" | cut -d= -f2- | tr -d '"')
+          # These land in the client JS bundles, not in the server-rendered
+          # HTML, so fetch the chunks a page loads and search those. And the
+          # page matters: TurnstileWidget is only used by FormAuthRegister, so
+          # its key is unreachable from /login.
+          inlined() { # page-path, var-name
+            local page="$1" var="$2" want n
+            want=$(printf '%s' "$FE_ENV_PRODUCTION" | grep "^$var=" \
+                   | cut -d= -f2- | tr -d '"' | tr -d "\r")
             if [ -z "$want" ]; then
               echo "  skip  $var is empty in the secret"
-            elif printf '%s' "$html" | grep -qF "$want"; then
-              echo "  PASS  $var is baked into the page"
+              return
+            fi
+            : > /tmp/bundle.js
+            n=0
+            for c in $(curl -sL "$BASE_URL$page" \
+                       | grep -oE '/_next/static/[^"]+\.js' | sort -u | head -60); do
+              curl -s "$BASE_URL$c" >> /tmp/bundle.js
+              n=$((n + 1))
+            done
+            if [ "$n" = 0 ]; then
+              echo "  FAIL  $var: no JS chunks found on $page"
+              fail=1
+            elif grep -qF "$want" /tmp/bundle.js; then
+              echo "  PASS  $var inlined ($page, $n chunks)"
             else
-              echo "  FAIL  $var is not in the served HTML - stale build?"
+              echo "  FAIL  $var not in $page bundles ($n chunks, $(wc -c < /tmp/bundle.js) bytes) - stale build?"
               fail=1
             fi
-          done
+          }
+          inlined /login    NEXT_PUBLIC_API_URL
+          inlined /register NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY
 
           [ "$fail" = 0 ] || { echo "::error::verification failed"; exit 1; }
           echo "===== FE is live ====="
