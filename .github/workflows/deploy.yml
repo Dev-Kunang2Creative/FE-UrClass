@@ -58,26 +58,51 @@ jobs:
               fail=1
             fi
           }
+          blocked() { # label, curl args... - passes on any 401/403/404
+            label="$1"; shift
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$@")
+            case "$code" in
+              401|403|404) echo "  PASS  $label  -> $code (blocked)" ;;
+              *) echo "  FAIL  $label  -> $code (expected it to be blocked)"; fail=1 ;;
+            esac
+          }
+
           echo "===== verification ====="
 
-          # Passenger boots the Next server on the first request, so this is
-          # also the cold-start check.
-          probe "/                 next server via passenger"  200 "$BASE_URL/"
-          probe "/login            client route renders"       200 "$BASE_URL/login"
+          # src/proxy.ts (Next 16's renamed middleware) sends guests to
+          # /login, so 307 here is correct and also proves middleware runs.
+          probe "/                 middleware redirects guests" 307 "$BASE_URL/"
 
-          # next-auth's own endpoint - proves the server-side route works,
-          # not just static pages.
-          probe "/api/auth/providers  next-auth route" 200 \
+          # Passenger boots the Next server on first request, so this doubles
+          # as the cold-start check.
+          probe "/login            page renders"                200 "$BASE_URL/login"
+
+          # next-auth's own endpoint: proves the server route works, not just
+          # prerendered pages.
+          probe "/api/auth/providers  next-auth route"          200 \
             -H 'Accept: application/json' "$BASE_URL/api/auth/providers"
 
-          # Source must never be reachable over HTTP: Passenger serves the app
-          # from hbuilds/, outside the document root.
-          probe "/.env.production  env not web-readable"       404 "$BASE_URL/.env.production"
-          probe "/package.json     source not web-readable"    404 "$BASE_URL/package.json"
+          # Passenger serves from hbuilds/, outside the document root, so
+          # source and env must not be fetchable at all.
+          blocked "/.env.production  env not web-readable"    "$BASE_URL/.env.production"
+          blocked "/package.json     source not web-readable" "$BASE_URL/package.json"
 
-          echo "--- security headers on /"
-          curl -sI "$BASE_URL/" | grep -iE 'content-security-policy|strict-transport|x-frame-options' \
-            | cut -c1-120 || echo "  (none found)"
+          echo "--- headers on /login"
+          curl -sD - -o /dev/null "$BASE_URL/login" \
+            | grep -iE 'content-security-policy|strict-transport|x-frame-options|x-content-type' \
+            | cut -c1-100
+
+          # The CSP in next.config.ts must name the backend, or the browser
+          # blocks every API call and every uploaded image.
+          csp=$(curl -sD - -o /dev/null "$BASE_URL/login" \
+                | grep -i '^content-security-policy:' || true)
+          if printf '%s' "$csp" | grep -q 'prod-api.urclass.id'; then
+            echo "  PASS  CSP allows prod-api.urclass.id"
+          else
+            echo "  FAIL  CSP does not allow prod-api.urclass.id - API calls will be blocked"
+            printf '        %s\n' "${csp:-(no CSP header)}" | cut -c1-160
+            fail=1
+          fi
 
           [ "$fail" = 0 ] || { echo "::error::verification failed"; exit 1; }
           echo "===== FE is live ====="
