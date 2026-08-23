@@ -93,14 +93,14 @@ export default function PilihKategoriWrapper() {
     <section className="min-h-screen bg-onboarding flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="space-y-8 w-full max-w-4xl mx-auto py-8">
         {/* Header with UrClass Logo */}
-        <div className="flex flex-col items-center text-center space-y-3">
+        <div className="flex flex-col items-center text-center space-y-2">
           <Image
             src="/images/logo/urclass.png"
             alt="UrClass Logo"
-            width={320}
-            height={240}
+            width={2135}
+            height={1635}
             priority
-            className="h-24 sm:h-28 w-auto object-contain mx-auto"
+            className="h-20 sm:h-24 w-auto object-contain"
           />
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">

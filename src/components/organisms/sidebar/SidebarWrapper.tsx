@@ -71,19 +71,19 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
   return (
     <Sidebar>
       {/* Header */}
-      <SidebarHeader className="h-24 p-0 cursor-default bg-white border-b border-slate-100 dark:bg-slate-950">
-        <div className="flex items-center justify-start px-5 h-full w-full">
+      <SidebarHeader className="h-20 p-0 cursor-default bg-white border-b border-slate-100 dark:bg-slate-950">
+        <div className="flex items-center justify-start px-6 h-full w-full">
           <Link
             href={session?.user.role === "admin" ? "/dashboard/admin" : "/dashboard"}
-            className="flex items-center group transition-transform hover:scale-[1.02]"
+            className="inline-flex items-center group transition-transform hover:scale-[1.02]"
           >
             <Image
               src="/images/logo/urclass.png"
               alt="UrClass Logo"
-              width={260}
-              height={180}
+              width={2135}
+              height={1635}
               priority
-              className="h-16 w-auto max-w-[170px] object-contain"
+              className="h-12 w-auto object-contain"
             />
           </Link>
         </div>

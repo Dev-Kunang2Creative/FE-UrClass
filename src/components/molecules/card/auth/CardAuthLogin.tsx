@@ -30,15 +30,15 @@ export default function CardAuthLogin() {
       {/* Main Unified Auth Card */}
       <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_20px_60px_-15px_rgba(15,23,42,0.2)] border border-slate-100 p-7 sm:p-9 space-y-6">
         {/* Card Header with Logo */}
-        <div className="flex flex-col items-center text-center space-y-3 pb-1">
-          <Link href="/" className="inline-block transition-transform hover:scale-105">
+        <div className="flex flex-col items-center text-center space-y-2 pb-1">
+          <Link href="/" className="inline-flex items-center justify-center transition-transform hover:scale-105">
             <Image
               src="/images/logo/urclass.png"
               alt="UrClass Logo"
-              width={320}
-              height={240}
+              width={2135}
+              height={1635}
               priority
-              className="h-24 sm:h-28 w-auto object-contain mx-auto"
+              className="h-20 sm:h-24 w-auto object-contain"
             />
           </Link>
           <div>
