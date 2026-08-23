@@ -4,9 +4,9 @@ const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://app.sandbox.midtrans.com https://app.midtrans.com https://api.midtrans.com;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  img-src 'self' blob: data: http://127.0.0.1:8000 http://localhost:8000 https://*.amunisiptn.com https://api.urclass.id https://*.googleusercontent.com;
+  img-src 'self' blob: data: http://127.0.0.1:8000 http://localhost:8000 https://*.amunisiptn.com https://prod-api.urclass.id https://api.urclass.id https://*.googleusercontent.com;
   font-src 'self' https://fonts.gstatic.com data:;
-  connect-src 'self' http://127.0.0.1:8000 http://localhost:8000 https://challenges.cloudflare.com https://*.amunisiptn.com https://api.urclass.id https://app.sandbox.midtrans.com https://app.midtrans.com https://api.midtrans.com;
+  connect-src 'self' http://127.0.0.1:8000 http://localhost:8000 https://challenges.cloudflare.com https://*.amunisiptn.com https://prod-api.urclass.id https://api.urclass.id https://app.sandbox.midtrans.com https://app.midtrans.com https://api.midtrans.com;
   frame-src 'self' https://challenges.cloudflare.com https://app.sandbox.midtrans.com https://app.midtrans.com https://accounts.google.com;
   frame-ancestors 'self';
   object-src 'none';
@@ -18,6 +18,13 @@ const cspHeader = `
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
+      {
+        // Production backend. Without this entry next/image refuses every
+        // uploaded image (package thumbnails, question images, payment proofs).
+        protocol: "https",
+        hostname: "prod-api.urclass.id",
+        pathname: "/storage/**",
+      },
       {
         protocol: "https",
         hostname: "dev-api.amunisiptn.com",
