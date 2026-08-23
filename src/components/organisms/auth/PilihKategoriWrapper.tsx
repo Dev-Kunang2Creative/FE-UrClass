@@ -93,28 +93,26 @@ export default function PilihKategoriWrapper() {
     <section className="min-h-screen bg-onboarding flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="space-y-8 w-full max-w-4xl mx-auto py-8">
         {/* Header with UrClass Logo */}
-        <div className="flex flex-col items-center text-center space-y-4">
-          <div className="bg-white px-8 py-4 rounded-2xl border-2 border-slate-900 shadow-[5px_5px_0px_0px_#0f172a] inline-flex items-center justify-center">
-            <Image
-              src="/images/logo/urclass.png"
-              alt="Logo UrClass"
-              width={320}
-              height={240}
-              priority
-              className="h-24 sm:h-28 w-auto object-contain"
-            />
-          </div>
-          <div className="space-y-1.5">
+        <div className="flex flex-col items-center text-center space-y-2">
+          <Image
+            src="/images/logo/urclass.png"
+            alt="UrClass Logo"
+            width={240}
+            height={180}
+            priority
+            className="h-16 sm:h-20 w-auto object-contain"
+          />
+          <div className="space-y-1 pt-1">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Selamat Datang, {userName}!
             </h1>
             <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto">
-              Pilih jalur belajar yang ingin kamu fokuskan untuk menampilkan materi dan tryout yang sesuai.
+              Pilih jalur belajar yang ingin kamu fokuskan untuk menampilkan materi dan simulasi yang sesuai.
             </p>
           </div>
         </div>
 
-        {/* 2 Category Selection Cards (Soft Neo-Brutalist 2-Column Grid) */}
+        {/* 2 Category Selection Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {CATEGORY_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -126,12 +124,12 @@ export default function PilihKategoriWrapper() {
                 type="button"
                 onClick={() => handlePilih(item.id)}
                 disabled={loadingCategory !== null}
-                className={`text-left w-full h-full p-6 sm:p-7 rounded-2xl border-2 border-slate-900 bg-white transition-all duration-200 cursor-pointer flex flex-col justify-between group shadow-[6px_6px_0px_0px_#0f172a] hover:shadow-[8px_8px_0px_0px_#0f172a] hover:-translate-y-1 disabled:opacity-60 disabled:pointer-events-none ${item.hoverBorder}`}
+                className={`text-left w-full h-full p-6 sm:p-8 rounded-3xl bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.12)] hover:shadow-[0_25px_60px_-10px_rgba(15,23,42,0.2)] hover:-translate-y-1.5 transition-all duration-200 cursor-pointer flex flex-col justify-between group disabled:opacity-60 disabled:pointer-events-none ${item.hoverBorder}`}
               >
                 <div className="space-y-5">
                   {/* Top Row: Icon + Track Badge */}
                   <div className="flex items-center justify-between gap-3">
-                    <div className={`p-3.5 rounded-xl ${item.iconBg}`}>
+                    <div className={`p-3.5 rounded-2xl ${item.iconBg}`}>
                       <Icon className={`w-8 h-8 ${item.iconColor}`} />
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-bold border ${item.badgeClass}`}>
@@ -150,7 +148,7 @@ export default function PilihKategoriWrapper() {
                   </div>
 
                   {/* Key Highlights */}
-                  <div className="pt-2 border-t border-slate-100 space-y-2">
+                  <div className="pt-3 border-t border-slate-100 space-y-2.5">
                     {item.features.map((feature, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-xs sm:text-sm text-slate-700 font-medium">
                         <CheckCircle2 className={`w-4 h-4 shrink-0 ${item.iconColor}`} />
@@ -162,7 +160,7 @@ export default function PilihKategoriWrapper() {
 
                 {/* Bottom Action Button */}
                 <div className="pt-6 mt-4">
-                  <div className={`w-full py-3 px-4 rounded-xl border-2 border-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] ${item.btnClass}`}>
+                  <div className={`w-full py-3 px-4 rounded-xl border border-transparent font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-transform group-hover:scale-[1.02] ${item.btnClass}`}>
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />

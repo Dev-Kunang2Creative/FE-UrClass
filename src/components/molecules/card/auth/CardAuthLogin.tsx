@@ -26,38 +26,37 @@ export default function CardAuthLogin() {
   };
 
   return (
-    <div className="space-y-6 w-full max-w-md mx-auto py-6">
-      {/* Brand Logo Header */}
-      <div className="flex flex-col items-center justify-center space-y-2 mb-1">
-        <div className="bg-white px-8 py-4 rounded-2xl border-2 border-slate-900 shadow-[5px_5px_0px_0px_#0f172a] inline-flex items-center justify-center">
-          <Image
-            src="/images/logo/urclass.png"
-            alt="Logo UrClass"
-            width={320}
-            height={240}
-            priority
-            className="h-24 sm:h-28 w-auto object-contain"
-          />
+    <div className="w-full max-w-[420px] mx-auto py-4">
+      {/* Main Unified Auth Card */}
+      <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_20px_60px_-15px_rgba(15,23,42,0.2)] border border-slate-100 p-7 sm:p-9 space-y-6">
+        {/* Card Header with Logo */}
+        <div className="flex flex-col items-center text-center space-y-2">
+          <Link href="/" className="inline-block transition-transform hover:scale-105">
+            <Image
+              src="/images/logo/urclass.png"
+              alt="UrClass Logo"
+              width={240}
+              height={180}
+              priority
+              className="h-16 w-auto object-contain mx-auto"
+            />
+          </Link>
+          <div className="pt-1">
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Masuk
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Masukkan email dan password untuk melanjutkan
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Main Neo-Brutalist Card */}
-      <div className="bg-white border-2 border-slate-900 rounded-2xl shadow-[6px_6px_0px_0px_#0f172a] p-6 sm:p-8 space-y-6">
-        <div className="space-y-1 text-center">
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            Masuk ke Akunmu
-          </h2>
-          <p className="text-sm text-slate-600">
-            Akses ribuan soal tryout UTBK & CPNS terupdate.
-          </p>
-        </div>
-
-        <div className="space-y-5">
+        <div className="space-y-4">
           <FormAuthLogin />
 
           <div className="flex items-center gap-3 py-1">
             <Separator className="flex-1 bg-slate-200" />
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
               atau
             </span>
             <Separator className="flex-1 bg-slate-200" />
@@ -67,7 +66,7 @@ export default function CardAuthLogin() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={isGoogleLoading}
-            className="w-full py-3 px-4 rounded-xl border-2 border-slate-900 bg-white font-bold text-sm text-slate-800 flex items-center justify-center gap-3 shadow-[3px_3px_0px_0px_#0f172a] hover:shadow-[1px_1px_0px_0px_#0f172a] hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[3px] active:translate-y-[3px] transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full py-2.5 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 font-semibold text-sm text-slate-700 flex items-center justify-center gap-3 shadow-sm hover:shadow transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
           >
             {isGoogleLoading ? (
               <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
