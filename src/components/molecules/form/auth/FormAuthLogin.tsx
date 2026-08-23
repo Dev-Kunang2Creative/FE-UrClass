@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginType, loginSchema } from "@/validators/auth/login-validator";
@@ -47,7 +47,14 @@ export default function FormAuthLogin() {
       description: "Selamat datang, anda akan diarahkan ke dashboard.",
     });
 
-    router.push("/pilih-kategori");
+    const session = await getSession();
+    if (session?.user?.role === "admin") {
+      router.push("/dashboard/admin");
+    } else if (session?.user?.kategori) {
+      router.push("/dashboard");
+    } else {
+      router.push("/pilih-kategori");
+    }
   };
 
   return (

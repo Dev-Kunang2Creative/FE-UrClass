@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { ExamQuestion } from "@/types/exam/exam";
+import { useKategori } from "@/hooks/useKategori";
 import RichTextRenderer from "@/components/atoms/rich-text/RichTextRenderer";
 import RichTextEditor from "@/components/atoms/rich-text/RichTextEditor";
 import {
@@ -32,6 +33,9 @@ export default function QuestionView({
   hasNext,
   mode = "attempt",
 }: QuestionViewProps) {
+  const { kategori } = useKategori();
+  const isCpns = kategori === "cpns";
+
   const isReviewMode = mode === "review" || mode === "admin-review";
   const isEssay = question.question_type === "essay";
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -100,23 +104,25 @@ export default function QuestionView({
             ) : (
               <RichTextEditor
                 key={question.id}
+                placeholder="Tuliskan jawaban essay kamu di sini..."
                 value={selectedAnswer ?? ""}
                 onChange={handleEssayChange}
-                placeholder="Tulis jawaban essay..."
                 minHeightClassName="min-h-48"
               />
             )}
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {question.options.map((option, index) => {
+          <div className="space-y-3">
+            {question.options?.map((option, index) => {
+              const visualOptionKey =
+                option.option_key || String.fromCharCode(65 + index);
               const isSelected = selectedAnswer === option.option_key;
-              const visualOptionKey = String.fromCharCode(65 + index);
               const reviewState = getReviewOptionState({
                 optionKey: option.option_key,
-                userAnswer: selectedAnswer,
                 correctAnswer: question.correct_answer,
+                userAnswer: selectedAnswer,
               });
+
               const isCorrectAnswer = reviewState === "correct_answer";
               const isUserWrongAnswer = reviewState === "user_wrong_answer";
 
@@ -127,7 +133,9 @@ export default function QuestionView({
                     ? "border-red-400 bg-red-100 text-red-900"
                     : "border-gray-200 bg-white text-gray-900"
                 : isSelected
-                  ? "border-blue-600 bg-blue-50"
+                  ? isCpns
+                    ? "border-amber-700 bg-amber-50/70"
+                    : "border-blue-600 bg-blue-50"
                   : "border-gray-200 hover:border-gray-300 hover:bg-gray-50";
 
               const markerClass = isReviewMode
@@ -137,7 +145,9 @@ export default function QuestionView({
                     ? "bg-red-500 text-white"
                     : "bg-gray-100 text-gray-600"
                 : isSelected
-                  ? "bg-blue-600 text-white"
+                  ? isCpns
+                    ? "bg-amber-700 text-white"
+                    : "bg-blue-600 text-white"
                   : "bg-gray-100 text-gray-600";
 
               const textClass = isReviewMode
@@ -147,7 +157,9 @@ export default function QuestionView({
                     ? "text-red-900 font-semibold"
                     : "text-gray-700"
                 : isSelected
-                  ? "text-blue-600 font-semibold"
+                  ? isCpns
+                    ? "text-amber-900 font-semibold"
+                    : "text-blue-600 font-semibold"
                   : "text-gray-700";
 
               return (
@@ -198,8 +210,18 @@ export default function QuestionView({
         )}
 
         {isReviewMode && (
-          <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-5">
-            <h3 className="mb-3 text-sm font-bold text-blue-600">
+          <div
+            className={`mt-6 rounded-xl border p-5 ${
+              isCpns
+                ? "border-amber-200 bg-amber-50/70"
+                : "border-blue-100 bg-blue-50"
+            }`}
+          >
+            <h3
+              className={`mb-3 text-sm font-bold ${
+                isCpns ? "text-amber-800" : "text-blue-600"
+              }`}
+            >
               Pembahasan
             </h3>
             {question.discussion ? (
@@ -245,7 +267,11 @@ export default function QuestionView({
         {hasNext ? (
           <button
             onClick={onNext}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors text-white ${
+              isCpns
+                ? "bg-amber-700 hover:bg-amber-800"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
             <span>Selanjutnya</span>
             <span>{">"}</span>
@@ -253,7 +279,11 @@ export default function QuestionView({
         ) : (
           <button
             onClick={onFinish}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors text-white ${
+              isCpns
+                ? "bg-amber-700 hover:bg-amber-800"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
             <span>{isReviewMode ? "Kembali ke Hasil" : "Selesai"}</span>
           </button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
@@ -20,13 +20,20 @@ function OAuthCallbackHandler() {
     signIn("credentials", {
       token,
       redirect: false,
-    }).then((res) => {
+    }).then(async (res) => {
       if (!res || res.error) {
         router.push("/login");
         return;
       }
 
-      router.push("/pilih-kategori");
+      const session = await getSession();
+      if (session?.user?.role === "admin") {
+        router.push("/dashboard/admin");
+      } else if (session?.user?.kategori) {
+        router.push("/dashboard");
+      } else {
+        router.push("/pilih-kategori");
+      }
     });
   }, [params, router]);
 

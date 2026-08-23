@@ -86,20 +86,8 @@ export default function DashboardTopBar({ userName }: DashboardTopBarProps) {
         <SidebarTrigger className="md:hidden" />
       </div>
 
-      {/* Right side wrapper covering Search + Notification + Profile */}
-      <div className="flex flex-1 items-center justify-end gap-3 md:gap-4">
-        
-        {/* Search Bar */}
-        <div className="w-full max-w-md hidden sm:block relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Mau belajar apa hari ini?"
-            className="w-full pl-10 pr-4 py-2 text-sm bg-[#EDF5FF] border-none rounded-full text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-            readOnly
-          />
-        </div>
-
+      {/* Right side wrapper covering Notification + Ticket + Profile */}
+      <div className="flex items-center justify-end gap-3 md:gap-4 ml-auto">
         {/* Ticket Badge */}
         <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EDF5FF] hover:bg-blue-100 transition-colors shrink-0 cursor-pointer">
           <Ticket className="h-5 w-5 text-gray-700" />

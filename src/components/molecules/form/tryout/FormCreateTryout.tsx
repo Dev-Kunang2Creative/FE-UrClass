@@ -148,7 +148,13 @@ export default function FormCreateTryout() {
                     Jalur <span className="text-red-500">*</span>
                   </FieldLabel>
 
-                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                  <Select
+                    onValueChange={(val: "utbk" | "cpns") => {
+                      field.onChange(val);
+                      form.setValue("category", val === "cpns" ? "SKD" : "UTBK");
+                    }}
+                    value={field.value ?? "utbk"}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih jalur" />
                     </SelectTrigger>
@@ -172,25 +178,47 @@ export default function FormCreateTryout() {
             <Controller
               control={form.control}
               name="category"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Kategori</FieldLabel>
+              render={({ field, fieldState }) => {
+                const currentKategori = form.watch("kategori") ?? "utbk";
+                const subCategoryOptions =
+                  currentKategori === "cpns"
+                    ? [
+                        { value: "SKD", label: "SKD (Seleksi Kompetensi Dasar)" },
+                        { value: "SKB", label: "SKB (Seleksi Kompetensi Bidang)" },
+                        { value: "Kedinasan", label: "Sekolah Kedinasan" },
+                      ]
+                    : [
+                        { value: "UTBK", label: "UTBK (SNBT)" },
+                        { value: "SNBP", label: "SNBP" },
+                        { value: "UM", label: "Ujian Mandiri (UM)" },
+                      ];
 
-                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="UTBK">UTBK</SelectItem>
-                      <SelectItem value="UM">UM</SelectItem>
-                    </SelectContent>
-                  </Select>
+                return (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>Sub-Kategori</FieldLabel>
 
-                  {fieldState.error && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value ?? (currentKategori === "cpns" ? "SKD" : "UTBK")}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih sub-kategori" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subCategoryOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {fieldState.error && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                );
+              }}
             />
 
             <Controller

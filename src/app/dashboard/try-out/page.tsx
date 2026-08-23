@@ -5,6 +5,7 @@ import { ChevronLeft, History, Search, KeyRound } from "lucide-react";
 import Link from "next/link";
 import TryoutCard from "@/components/molecules/card/TryoutCard";
 import { useSession } from "next-auth/react";
+import { useKategori } from "@/hooks/useKategori";
 import { useGetUserTryouts } from "@/http/tryout/get-user-tryouts";
 import { useGetHistoryTryout } from "@/http/tryout/get-history-tryout";
 import DialogRedeemCode from "@/components/molecules/dialog/DialogRedeemCode";
@@ -31,6 +32,8 @@ const PER_PAGE_OPTIONS = [3, 6, 9];
 export default function TryoutPage() {
   const { data: session, status: sessionStatus } = useSession();
   const token = session?.access_token || "";
+  const { kategori } = useKategori();
+  const isCpns = kategori === "cpns";
 
   const [activeFilter, setActiveFilter] = useState("Semua Tryout");
   const [searchQuery, setSearchQuery] = useState("");
@@ -88,7 +91,7 @@ export default function TryoutPage() {
         (item) =>
           item.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
           (categoryFilter === "Semua" ||
-            item.category?.toUpperCase() === categoryFilter) &&
+            item.category?.toUpperCase() === categoryFilter.toUpperCase()) &&
           (activeFilter === "Semua Tryout" ||
             (activeFilter === "Tryout Premium" && item.type === "Premium") ||
             (activeFilter === "Tryout Gratis" && item.type === "Gratis") ||
@@ -102,19 +105,17 @@ export default function TryoutPage() {
         if (sortBy === "oldest") return timeA - timeB;
         if (sortBy === "title") return a.title.localeCompare(b.title);
         if (sortBy === "participants")
-          return b.participantsCount - a.participantsCount;
+          return (b.participantsCount || 0) - (a.participantsCount || 0);
 
-        const statusDiff = getStatusOrder(a) - getStatusOrder(b);
-        if (statusDiff !== 0) return statusDiff;
-        return timeA - timeB;
+        return getStatusOrder(a) - getStatusOrder(b);
       });
   }, [
-    activeFilter,
-    categoryFilter,
-    enrolledTryoutIds,
-    searchQuery,
-    sortBy,
     tryouts,
+    searchQuery,
+    categoryFilter,
+    activeFilter,
+    enrolledTryoutIds,
+    sortBy,
   ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
@@ -163,12 +164,13 @@ export default function TryoutPage() {
               <ChevronLeft className="w-6 h-6" />
             </Link>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-              Daftar Tryout
+              Daftar Tryout {isCpns ? "CPNS & Kedinasan" : "UTBK - SNBT"}
             </h1>
           </div>
           <p className="text-gray-600 text-sm pl-9">
-            Sobat UrClass, tingkatkan skor tryoutmu dan persiapkan diri menghadapi
-            ujian yang akan datang.
+            {isCpns
+              ? "Sobat UrClass, latih kemampuan CAT SKD (TWK, TIU, TKP) dengan standar penilaian resmi."
+              : "Sobat UrClass, tingkatkan skor tryoutmu dan persiapkan diri menghadapi seleksi masuk PTN."}
           </p>
         </div>
 
@@ -176,7 +178,11 @@ export default function TryoutPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowRedeemDialog(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit"
+            className={`flex items-center gap-2 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit ${
+              isCpns
+                ? "bg-amber-700 hover:bg-amber-800"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
             <KeyRound className="w-4 h-4" />
             <span>Kode Akses</span>
@@ -198,10 +204,18 @@ export default function TryoutPage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Mau tryout seperti apa?"
+            placeholder={
+              isCpns
+                ? "Cari tryout CPNS, SKD, Kedinasan..."
+                : "Mau tryout seperti apa?"
+            }
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-sm"
+            className={`w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all shadow-sm ${
+              isCpns
+                ? "focus:ring-amber-600/20 focus:border-amber-600"
+                : "focus:ring-blue-600/20 focus:border-blue-600"
+            }`}
           />
         </div>
 
@@ -213,7 +227,9 @@ export default function TryoutPage() {
               onClick={() => handleFilterChange(filter)}
               className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
                 activeFilter === filter
-                  ? "bg-blue-600 text-white"
+                  ? isCpns
+                    ? "bg-amber-700 text-white"
+                    : "bg-blue-600 text-white"
                   : "bg-[#EAEFF4] text-[#5A6A80] hover:bg-gray-200"
               }`}
             >
@@ -232,8 +248,19 @@ export default function TryoutPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Semua">Semua Jenis</SelectItem>
-              <SelectItem value="UTBK">UTBK</SelectItem>
-              <SelectItem value="UM">UM</SelectItem>
+              {isCpns ? (
+                <>
+                  <SelectItem value="SKD">SKD</SelectItem>
+                  <SelectItem value="SKB">SKB</SelectItem>
+                  <SelectItem value="Kedinasan">Kedinasan</SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value="UTBK">UTBK</SelectItem>
+                  <SelectItem value="SNBP">SNBP</SelectItem>
+                  <SelectItem value="UM">UM</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
 

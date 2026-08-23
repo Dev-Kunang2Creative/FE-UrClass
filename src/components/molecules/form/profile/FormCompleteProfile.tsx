@@ -34,6 +34,8 @@ export default function FormCompleteProfile({ onSuccess }: FormCompleteProfilePr
       city: session?.user?.city || "",
       target_university_1: session?.user?.target_university_1 || "",
       target_major_1: session?.user?.target_major_1 || "",
+      target_university_2: session?.user?.target_university_2 || "",
+      target_major_2: session?.user?.target_major_2 || "",
     },
     mode: "onChange",
   });
@@ -61,6 +63,8 @@ export default function FormCompleteProfile({ onSuccess }: FormCompleteProfilePr
             city: body.city,
             target_university_1: body.target_university_1,
             target_major_1: body.target_major_1,
+            target_university_2: body.target_university_2,
+            target_major_2: body.target_major_2,
           }
         });
       }
@@ -86,6 +90,8 @@ export default function FormCompleteProfile({ onSuccess }: FormCompleteProfilePr
           city: body.city,
           target_university_1: body.target_university_1,
           target_major_1: body.target_major_1,
+          target_university_2: body.target_university_2,
+          target_major_2: body.target_major_2,
         }
       });
 
@@ -302,38 +308,84 @@ export default function FormCompleteProfile({ onSuccess }: FormCompleteProfilePr
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Controller
-            control={form.control}
-            name="target_university_1"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Target Universitas</FieldLabel>
-                <Input
-                  {...field}
-                  type="text"
-                  placeholder="Mis: Universitas Brawijaya"
-                />
-                {fieldState.error && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+        {/* Target Pilihan 1 */}
+        <div className="pt-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-2">
+            Target Pilihan 1 (Utama)
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Controller
+              control={form.control}
+              name="target_university_1"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Target Universitas (Pilihan 1)</FieldLabel>
+                  <Input
+                    {...field}
+                    type="text"
+                    placeholder="Mis: Universitas Indonesia"
+                  />
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
 
-          <Controller
-            control={form.control}
-            name="target_major_1"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Target Jurusan</FieldLabel>
-                <Input
-                  {...field}
-                  type="text"
-                  placeholder="Mis: Teknik Informatika"
-                />
-                {fieldState.error && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+            <Controller
+              control={form.control}
+              name="target_major_1"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Target Jurusan (Pilihan 1)</FieldLabel>
+                  <Input
+                    {...field}
+                    type="text"
+                    placeholder="Mis: Ilmu Komputer"
+                  />
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Target Pilihan 2 */}
+        <div className="pt-1">
+          <p className="text-xs font-bold uppercase tracking-wider text-indigo-700 mb-2">
+            Target Pilihan 2 (Alternatif)
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Controller
+              control={form.control}
+              name="target_university_2"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Target Universitas (Pilihan 2)</FieldLabel>
+                  <Input
+                    {...field}
+                    type="text"
+                    placeholder="Mis: Universitas Brawijaya"
+                  />
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="target_major_2"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Target Jurusan (Pilihan 2)</FieldLabel>
+                  <Input
+                    {...field}
+                    type="text"
+                    placeholder="Mis: Teknik Informatika"
+                  />
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          </div>
         </div>
 
       </FieldGroup>

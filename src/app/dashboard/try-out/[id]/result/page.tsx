@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, Trophy, Target, CheckCircle2, XCircle, MinusCircle, Clock, BarChart3 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useKategori } from "@/hooks/useKategori";
 import { useGetTryoutResult } from "@/http/tryout/get-tryout-result";
 import { formatJakartaDate } from "@/utils/date-time";
 
@@ -18,6 +19,8 @@ export default function ResultPage({
   const attempt = Number(searchParams.get("attempt") || 0) || undefined;
   const { data: session } = useSession();
   const token = session?.access_token || "";
+  const { kategori } = useKategori();
+  const isCpns = kategori === "cpns";
 
   const { data: beResult, isLoading } = useGetTryoutResult({
     tryoutId,
@@ -31,7 +34,11 @@ export default function ResultPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+        <div
+          className={`animate-spin rounded-full h-10 w-10 border-b-2 ${
+            isCpns ? "border-amber-700" : "border-blue-600"
+          }`}
+        />
       </div>
     );
   }
@@ -40,7 +47,12 @@ export default function ResultPage({
     return (
       <div className="w-full max-w-3xl mx-auto py-12 px-4 text-center">
         <p className="text-gray-500">Data hasil tryout tidak tersedia.</p>
-        <Link href={`/dashboard/try-out/${tryoutId}`} className="text-blue-600 font-semibold mt-4 inline-block">
+        <Link
+          href={`/dashboard/try-out/${tryoutId}`}
+          className={`font-semibold mt-4 inline-block ${
+            isCpns ? "text-amber-700 hover:text-amber-800" : "text-blue-600 hover:text-blue-700"
+          }`}
+        >
           ← Kembali
         </Link>
       </div>
@@ -49,6 +61,10 @@ export default function ResultPage({
 
   const { summary, irt_result, use_irt, score_result } = result;
   const accuracy = Math.round(score_result?.accuracy ?? 0);
+
+  const heroCardClass = isCpns
+    ? "bg-linear-to-br from-amber-700 via-amber-800 to-amber-950 border-2 border-amber-800"
+    : "bg-linear-to-br from-blue-600 to-blue-900 border-2 border-blue-700";
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-in fade-in duration-500 pb-12">
@@ -63,7 +79,7 @@ export default function ResultPage({
       {/* Score Card — IRT atau Non-IRT */}
       {!use_irt ? (
         /* Non-IRT: tampilkan ringkasan benar/salah */
-        <div className="bg-linear-to-br from-blue-600 to-blue-900 rounded-2xl p-8 text-white mb-6 shadow-lg">
+        <div className={`${heroCardClass} rounded-2xl p-8 text-white mb-6 shadow-lg`}>
           <div className="flex items-center gap-3 mb-6">
             <Trophy className="w-8 h-8 text-yellow-300" />
             <div>
@@ -91,7 +107,7 @@ export default function ResultPage({
           </div>
         </div>
       ) : irt_result?.is_ready ? (
-        <div className="bg-linear-to-br from-blue-600 to-blue-900 rounded-2xl p-8 text-white mb-6 shadow-lg">
+        <div className={`${heroCardClass} rounded-2xl p-8 text-white mb-6 shadow-lg`}>
           <div className="flex items-center gap-3 mb-4">
             <Trophy className="w-8 h-8 text-yellow-300" />
             <div>
@@ -153,7 +169,7 @@ export default function ResultPage({
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-        <SummaryCard icon={<Target className="w-5 h-5 text-blue-500" />} label="Total Soal" value={summary.total_questions} bgColor="bg-blue-50" />
+        <SummaryCard icon={<Target className={`w-5 h-5 ${isCpns ? "text-amber-600" : "text-blue-500"}`} />} label="Total Soal" value={summary.total_questions} bgColor={isCpns ? "bg-amber-50" : "bg-blue-50"} />
         <SummaryCard icon={<BarChart3 className="w-5 h-5 text-purple-500" />} label="Dijawab" value={summary.answered} bgColor="bg-purple-50" />
         <SummaryCard icon={<CheckCircle2 className="w-5 h-5 text-green-500" />} label="Benar" value={summary.correct} bgColor="bg-green-50" />
         <SummaryCard icon={<XCircle className="w-5 h-5 text-red-500" />} label="Salah" value={summary.wrong} bgColor="bg-red-50" />
@@ -164,7 +180,11 @@ export default function ResultPage({
       <div className="flex flex-col sm:flex-row gap-3">
         <Link
           href={`/dashboard/try-out/${tryoutId}/review${attemptQuery}`}
-          className="flex-1 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-center transition-colors"
+          className={`flex-1 py-3.5 text-white font-bold rounded-xl text-center transition-colors ${
+            isCpns
+              ? "bg-amber-700 hover:bg-amber-800 shadow-[2px_2px_0px_0px_#1e293b]"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
           Lihat Pembahasan
         </Link>

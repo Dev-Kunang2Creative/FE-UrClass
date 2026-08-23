@@ -12,6 +12,8 @@ export const updateProfileSchema = z.object({
   city: z.string().optional(),
   target_university_1: z.string().optional(),
   target_major_1: z.string().optional(),
+  target_university_2: z.string().optional(),
+  target_major_2: z.string().optional(),
 });
 
 export type UpdateProfileType = z.infer<typeof updateProfileSchema>;

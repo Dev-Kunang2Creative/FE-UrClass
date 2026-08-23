@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useMemo } from "react";
 import Link from "next/link";
 import { ChevronLeft, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useKategori } from "@/hooks/useKategori";
 import { useStartTryout, type StartTryoutResponse } from "@/http/tryout/start-tryout";
 import { useGetUserTryoutDetail } from "@/http/tryout/get-user-tryout-detail";
 import { toast } from "sonner";
@@ -28,6 +29,8 @@ export default function TryoutStartPage({
   const router = useRouter();
   const { data: session } = useSession();
   const token = session?.access_token || "";
+  const { kategori } = useKategori();
+  const isCpns = kategori === "cpns";
 
   const [isChecked, setIsChecked] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -52,19 +55,22 @@ export default function TryoutStartPage({
         name: displayName,
         questions: ts.subtest.questions_count ?? ts.subtest.max_questions ?? 0,
         duration: ts.duration_minutes || 0,
-        category: ts.subtest.category,
+        category: ts.subtest.category || (isCpns ? "SKD" : "TPS"),
       };
     });
 
-  const subtestsTPS = allSubtests.filter((s) => s.category === "TPS");
-  const subtestsLIT = allSubtests.filter((s) => s.category === "Literasi");
-
   const totalQuestions = allSubtests.reduce((s, t) => s + t.questions, 0);
   const totalDuration = allSubtests.reduce((s, t) => s + t.duration, 0);
-  const tpsDuration = subtestsTPS.reduce((s, t) => s + t.duration, 0);
-  const litDuration = subtestsLIT.reduce((s, t) => s + t.duration, 0);
-  const tpsQuestions = subtestsTPS.reduce((s, t) => s + t.questions, 0);
-  const litQuestions = subtestsLIT.reduce((s, t) => s + t.questions, 0);
+
+  const groupedSubtests = useMemo(() => {
+    const groups: Record<string, TryoutSubtestSummary[]> = {};
+    allSubtests.forEach((s) => {
+      const cat = s.category || (isCpns ? "SKD" : "Umum");
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(s);
+    });
+    return groups;
+  }, [allSubtests, isCpns]);
 
   const startTryoutMutation = useStartTryout({
     token,
@@ -90,7 +96,11 @@ export default function TryoutStartPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+        <div
+          className={`animate-spin rounded-full h-10 w-10 border-b-2 ${
+            isCpns ? "border-amber-700" : "border-blue-600"
+          }`}
+        />
       </div>
     );
   }
@@ -107,15 +117,31 @@ export default function TryoutStartPage({
 
       <div className="px-6 md:px-10 space-y-8 max-w-4xl mx-auto">
         {/* Banner */}
-        <div className="bg-blue-50 rounded-xl p-6 text-center border border-blue-100">
-          <h2 className="text-xl font-bold text-blue-600 mb-2">Instruksi Pengerjaan Tryout</h2>
+        <div
+          className={`rounded-xl p-6 text-center border ${
+            isCpns
+              ? "bg-amber-50 border-amber-200"
+              : "bg-blue-50 border-blue-100"
+          }`}
+        >
+          <h2
+            className={`text-xl font-bold mb-2 ${
+              isCpns ? "text-amber-800" : "text-blue-600"
+            }`}
+          >
+            Instruksi Pengerjaan Tryout {isCpns ? "CPNS" : "UTBK"}
+          </h2>
           <p className="text-gray-700 text-sm">Baca instruksi berikut dengan seksama sebelum memulai tryout.</p>
         </div>
 
         {/* Title & Meta */}
         <div className="text-center space-y-4">
           <h3 className="text-xl font-bold text-gray-900">{tryoutTitle}</h3>
-          <div className="flex items-center justify-center gap-4 text-xs md:text-sm text-blue-600 font-semibold">
+          <div
+            className={`flex items-center justify-center gap-4 text-xs md:text-sm font-semibold ${
+              isCpns ? "text-amber-800" : "text-blue-600"
+            }`}
+          >
             <div className="flex items-center gap-1.5">
               <span className="text-gray-500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
               <span>Total Waktu {totalDuration} menit</span>
@@ -129,42 +155,38 @@ export default function TryoutStartPage({
         </div>
 
         {/* Subtests Box */}
-        <div className="border border-gray-200 rounded-xl p-6 md:p-8 space-y-8">
-          {subtestsTPS.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="font-bold text-gray-900 text-lg">Tes Potensi Skolastik (TPS)</h4>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>Jumlah Soal : {tpsQuestions} Soal</p>
-                <p>Durasi : {tpsDuration} menit</p>
+        <div className="border border-gray-200 rounded-xl p-6 md:p-8 space-y-6">
+          {Object.entries(groupedSubtests).map(([catName, list], idx) => {
+            const groupDuration = list.reduce((s, t) => s + t.duration, 0);
+            const groupQuestions = list.reduce((s, t) => s + t.questions, 0);
+
+            return (
+              <div key={catName} className="space-y-3">
+                {idx > 0 && <hr className="border-gray-100 mb-6" />}
+                <h4 className="font-bold text-gray-900 text-lg">
+                  {catName === "TPS"
+                    ? "Tes Potensi Skolastik (TPS)"
+                    : catName === "Literasi"
+                      ? "Tes Literasi"
+                      : catName === "SKD"
+                        ? "Seleksi Kompetensi Dasar (SKD)"
+                        : catName}
+                </h4>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>Jumlah Soal : {groupQuestions} Soal</p>
+                  <p>Durasi : {groupDuration} menit</p>
+                </div>
+                <div className="pt-2">
+                  <p className="text-sm text-gray-600 mb-2">Isi subtest :</p>
+                  <ul className="text-sm text-gray-600 space-y-1.5">
+                    {list.map((s) => (
+                      <li key={s.name}>• {s.name} : {s.questions} soal ({s.duration} mnt)</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <div className="pt-2">
-                <p className="text-sm text-gray-600 mb-2">Isi subtest :</p>
-                <ul className="text-sm text-gray-600 space-y-1.5">
-                  {subtestsTPS.map((s) => (
-                    <li key={s.name}>• {s.name} : {s.questions} soal</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-          {subtestsTPS.length > 0 && subtestsLIT.length > 0 && <hr className="border-gray-100" />}
-          {subtestsLIT.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="font-bold text-gray-900 text-lg">Tes Literasi</h4>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>Jumlah Soal : {litQuestions} Soal</p>
-                <p>Durasi : {litDuration} menit</p>
-              </div>
-              <div className="pt-2">
-                <p className="text-sm text-gray-600 mb-2">Isi subtest :</p>
-                <ul className="text-sm text-gray-600 space-y-1.5">
-                  {subtestsLIT.map((s) => (
-                    <li key={s.name}>• {s.name} : {s.questions} soal</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
+            );
+          })}
         </div>
 
         {/* Rules */}

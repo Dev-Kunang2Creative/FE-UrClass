@@ -17,6 +17,8 @@ export const updateProfileApiHandler = async (
     city: body.city || "-",
     target_university_1: body.target_university_1 || "-",
     target_major_1: body.target_major_1 || "-",
+    target_university_2: body.target_university_2 || null,
+    target_major_2: body.target_major_2 || null,
   };
 
   const { data } = await api.put("/profile/update", payload, {

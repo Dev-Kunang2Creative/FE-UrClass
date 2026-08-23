@@ -6,18 +6,19 @@ import { ChevronLeft, History, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetAllPackages } from "@/http/pembelian/get-all-packages";
 import PackageCard from "@/components/molecules/card/PackageCard";
+import { useKategori } from "@/hooks/useKategori";
 
 const categories = [
   "Semua Paket",
   "Paket Try Out",
-  "Paket Live Class",
-  "Paket Konsultasi",
   "Mega Paket",
 ];
 
 export default function PembelianPage() {
   const { data: session } = useSession();
   const token = session?.access_token || "";
+  const { kategori } = useKategori();
+  const isCpns = kategori === "cpns";
 
   const [activeCategory, setActiveCategory] = useState("Semua Paket");
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,11 +33,7 @@ export default function PembelianPage() {
 
     let matchesCategory = true;
     if (activeCategory === "Paket Try Out")
-      matchesCategory = pkg.title.toLowerCase().includes("try out");
-    if (activeCategory === "Paket Live Class")
-      matchesCategory = pkg.title.toLowerCase().includes("live class");
-    if (activeCategory === "Paket Konsultasi")
-      matchesCategory = pkg.title.toLowerCase().includes("konsultasi");
+      matchesCategory = pkg.title.toLowerCase().includes("try out") || pkg.title.toLowerCase().includes("to");
     if (activeCategory === "Mega Paket")
       matchesCategory = pkg.title.toLowerCase().includes("mega");
 
@@ -56,17 +53,17 @@ export default function PembelianPage() {
               <ChevronLeft className="w-6 h-6" />
             </Link>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-              Pembelian
+              Pembelian Paket
             </h1>
           </div>
           <p className="text-gray-600 text-sm pl-9">
-            Amunisian, pilih paket yang paling cocok untuk persiapanmu!
+            Pilih paket yang paling cocok untuk persiapan belajarmu!
           </p>
         </div>
 
         <Link
           href="/dashboard/pembelian/riwayat"
-          className="flex items-center gap-2 bg-[#3C8D60] hover:bg-[#327851] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit md:mt-0"
+          className="flex items-center gap-2 bg-[#3C8D60] hover:bg-[#327851] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit md:mt-0 shadow-sm"
         >
           <History className="w-4 h-4" />
           <span>Riwayat Pembelian</span>
@@ -81,7 +78,11 @@ export default function PembelianPage() {
           </div>
           <input
             type="text"
-            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm shadow-sm transition-all"
+            className={`w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 text-sm shadow-sm transition-all ${
+              isCpns
+                ? "focus:ring-amber-500/20 focus:border-amber-600"
+                : "focus:ring-blue-500/20 focus:border-blue-600"
+            }`}
             placeholder="Cari paket sesuai kebutuhanmu"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -95,7 +96,9 @@ export default function PembelianPage() {
               onClick={() => setActiveCategory(category)}
               className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
                 activeCategory === category
-                  ? "bg-blue-600 text-white"
+                  ? isCpns
+                    ? "bg-amber-700 text-white shadow-sm"
+                    : "bg-blue-600 text-white shadow-sm"
                   : "bg-slate-200 text-slate-700 hover:bg-slate-300"
               }`}
             >

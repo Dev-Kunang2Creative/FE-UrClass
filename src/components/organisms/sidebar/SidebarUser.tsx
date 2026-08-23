@@ -39,20 +39,20 @@ export function SidebarUser({ session }: SidebarUserProps) {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-full border">
-                <AvatarFallback className="rounded-lg">
-                  {generateFallbackFromName(session?.user.name)}
+              <Avatar className="h-8 w-8 rounded-full border border-slate-200 shrink-0">
+                <AvatarFallback className="rounded-full bg-blue-100 text-blue-700 font-bold text-xs">
+                  {generateFallbackFromName(session?.user.name || "U")}
                 </AvatarFallback>
               </Avatar>
 
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  {session?.user.name}
+              <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+                <span className="truncate font-semibold text-slate-800">
+                  {session?.user.name || "Sobat UrClass"}
                 </span>
-                <span className="truncate text-xs">{session?.user.email}</span>
+                <span className="truncate text-xs text-slate-500">{session?.user.email}</span>
               </div>
 
-              <EllipsisVertical className="ml-auto size-4" />
+              <EllipsisVertical className="ml-auto size-4 text-slate-400 shrink-0" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
 

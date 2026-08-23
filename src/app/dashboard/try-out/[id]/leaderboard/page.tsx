@@ -4,6 +4,7 @@ import { use } from "react";
 import Link from "next/link";
 import { ChevronLeft, Medal, Trophy, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useKategori } from "@/hooks/useKategori";
 import { useGetTryoutLeaderboard } from "@/http/tryout/get-tryout-leaderboard";
 import { formatJakartaDateTime } from "@/utils/date-time";
 import type { LeaderboardEntry } from "@/types/exam/exam";
@@ -17,6 +18,8 @@ export default function TryoutLeaderboardPage({
   const { data: session } = useSession();
   const token = session?.access_token || "";
   const currentUserId = session?.user?.id || "";
+  const { kategori } = useKategori();
+  const isCpns = kategori === "cpns";
 
   const { data, isLoading } = useGetTryoutLeaderboard({
     tryoutId,
@@ -40,7 +43,13 @@ export default function TryoutLeaderboardPage({
         <h1 className="text-xl font-bold text-gray-900">Leaderboard Tryout</h1>
       </div>
 
-      <div className="bg-linear-to-br from-blue-600 to-blue-900 rounded-2xl p-6 md:p-8 text-white mb-6 shadow-lg">
+      <div
+        className={`rounded-2xl p-6 md:p-8 text-white mb-6 shadow-lg ${
+          isCpns
+            ? "bg-linear-to-br from-amber-700 via-amber-800 to-amber-950 border-2 border-amber-800"
+            : "bg-linear-to-br from-blue-600 to-blue-900 border-2 border-blue-700"
+        }`}
+      >
         <div className="flex items-center gap-3">
           <Trophy className="w-8 h-8 text-yellow-300" />
           <div>
@@ -95,6 +104,7 @@ export default function TryoutLeaderboardPage({
                 key={entry.user_id}
                 entry={entry}
                 isMe={entry.user_id === currentUserId}
+                isCpns={isCpns}
               />
             ))}
           </div>
@@ -107,9 +117,11 @@ export default function TryoutLeaderboardPage({
 function LeaderboardRow({
   entry,
   isMe,
+  isCpns,
 }: {
   entry: LeaderboardEntry;
   isMe: boolean;
+  isCpns: boolean;
 }) {
   const finishedAt = entry.finished_at
     ? formatJakartaDateTime(entry.finished_at, { month: "short" })
@@ -118,12 +130,20 @@ function LeaderboardRow({
   return (
     <div
       className={`grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto_auto] gap-4 items-center p-5 transition-colors ${
-        isMe ? "bg-blue-50 border-l-4 border-l-[#2563EB]" : ""
+        isMe
+          ? isCpns
+            ? "bg-amber-50/70 border-l-4 border-l-amber-700"
+            : "bg-blue-50 border-l-4 border-l-[#2563EB]"
+          : ""
       }`}
     >
       <div
         className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
-          isMe ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"
+          isMe
+            ? isCpns
+              ? "bg-amber-700 text-white"
+              : "bg-blue-600 text-white"
+            : "bg-slate-100 text-slate-700"
         }`}
       >
         {entry.rank <= 3 ? (
@@ -145,7 +165,11 @@ function LeaderboardRow({
         <div className="flex items-center gap-2">
           <p className="font-bold text-slate-900 truncate">{entry.user_name}</p>
           {isMe && (
-            <span className="shrink-0 text-[0.65rem] font-bold text-white bg-blue-600 px-2 py-0.5 rounded-full">
+            <span
+              className={`shrink-0 text-[0.65rem] font-bold text-white px-2 py-0.5 rounded-full ${
+                isCpns ? "bg-amber-700" : "bg-blue-600"
+              }`}
+            >
               Anda
             </span>
           )}
@@ -164,7 +188,11 @@ function LeaderboardRow({
 
       <div className="text-left md:text-right col-start-2 md:col-start-auto">
         <p className="text-xs text-slate-500">Skor</p>
-        <p className="text-xl font-bold text-blue-600">
+        <p
+          className={`text-xl font-bold ${
+            isCpns ? "text-amber-700" : "text-blue-600"
+          }`}
+        >
           {entry.score.final_score}
         </p>
       </div>

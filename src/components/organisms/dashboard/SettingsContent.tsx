@@ -49,8 +49,10 @@ export default function SettingsContent() {
   const birthDate = user?.birth_date || "-";
   const province = user?.province || "-";
   const city = user?.city || "-";
-  const targetUniversity = user?.target_university_1 || "-";
-  const targetMajor = user?.target_major_1 || "-";
+  const targetUniversity1 = user?.target_university_1 || "-";
+  const targetMajor1 = user?.target_major_1 || "-";
+  const targetUniversity2 = user?.target_university_2 || "-";
+  const targetMajor2 = user?.target_major_2 || "-";
 
   return (
     <div className="space-y-6">
@@ -246,8 +248,10 @@ export default function SettingsContent() {
             <div className="p-6 space-y-4">
               <DetailRow label="Asal Sekolah" value={school} />
               <DetailRow label="Jenjang & Kelas" value={gradeLevel} />
-              <DetailRow label="Target Universitas" value={targetUniversity} />
-              <DetailRow label="Target Jurusan" value={targetMajor} />
+              <DetailRow label="Target Universitas (Pilihan 1)" value={targetUniversity1} />
+              <DetailRow label="Target Jurusan (Pilihan 1)" value={targetMajor1} />
+              <DetailRow label="Target Universitas (Pilihan 2)" value={targetUniversity2} />
+              <DetailRow label="Target Jurusan (Pilihan 2)" value={targetMajor2} />
             </div>
           </div>
 
