@@ -29,11 +29,11 @@ export const metadata: Metadata = {
     "platform tryout indonesia",
     "persiapan utbk",
   ],
-  authors: [{ name: "UrClass", url: "https://app.amunisiptn.com" }],
+  authors: [{ name: "UrClass", url: "https://urclass.id" }],
   applicationName: "UrClass",
-  metadataBase: new URL("https://app.amunisiptn.com"),
+  metadataBase: new URL("https://urclass.id"),
   alternates: {
-    canonical: "https://app.amunisiptn.com",
+    canonical: "https://urclass.id",
   },
   robots: {
     index: true,
@@ -47,17 +47,17 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "UrClass - Tryout & Bimbel SNBP, UTBK (SNBT) & UM PTN",
+    title: "UrClass - Platform Simulasi Tryout UTBK (SNBT) & CPNS (SKD)",
     description:
-      "Gabung UrClass untuk tryout UTBK: simulasi ujian real-time, pembahasan lengkap, kelas intensif, dan analitik progress. Siapkan strategi masuk PTN terbaikmu.",
-    url: "https://app.amunisiptn.com",
+      "Simulasi ujian real-time, pembahasan detail langkah demi langkah, dan analitik performa untuk target lolos PTN & ASN impianmu.",
+    url: "https://urclass.id",
     siteName: "UrClass",
     images: [
       {
-        url: "https://app.amunisiptn.com/images/logo/urclass.png",
+        url: "/images/logo/urclass.png",
         width: 1200,
         height: 630,
-        alt: "UrClass - Tryout & Bimbel SNBP, UTBK, UM PTN",
+        alt: "UrClass - Platform Tryout UTBK & CPNS",
       },
     ],
     locale: "id_ID",
@@ -65,11 +65,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "UrClass - Tryout & Bimbel SNBP, UTBK (SNBT) & UM PTN",
+    title: "UrClass - Platform Simulasi Tryout UTBK & CPNS",
     description:
-      "Simulasi UTBK, pembahasan lengkap, dan paket bimbel intensif - semua ada di UrClass.",
+      "Simulasi ujian real-time, pembahasan lengkap, dan analitik akurasi di UrClass.",
     creator: "@UrClass",
-    images: ["https://app.amunisiptn.com/images/logo/urclass.png"],
+    images: ["/images/logo/urclass.png"],
   },
 };
 

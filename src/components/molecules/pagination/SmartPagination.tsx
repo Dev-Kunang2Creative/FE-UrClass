@@ -94,7 +94,7 @@ export default function SmartPagination({
                 onClick={() => onPageChange(visiblePage)}
                 className={`h-10 min-w-10 rounded-lg px-3 text-sm font-bold transition-colors ${
                   visiblePage === safePage
-                    ? "bg-[#004AAB] text-white"
+                    ? "bg-blue-600 text-white"
                     : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                 }`}
               >

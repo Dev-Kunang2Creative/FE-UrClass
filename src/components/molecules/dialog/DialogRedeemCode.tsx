@@ -62,7 +62,7 @@ export default function DialogRedeemCode({ open, onOpenChange }: DialogRedeemCod
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent showCloseButton={false} className="sm:max-w-md p-0 rounded-2xl overflow-hidden">
-          <div className="bg-[#004AAB] p-6 text-white text-center">
+          <div className="bg-blue-600 p-6 text-white text-center">
             <div className="w-14 h-14 mx-auto rounded-full bg-white/20 flex items-center justify-center mb-3">
               <KeyRound className="w-7 h-7" />
             </div>
@@ -80,7 +80,7 @@ export default function DialogRedeemCode({ open, onOpenChange }: DialogRedeemCod
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="Contoh: ABCDEF1234"
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-mono tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-[#004AAB]/30 focus:border-[#004AAB] uppercase"
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-mono tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 uppercase"
                 maxLength={40}
               />
             </div>
@@ -95,7 +95,7 @@ export default function DialogRedeemCode({ open, onOpenChange }: DialogRedeemCod
               <button
                 onClick={handleRedeem}
                 disabled={isProcessing || !code.trim()}
-                className="flex-1 bg-[#004AAB] hover:bg-[#003B8A] text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
               >
                 {isProcessing ? "Memproses..." : "Gunakan Kode"}
               </button>
@@ -115,7 +115,7 @@ export default function DialogRedeemCode({ open, onOpenChange }: DialogRedeemCod
           </DialogDescription>
           <button
             onClick={() => setQuotaModalOpen(false)}
-            className="w-full rounded-xl bg-[#004AAB] py-3 font-bold text-white hover:bg-[#003B8A]"
+            className="w-full rounded-xl bg-blue-600 py-3 font-bold text-white hover:bg-blue-700"
           >
             Mengerti
           </button>

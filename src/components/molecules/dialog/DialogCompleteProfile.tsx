@@ -36,9 +36,9 @@ export default function DialogCompleteProfile({
           <Image
             src="/images/logo/urclass.png"
             alt="UrClass"
-            width={150}
-            height={150}
-            className="h-9 w-auto"
+            width={180}
+            height={60}
+            className="h-12 w-auto object-contain"
           />
           <DialogHeader className="space-y-1">
             <DialogTitle className="text-xl font-bold">

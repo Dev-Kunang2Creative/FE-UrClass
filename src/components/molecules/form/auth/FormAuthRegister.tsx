@@ -21,9 +21,11 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { getErrorMessage } from "@/utils/get-error-message";
+import TurnstileWidget from "@/components/atoms/turnstile/TurnstileWidget";
 
 export default function FormAuthRegister() {
   const [isLoading, setIsLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
   const form = useForm<RegisterType>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -42,7 +44,10 @@ export default function FormAuthRegister() {
     setIsLoading(true);
 
     try {
-      await registerApiHandler(body);
+      await registerApiHandler({
+        ...body,
+        cf_turnstile_response: turnstileToken,
+      });
 
       setIsLoading(false);
 
@@ -155,9 +160,14 @@ export default function FormAuthRegister() {
           )}
         />
       </FieldGroup>
+      <TurnstileWidget
+        onSuccess={(token) => setTurnstileToken(token)}
+        onError={() => setTurnstileToken("")}
+        onExpire={() => setTurnstileToken("")}
+      />
       <div>
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Loading..." : "Daftar"}
+        <Button type="submit" className="w-full font-bold" disabled={isLoading}>
+          {isLoading ? "Loading..." : "Daftar Akun"}
         </Button>
       </div>
     </form>

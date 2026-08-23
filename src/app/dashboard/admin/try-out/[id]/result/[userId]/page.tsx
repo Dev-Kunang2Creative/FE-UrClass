@@ -84,7 +84,7 @@ export default function AdminUserTryoutReviewPage({
     return (
       <div className="fixed inset-0 z-50 bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004AAB] mx-auto mb-4" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4" />
           <p className="text-gray-500 text-sm">Memuat pembahasan try out...</p>
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function AdminUserTryoutReviewPage({
             onClick={() =>
               router.push(`/dashboard/admin/try-out/${tryoutId}/result`)
             }
-            className="rounded-full bg-[#004AAB] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#003B8A]"
+            className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
           >
             Kembali ke Leaderboard
           </button>
@@ -136,7 +136,7 @@ export default function AdminUserTryoutReviewPage({
             {currentQuestionIndex + 1}
           </p>
         </div>
-        <div className="rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-bold text-[#004AAB]">
+        <div className="rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-600">
           Mode Review (Admin)
         </div>
       </header>
@@ -149,7 +149,7 @@ export default function AdminUserTryoutReviewPage({
               onClick={() => handleSelectSubtest("all")}
               className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
                 selectedSubtestId === "all"
-                  ? "bg-[#004AAB] text-white"
+                  ? "bg-blue-600 text-white"
                   : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
               }`}
             >
@@ -162,7 +162,7 @@ export default function AdminUserTryoutReviewPage({
                 onClick={() => handleSelectSubtest(subtest.id)}
                 className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors lg:text-left ${
                   selectedSubtestId === subtest.id
-                    ? "bg-[#004AAB] text-white"
+                    ? "bg-blue-600 text-white"
                     : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
                 }`}
               >

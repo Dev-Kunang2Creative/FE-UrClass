@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Ticket, ClipboardList, GraduationCap } from "lucide-react";
+import { Ticket, ClipboardList } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -10,36 +10,30 @@ interface StatRowProps {
   theme: { statIcon: string; statCard: string };
   ticketCount: number;
   tryoutCount?: number;
-  kelasCount?: number;
   loading?: boolean;
 }
 
 const ITEMS = [
-  { key: "ticket", label: "Tiket tryout", icon: Ticket, href: "/dashboard/pembelian" },
-  { key: "tryout", label: "Tryout tersedia", icon: ClipboardList, href: "/dashboard/try-out" },
-  { key: "kelas", label: "Kelas saya", icon: GraduationCap, href: "/dashboard/kelas/saya" },
+  { key: "ticket", label: "Tiket Tryout", icon: Ticket, href: "/dashboard/pembelian" },
+  { key: "tryout", label: "Tryout Tersedia", icon: ClipboardList, href: "/dashboard/try-out" },
 ] as const;
-
-// Counts come from kategori-filtered endpoints, so the label should say which track.
 
 export default function StatRow({
   kategoriLabel,
   theme,
   ticketCount,
   tryoutCount,
-  kelasCount,
   loading,
 }: StatRowProps) {
   const values: Record<string, number | undefined> = {
     ticket: ticketCount,
     tryout: tryoutCount,
-    kelas: kelasCount,
   };
 
   return (
     <section
       aria-label={`Ringkasan ${kategoriLabel}`}
-      className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+      className="grid grid-cols-1 sm:grid-cols-2 gap-4"
     >
       {ITEMS.map(({ key, label, icon: Icon, href }) => {
         const value = values[key];
@@ -49,20 +43,24 @@ export default function StatRow({
             key={key}
             href={href}
             className={cn(
-              "group rounded-xl border bg-white p-4 transition-colors",
+              "group rounded-2xl border-2 border-slate-900 bg-white p-5 shadow-[4px_4px_0px_0px_#0f172a] hover:shadow-[6px_6px_0px_0px_#0f172a] hover:-translate-y-0.5 transition-all duration-200",
               theme.statCard,
             )}
           >
-            <div className="flex items-center gap-2 text-gray-500">
-              <Icon className={cn("size-4", theme.statIcon)} aria-hidden />
-              <span className="text-xs font-medium">
-                {key === "ticket" ? label : `${label} ${kategoriLabel}`}
-              </span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 text-slate-600">
+                <div className="p-2 rounded-xl bg-slate-100 border border-slate-200">
+                  <Icon className={cn("size-5", theme.statIcon)} aria-hidden />
+                </div>
+                <span className="text-sm font-bold text-slate-700">
+                  {key === "ticket" ? label : `${label} (${kategoriLabel})`}
+                </span>
+              </div>
             </div>
             {loading || value === undefined ? (
-              <Skeleton className="mt-2 h-8 w-10" />
+              <Skeleton className="mt-3 h-9 w-14 rounded-lg" />
             ) : (
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-gray-900">
+              <p className="mt-3 text-3xl font-extrabold tabular-nums text-slate-900">
                 {value}
               </p>
             )}

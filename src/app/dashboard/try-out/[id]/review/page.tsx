@@ -102,7 +102,7 @@ export default function ReviewPage({
     return (
       <div className="fixed inset-0 z-40 bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004AAB] mx-auto mb-4" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4" />
           <p className="text-gray-500 text-sm">Memuat pembahasan try out...</p>
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function ReviewPage({
           <button
             type="button"
             onClick={() => router.push(`/dashboard/try-out/${tryoutId}`)}
-            className="rounded-full bg-[#004AAB] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#003B8A]"
+            className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
           >
             Kembali ke Detail Try Out
           </button>
@@ -146,7 +146,7 @@ export default function ReviewPage({
           <p className="text-xs text-gray-500">Nomor Soal</p>
           <p className="font-bold text-lg text-gray-900">{currentQuestionIndex + 1}</p>
         </div>
-        <div className="rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-bold text-[#004AAB]">
+        <div className="rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-600">
           Mode Review
         </div>
       </header>
@@ -159,7 +159,7 @@ export default function ReviewPage({
               onClick={() => handleSelectSubtest("all")}
               className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
                 selectedSubtestId === "all"
-                  ? "bg-[#004AAB] text-white"
+                  ? "bg-blue-600 text-white"
                   : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
               }`}
             >
@@ -172,7 +172,7 @@ export default function ReviewPage({
                 onClick={() => handleSelectSubtest(subtest.id)}
                 className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors lg:text-left ${
                   selectedSubtestId === subtest.id
-                    ? "bg-[#004AAB] text-white"
+                    ? "bg-blue-600 text-white"
                     : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
                 }`}
               >

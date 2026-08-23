@@ -35,8 +35,8 @@ export const tryoutSchema = z.object({
   image: z.instanceof(File).optional().nullable(),
 
   category: z
-    .enum(["UTBK", "UM"], {
-      message: "Kategori harus UTBK atau UM",
+    .enum(["UTBK", "UM", "SNBP", "SKD", "SKB", "Kedinasan"], {
+      message: "Sub-kategori tidak valid",
     })
     .optional()
     .nullable(),

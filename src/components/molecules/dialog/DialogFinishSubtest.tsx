@@ -42,7 +42,7 @@ export default function DialogFinishSubtest({
                 </button>
                 <button
                   onClick={onConfirm}
-                  className="flex-1 bg-[#004AAB] hover:bg-[#003B8A] text-white font-semibold py-3 rounded-xl transition-colors shadow-sm"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors shadow-sm"
                 >
                   Tetap Akhiri Subtest
                 </button>
@@ -53,10 +53,10 @@ export default function DialogFinishSubtest({
               {/* All answered — "Kirim Jawaban Sekarang?" variant (matching reference) */}
               <div className="w-16 h-16 flex items-center justify-center mb-1">
                 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="48" height="48" rx="12" fill="#EBF4FF"/>
-                  <path d="M14 16h20v16H14V16z" stroke="#004AAB" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M20 24l3 3 5-6" stroke="#004AAB" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M14 16l10 8 10-8" stroke="#004AAB" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                  <rect width="48" height="48" rx="12" fill="#EFF6FF"/>
+                  <path d="M14 16h20v16H14V16z" stroke="#2563eb" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M20 24l3 3 5-6" stroke="#2563eb" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M14 16l10 8 10-8" stroke="#2563eb" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
               <DialogTitle className="text-xl font-bold text-gray-900 mt-2">
@@ -74,7 +74,7 @@ export default function DialogFinishSubtest({
                 </button>
                 <button
                   onClick={onConfirm}
-                  className="flex-1 bg-[#004AAB] hover:bg-[#003B8A] text-white font-semibold py-3 rounded-xl transition-colors shadow-sm"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors shadow-sm"
                 >
                   Kirim
                 </button>

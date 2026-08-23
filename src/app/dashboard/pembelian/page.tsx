@@ -95,7 +95,7 @@ export default function PembelianPage() {
               onClick={() => setActiveCategory(category)}
               className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
                 activeCategory === category
-                  ? "bg-[#004AAB] text-white"
+                  ? "bg-blue-600 text-white"
                   : "bg-slate-200 text-slate-700 hover:bg-slate-300"
               }`}
             >

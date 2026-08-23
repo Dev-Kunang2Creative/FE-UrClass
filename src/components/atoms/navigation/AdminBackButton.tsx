@@ -52,7 +52,7 @@ export default function AdminBackButton({
       size="icon"
       onClick={handleBack}
       className={cn(
-        "h-10 w-10 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-[#004AAB] rounded-full",
+        "h-10 w-10 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-blue-600 rounded-full",
         className,
       )}
       aria-label="Kembali ke halaman sebelumnya"

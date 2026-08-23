@@ -123,7 +123,7 @@ export default function TryoutCard({
       {/* Content */}
       <div className="p-4 md:p-5 flex flex-col flex-1">
         <div className="mb-3 flex gap-2 sm:hidden">
-          <span className="bg-blue-50 border border-blue-100 text-[#004AAB] text-xs px-3 py-1 rounded-full font-semibold">
+          <span className="bg-blue-50 border border-blue-100 text-blue-600 text-xs px-3 py-1 rounded-full font-semibold">
             {category || "-"}
           </span>
           <span className={`text-xs px-3 py-1 rounded-full font-semibold ${type === "Gratis" ? "bg-green-50 border border-green-100 text-green-700" : "bg-amber-50 border border-amber-100 text-amber-700"}`}>

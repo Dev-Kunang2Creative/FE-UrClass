@@ -71,23 +71,22 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
   return (
     <Sidebar>
       {/* Header */}
-      <SidebarHeader className="h-18 cursor-default justify-center bg-white dark:bg-slate-950">
-        <SidebarMenu>
-          <SidebarMenuItem className="flex justify-start px-6 pt-2 w-full">
-            <div className="flex items-center gap-x-3 w-full">
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <Image
-                  src={"/images/logo/urclass.png"}
-                  alt="UrClass"
-                  width={150}
-                  height={150}
-                  priority
-                  className="h-8 w-auto object-contain"
-                />
-              </Link>
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarHeader className="h-24 p-0 cursor-default bg-white border-b border-slate-100 dark:bg-slate-950">
+        <div className="flex items-center justify-start px-5 h-full w-full">
+          <Link
+            href={session?.user.role === "admin" ? "/dashboard/admin" : "/dashboard"}
+            className="flex items-center group transition-transform hover:scale-[1.02]"
+          >
+            <Image
+              src="/images/logo/urclass.png"
+              alt="UrClass Logo"
+              width={260}
+              height={180}
+              priority
+              className="h-16 w-auto max-w-[170px] object-contain"
+            />
+          </Link>
+        </div>
       </SidebarHeader>
 
       <SidebarContent className="bg-white dark:bg-slate-950">
@@ -209,17 +208,6 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
-                      className={buttonClass("/dashboard/admin/kelas")}
-                    >
-                      <Link href="/dashboard/admin/kelas">
-                        <GraduationCap />
-                        <span>Kelas</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
                       className={buttonClass("/dashboard/admin/transactions")}
                     >
                       <Link href="/dashboard/admin/transactions">
@@ -267,8 +255,8 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       asChild
                       className={`h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center ${
                         pathname === "/dashboard"
-                          ? "bg-[#EBF4FF] text-[#004AAB] font-semibold"
-                          : "text-[#9695A5] hover:bg-[#EBF4FF] hover:text-[#004AAB]"
+                          ? "bg-blue-50 text-blue-600 font-bold border border-blue-200"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
                       <Link href="/dashboard" className="flex items-center w-full gap-3">
@@ -283,8 +271,8 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       asChild
                       className={`h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center ${
                         pathname.startsWith("/dashboard/try-out")
-                          ? "bg-[#EBF4FF] text-[#004AAB] font-semibold"
-                          : "text-[#9695A5] hover:bg-[#EBF4FF] hover:text-[#004AAB]"
+                          ? "bg-blue-50 text-blue-600 font-bold border border-blue-200"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
                       <Link href="/dashboard/try-out" className="flex items-center w-full gap-3">
@@ -298,25 +286,9 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     <SidebarMenuButton
                       asChild
                       className={`h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center ${
-                        pathname.startsWith("/dashboard/kelas")
-                          ? "bg-[#EBF4FF] text-[#004AAB] font-semibold"
-                          : "text-[#9695A5] hover:bg-[#EBF4FF] hover:text-[#004AAB]"
-                      }`}
-                    >
-                      <Link href="/dashboard/kelas" className="flex items-center w-full gap-3">
-                        <GraduationCap className="w-5 h-5 shrink-0" />
-                        <span>Kelas</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-
-                  <SidebarMenuItem className="w-full relative">
-                    <SidebarMenuButton
-                      asChild
-                      className={`h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center ${
                         pathname.startsWith("/dashboard/pembelian")
-                          ? "bg-[#EBF4FF] text-[#004AAB] font-semibold"
-                          : "text-[#9695A5] hover:bg-[#EBF4FF] hover:text-[#004AAB]"
+                          ? "bg-blue-50 text-blue-600 font-bold border border-blue-200"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
                       <Link href="/dashboard/pembelian" className="flex items-center w-full gap-3">
@@ -331,8 +303,8 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       asChild
                       className={`h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center ${
                         pathname.startsWith("/dashboard/tiket")
-                          ? "bg-[#EBF4FF] text-[#004AAB] font-semibold"
-                          : "text-[#9695A5] hover:bg-[#EBF4FF] hover:text-[#004AAB]"
+                          ? "bg-blue-50 text-blue-600 font-bold border border-blue-200"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
                       <Link href="/dashboard/tiket/riwayat" className="flex items-center w-full gap-3">
@@ -344,10 +316,10 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
 
                   <SidebarMenuItem className="w-full relative">
                     <SidebarMenuButton
-                      className="h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center text-[#9695A5] hover:bg-[#EBF4FF] hover:text-[#004AAB] cursor-pointer"
+                      className="h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center text-slate-600 hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
                       onClick={() => setWaModalOpen(true)}
                     >
-                      <LifeBuoy className="w-5 h-5 shrink-0" />
+                      <LifeBuoy className="w-5 h-5 shrink-0 text-blue-600" />
                       <span>Pusat Bantuan</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -370,7 +342,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <LifeBuoy className="w-5 h-5 text-[#004AAB]" />
+              <LifeBuoy className="w-5 h-5 text-blue-600" />
               Pusat Bantuan
             </DialogTitle>
             <DialogDescription>

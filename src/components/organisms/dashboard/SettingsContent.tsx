@@ -23,7 +23,7 @@ export default function SettingsContent() {
   const user = session.user;
   
   // Extract user info, using optional chaining and defaults
-  const name = user?.name || "Amunisian";
+  const name = user?.name || "Sobat UrClass";
   const email = user?.email || "-";
   const phone = user?.phone_number || "-";
   const school = user?.school_origin || "-";
@@ -43,13 +43,13 @@ export default function SettingsContent() {
       {/* Profile Header Card */}
       <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-          <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-[#EBF4FF] shrink-0">
-            <AvatarFallback className="bg-[#EBF4FF] text-[#004AAB] text-3xl">
+          <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-[#EFF6FF] shrink-0">
+            <AvatarFallback className="bg-blue-50 text-blue-600 text-3xl">
               <User className="h-8 w-8 sm:h-10 sm:w-10" />
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg sm:text-xl font-bold text-[#004AAB] truncate">{name}</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-blue-600 truncate">{name}</h2>
             <div className="flex items-center gap-2 text-gray-500 mt-1 shrink-0">
               <Mail className="h-4 w-4 shrink-0" />
               <span className="text-sm break-all">{email}</span>
@@ -61,7 +61,7 @@ export default function SettingsContent() {
         {!isEdit ? (
           <Button 
             variant="outline" 
-            className="shrink-0 text-[#004AAB] border-[#004AAB] hover:bg-[#EBF4FF]"
+            className="shrink-0 text-blue-600 border-blue-600 hover:bg-blue-50"
             onClick={() => setIsEdit(true)}
           >
             <Edit2 className="w-4 h-4 mr-2" />
@@ -82,7 +82,7 @@ export default function SettingsContent() {
       {isEdit ? (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-2xl">
           <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-            <h3 className="text-[#004AAB] font-semibold flex items-center gap-2">
+            <h3 className="text-blue-600 font-semibold flex items-center gap-2">
               <Edit2 className="w-4 h-4" />
               Perbarui Profil
             </h3>
@@ -97,7 +97,7 @@ export default function SettingsContent() {
           {/* Personal Detail Card */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-              <h3 className="text-[#004AAB] font-semibold flex items-center gap-2">
+              <h3 className="text-blue-600 font-semibold flex items-center gap-2">
                 <User className="w-4 h-4" />
                 Informasi Data Diri
               </h3>
@@ -116,7 +116,7 @@ export default function SettingsContent() {
           {/* Academic Detail Card */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-              <h3 className="text-[#004AAB] font-semibold flex items-center gap-2">
+              <h3 className="text-blue-600 font-semibold flex items-center gap-2">
                 <GraduationCap className="w-4 h-4" />
                 Informasi Akademik
               </h3>

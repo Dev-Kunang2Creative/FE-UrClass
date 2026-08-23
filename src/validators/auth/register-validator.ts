@@ -14,6 +14,7 @@ export const registerSchema = z
     password_confirmation: z
       .string()
       .min(1, { message: "Konfirmasi password wajib diisi" }),
+    cf_turnstile_response: z.string().optional(),
   })
   .refine((data) => data.password === data.password_confirmation, {
     message: "Konfirmasi password tidak cocok",

@@ -160,7 +160,7 @@ export default function AdminRedeemCodePage() {
     <main className="space-y-6">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-blue-50 rounded-lg">
-          <Gift className="w-6 h-6 text-[#004AAB]" />
+          <Gift className="w-6 h-6 text-blue-600" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Kode Redeem Tiket</h1>

@@ -30,14 +30,14 @@ export default function ExamSidebar({
 }: ExamSidebarProps) {
   return (
     <div className="w-full lg:w-65 shrink-0 flex flex-col gap-4">
-      <div className="bg-[#002B66] text-white rounded-xl p-4 text-center">
+      <div className="bg-[#1E3A8A] text-white rounded-xl p-4 text-center">
         <p className="text-sm font-medium opacity-80">Subtest:</p>
         <h3 className="font-bold text-base whitespace-pre-line">
           {subtestName}
         </h3>
       </div>
 
-      <div className="border-2 border-[#004AAB]/20 rounded-xl p-4">
+      <div className="border-2 border-blue-600/20 rounded-xl p-4">
         <h4 className="font-bold text-sm text-gray-800 mb-3 text-center">
           Daftar Soal:
         </h4>
@@ -64,7 +64,7 @@ export default function ExamSidebar({
                 onClick={() => onQuestionClick(i)}
                 className={`w-full aspect-square rounded-lg text-sm font-bold transition-all flex items-center justify-center ${
                   isActive
-                    ? "bg-[#004AAB] text-white ring-2 ring-[#004AAB] ring-offset-2"
+                    ? "bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2"
                     : buttonClass
                 }`}
               >
@@ -78,12 +78,12 @@ export default function ExamSidebar({
       {mode === "attempt" ? (
         <button
           onClick={onFinishSubtest}
-          className="w-full bg-[#004AAB] hover:bg-[#003B8A] text-white py-3 rounded-xl font-bold text-sm transition-colors"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm transition-colors"
         >
           Akhiri Subtest
         </button>
       ) : (
-        <div className="w-full bg-blue-50 border border-blue-100 text-[#004AAB] py-3 rounded-xl font-bold text-sm text-center">
+        <div className="w-full bg-blue-50 border border-blue-100 text-blue-600 py-3 rounded-xl font-bold text-sm text-center">
           {mode === "admin-review" ? "Mode Review (Admin)" : "Mode Review"}
         </div>
       )}

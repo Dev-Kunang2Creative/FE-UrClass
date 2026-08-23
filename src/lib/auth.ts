@@ -114,7 +114,7 @@ export const authOptions: NextAuthOptions = {
           ...session,
           user: {
             id: token.sub || "",
-            name: overrides?.name || session?.user?.name || "Amunisian",
+            name: overrides?.name || session?.user?.name || "Sobat UrClass",
             email: overrides?.email || session?.user?.email || "",
             role: overrides?.role || token.role || "user",
             ...overrides,

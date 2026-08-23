@@ -35,7 +35,7 @@ export function getTryoutButtonState({
 
 export const TRYOUT_BUTTON_CLASS: Record<TryoutButtonVariant, string> = {
   default:
-    "bg-[#004AAB] hover:bg-[#003B8A] text-white",
+    "bg-blue-600 hover:bg-blue-700 text-white",
   green:
     "bg-green-600 hover:bg-green-700 text-white",
   yellow:

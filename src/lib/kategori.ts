@@ -36,7 +36,7 @@ export const KATEGORI_CONFIG: Record<
     deskripsi: "Seleksi Masuk Perguruan Tinggi",
     icon: BookOpenCheck,
     tagline: "Kejar kampus impianmu lewat latihan TPS dan Literasi.",
-    heading: "Buat amunisian yang mau kejar UTBK",
+    heading: "Persiapan intensif target lolos UTBK - SNBT",
     theme: {
       accent: "bg-blue-50 text-blue-700 border-blue-200",
       switcherActive: "bg-blue-600 text-white",
@@ -51,7 +51,7 @@ export const KATEGORI_CONFIG: Record<
     deskripsi: "Seleksi Calon Aparatur Sipil Negara",
     icon: Landmark,
     tagline: "Siapkan SKD-mu: TWK, TIU, dan TKP dalam satu tempat.",
-    heading: "Buat amunisian yang mau lolos CPNS",
+    heading: "Persiapan intensif target lolos SKD CPNS",
     theme: {
       accent: "bg-amber-50 text-amber-800 border-amber-200",
       switcherActive: "bg-amber-700 text-white",

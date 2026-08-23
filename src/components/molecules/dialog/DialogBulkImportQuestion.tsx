@@ -161,7 +161,7 @@ export default function DialogBulkImportQuestion({
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-2 font-medium transition-colors ${
                   activeTab === tab
-                    ? "bg-[#004AAB] text-white"
+                    ? "bg-blue-600 text-white"
                     : "bg-white text-gray-500 hover:bg-gray-50"
                 }`}
               >

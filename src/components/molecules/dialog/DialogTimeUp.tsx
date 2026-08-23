@@ -40,9 +40,9 @@ export default function DialogTimeUp({
           </DialogDescription>
           <div className="w-full flex justify-center pt-2">
             <div className="animate-pulse flex space-x-2">
-              <div className="h-2 w-2 bg-[#004AAB] rounded-full"></div>
-              <div className="h-2 w-2 bg-[#004AAB] rounded-full delay-75"></div>
-              <div className="h-2 w-2 bg-[#004AAB] rounded-full delay-150"></div>
+              <div className="h-2 w-2 bg-blue-600 rounded-full"></div>
+              <div className="h-2 w-2 bg-blue-600 rounded-full delay-75"></div>
+              <div className="h-2 w-2 bg-blue-600 rounded-full delay-150"></div>
             </div>
           </div>
         </div>

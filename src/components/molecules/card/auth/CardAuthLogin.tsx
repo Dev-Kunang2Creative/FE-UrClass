@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import Link from "next/link";
 import FormAuthLogin from "../../form/auth/FormAuthLogin";
 import { useGetGoogleRedirect } from "@/http/auth/login-google";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export default function CardAuthLogin() {
   const { refetch: googleLogin, isFetching: isGoogleLoading } =
@@ -26,42 +26,55 @@ export default function CardAuthLogin() {
   };
 
   return (
-    <div className="space-y-6 w-full max-w-md h-full mx-auto">
-      <div className="flex items-center justify-center">
-        <Image
-          src={"/images/logo/urclass.png"}
-          alt="Logo UrClass"
-          width={200}
-          height={200}
-          priority
-          className="h-36 w-auto"
-        />
+    <div className="space-y-6 w-full max-w-md mx-auto py-6">
+      {/* Brand Logo Header */}
+      <div className="flex flex-col items-center justify-center space-y-2 mb-1">
+        <div className="bg-white px-8 py-4 rounded-2xl border-2 border-slate-900 shadow-[5px_5px_0px_0px_#0f172a] inline-flex items-center justify-center">
+          <Image
+            src="/images/logo/urclass.png"
+            alt="Logo UrClass"
+            width={320}
+            height={240}
+            priority
+            className="h-24 sm:h-28 w-auto object-contain"
+          />
+        </div>
       </div>
-      <Card className="p-4 border-0 shadow-none" size="sm">
-        <CardContent className="space-y-6 p-4 border-0 shadow-none">
-          <div>
-            <h3 className="text-2xl font-bold">Masuk</h3>
+
+      {/* Main Neo-Brutalist Card */}
+      <div className="bg-white border-2 border-slate-900 rounded-2xl shadow-[6px_6px_0px_0px_#0f172a] p-6 sm:p-8 space-y-6">
+        <div className="space-y-1 text-center">
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            Masuk ke Akunmu
+          </h2>
+          <p className="text-sm text-slate-600">
+            Akses ribuan soal tryout UTBK & CPNS terupdate.
+          </p>
+        </div>
+
+        <div className="space-y-5">
+          <FormAuthLogin />
+
+          <div className="flex items-center gap-3 py-1">
+            <Separator className="flex-1 bg-slate-200" />
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              atau
+            </span>
+            <Separator className="flex-1 bg-slate-200" />
           </div>
-          <div className="space-y-6">
-            <FormAuthLogin />
 
-            <div className="flex items-center gap-3">
-              <Separator className="flex-1" />
-              <span className="text-xs text-muted-foreground">ATAU</span>
-              <Separator className="flex-1" />
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGoogleLogin}
-              disabled={isGoogleLoading}
-              className="w-full gap-2.5 cursor-pointer"
-              size={"lg"}
-            >
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={isGoogleLoading}
+            className="w-full py-3 px-4 rounded-xl border-2 border-slate-900 bg-white font-bold text-sm text-slate-800 flex items-center justify-center gap-3 shadow-[3px_3px_0px_0px_#0f172a] hover:shadow-[1px_1px_0px_0px_#0f172a] hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[3px] active:translate-y-[3px] transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+          >
+            {isGoogleLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+            ) : (
               <svg
-                width="15"
-                height="15"
+                width="18"
+                height="18"
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
@@ -82,23 +95,23 @@ export default function CardAuthLogin() {
                   fill="#EA4335"
                 />
               </svg>
-              Masuk dengan Google
-            </Button>
-          </div>
+            )}
+            <span>Masuk dengan Google</span>
+          </button>
+        </div>
 
-          <div className="text-center">
-            <span className="text-sm text-muted-foreground">
-              Belum punya akun?{" "}
-            </span>
-            <Link
-              href="/register"
-              className="text-sm text-primary font-medium underline"
-            >
-              Daftar sekarang
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="text-center pt-2 border-t border-slate-100">
+          <span className="text-sm text-slate-600">
+            Belum punya akun?{" "}
+          </span>
+          <Link
+            href="/register"
+            className="text-sm text-blue-600 hover:text-blue-700 font-bold underline"
+          >
+            Daftar sekarang
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

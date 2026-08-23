@@ -90,7 +90,7 @@ export default function TryoutStartPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004AAB]" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
       </div>
     );
   }
@@ -107,15 +107,15 @@ export default function TryoutStartPage({
 
       <div className="px-6 md:px-10 space-y-8 max-w-4xl mx-auto">
         {/* Banner */}
-        <div className="bg-[#EBF4FF] rounded-xl p-6 text-center border border-blue-100">
-          <h2 className="text-xl font-bold text-[#004AAB] mb-2">Instruksi Pengerjaan Tryout</h2>
+        <div className="bg-blue-50 rounded-xl p-6 text-center border border-blue-100">
+          <h2 className="text-xl font-bold text-blue-600 mb-2">Instruksi Pengerjaan Tryout</h2>
           <p className="text-gray-700 text-sm">Baca instruksi berikut dengan seksama sebelum memulai tryout.</p>
         </div>
 
         {/* Title & Meta */}
         <div className="text-center space-y-4">
           <h3 className="text-xl font-bold text-gray-900">{tryoutTitle}</h3>
-          <div className="flex items-center justify-center gap-4 text-xs md:text-sm text-[#004AAB] font-semibold">
+          <div className="flex items-center justify-center gap-4 text-xs md:text-sm text-blue-600 font-semibold">
             <div className="flex items-center gap-1.5">
               <span className="text-gray-500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
               <span>Total Waktu {totalDuration} menit</span>
@@ -189,7 +189,7 @@ export default function TryoutStartPage({
           <label className="flex items-start gap-4 cursor-pointer group">
             <div className="mt-0.5">
               <input type="checkbox" className="hidden" checked={isChecked} onChange={(e) => setIsChecked(e.target.checked)} />
-              <div className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${isChecked ? 'bg-[#002B66] border-[#002B66]' : 'border-gray-300 group-hover:border-gray-400'}`}>
+              <div className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${isChecked ? 'bg-[#1E3A8A] border-[#1E3A8A]' : 'border-gray-300 group-hover:border-gray-400'}`}>
                 {isChecked && (
                   <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 5L4.5 8.5L13 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 )}

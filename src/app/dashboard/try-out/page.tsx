@@ -167,7 +167,7 @@ export default function TryoutPage() {
             </h1>
           </div>
           <p className="text-gray-600 text-sm pl-9">
-            Amunisian, tingkatkan skor tryoutmu dan persiapkan diri menghadapi
+            Sobat UrClass, tingkatkan skor tryoutmu dan persiapkan diri menghadapi
             ujian yang akan datang.
           </p>
         </div>
@@ -176,7 +176,7 @@ export default function TryoutPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowRedeemDialog(true)}
-            className="flex items-center gap-2 bg-[#004AAB] hover:bg-[#003B8A] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit"
           >
             <KeyRound className="w-4 h-4" />
             <span>Kode Akses</span>
@@ -201,7 +201,7 @@ export default function TryoutPage() {
             placeholder="Mau tryout seperti apa?"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004AAB]/20 focus:border-[#004AAB] transition-all shadow-sm"
+            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-sm"
           />
         </div>
 
@@ -213,7 +213,7 @@ export default function TryoutPage() {
               onClick={() => handleFilterChange(filter)}
               className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
                 activeFilter === filter
-                  ? "bg-[#004AAB] text-white"
+                  ? "bg-blue-600 text-white"
                   : "bg-[#EAEFF4] text-[#5A6A80] hover:bg-gray-200"
               }`}
             >

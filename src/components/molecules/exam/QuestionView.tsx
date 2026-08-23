@@ -127,7 +127,7 @@ export default function QuestionView({
                     ? "border-red-400 bg-red-100 text-red-900"
                     : "border-gray-200 bg-white text-gray-900"
                 : isSelected
-                  ? "border-[#004AAB] bg-[#EBF4FF]"
+                  ? "border-blue-600 bg-blue-50"
                   : "border-gray-200 hover:border-gray-300 hover:bg-gray-50";
 
               const markerClass = isReviewMode
@@ -137,7 +137,7 @@ export default function QuestionView({
                     ? "bg-red-500 text-white"
                     : "bg-gray-100 text-gray-600"
                 : isSelected
-                  ? "bg-[#004AAB] text-white"
+                  ? "bg-blue-600 text-white"
                   : "bg-gray-100 text-gray-600";
 
               const textClass = isReviewMode
@@ -147,7 +147,7 @@ export default function QuestionView({
                     ? "text-red-900 font-semibold"
                     : "text-gray-700"
                 : isSelected
-                  ? "text-[#004AAB] font-semibold"
+                  ? "text-blue-600 font-semibold"
                   : "text-gray-700";
 
               return (
@@ -199,7 +199,7 @@ export default function QuestionView({
 
         {isReviewMode && (
           <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-5">
-            <h3 className="mb-3 text-sm font-bold text-[#004AAB]">
+            <h3 className="mb-3 text-sm font-bold text-blue-600">
               Pembahasan
             </h3>
             {question.discussion ? (
@@ -245,7 +245,7 @@ export default function QuestionView({
         {hasNext ? (
           <button
             onClick={onNext}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors bg-[#004AAB] hover:bg-[#003B8A] text-white"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors bg-blue-600 hover:bg-blue-700 text-white"
           >
             <span>Selanjutnya</span>
             <span>{">"}</span>
@@ -253,7 +253,7 @@ export default function QuestionView({
         ) : (
           <button
             onClick={onFinish}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors bg-[#004AAB] hover:bg-[#003B8A] text-white"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors bg-blue-600 hover:bg-blue-700 text-white"
           >
             <span>{isReviewMode ? "Kembali ke Hasil" : "Selesai"}</span>
           </button>

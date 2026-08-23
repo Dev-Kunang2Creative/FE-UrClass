@@ -17,7 +17,7 @@ function greeting(hour: number) {
 }
 
 export default function HeroBanner({ userName }: HeroBannerProps) {
-  const displayName = userName || "Amunisian";
+  const displayName = userName || "Sobat UrClass";
   const { kategori } = useKategori();
   const { full, tagline, theme } = KATEGORI_CONFIG[kategori];
   // Rendered client-side only, so local time is the user's own.
@@ -27,19 +27,19 @@ export default function HeroBanner({ userName }: HeroBannerProps) {
     <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex flex-col gap-1.5">
         <p className="text-sm text-gray-500">{greeting(hour)},</p>
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900">
           {displayName}
         </h1>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <span
             className={cn(
-              "rounded-full border px-2 py-0.5 text-xs font-medium",
+              "rounded-full border px-2.5 py-0.5 text-xs font-bold",
               theme.accent,
             )}
           >
             {full}
           </span>
-          <p className="text-sm text-gray-500">{tagline}</p>
+          <p className="text-sm text-gray-500 font-medium">{tagline}</p>
         </div>
       </div>
 

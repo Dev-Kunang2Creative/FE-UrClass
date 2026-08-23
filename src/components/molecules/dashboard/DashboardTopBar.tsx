@@ -31,7 +31,7 @@ export default function DashboardTopBar({ userName }: DashboardTopBarProps) {
   const { data: session } = useSession();
   const user = session?.user as { fullname?: string; name?: string } | undefined;
   const userNameFromSession = user?.fullname || user?.name;
-  const name = userName || userNameFromSession || "Amunisian";
+  const name = userName || userNameFromSession || "Sobat UrClass";
   const { ticketCount } = useTickets();
   const ticketCountRef = useRef(ticketCount);
   const [ticketChange, setTicketChange] = useState<{ amount: number; current: number } | null>(null);
@@ -160,8 +160,8 @@ export default function DashboardTopBar({ userName }: DashboardTopBarProps) {
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{name}</p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  Pengguna Amunisi
+                <p className="text-xs text-muted-foreground capitalize">
+                  Sobat UrClass
                 </p>
               </div>
             </DropdownMenuLabel>
@@ -221,7 +221,7 @@ export default function DashboardTopBar({ userName }: DashboardTopBarProps) {
           <button
             type="button"
             onClick={() => setTicketChange(null)}
-            className="w-full rounded-xl bg-[#004AAB] py-3 text-sm font-bold text-white transition-colors hover:bg-[#003B8A]"
+            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700"
           >
             Mengerti
           </button>

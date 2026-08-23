@@ -31,7 +31,7 @@ export default async function DashboardLayout({
           </BreadcrumbProvider>
         ) : (
           <>
-            <DashboardTopBar userName={session.user.name ?? "Amunisian"} />
+            <DashboardTopBar userName={session.user.name ?? "Sobat UrClass"} />
             <main className="min-w-0 px-4 md:px-6 py-6 flex-col bg-[#fafafa] min-h-screen">
               {children}
             </main>

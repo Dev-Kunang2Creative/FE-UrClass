@@ -31,7 +31,7 @@ export default function ResultPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004AAB]" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
       </div>
     );
   }
@@ -40,7 +40,7 @@ export default function ResultPage({
     return (
       <div className="w-full max-w-3xl mx-auto py-12 px-4 text-center">
         <p className="text-gray-500">Data hasil tryout tidak tersedia.</p>
-        <Link href={`/dashboard/try-out/${tryoutId}`} className="text-[#004AAB] font-semibold mt-4 inline-block">
+        <Link href={`/dashboard/try-out/${tryoutId}`} className="text-blue-600 font-semibold mt-4 inline-block">
           ← Kembali
         </Link>
       </div>
@@ -63,7 +63,7 @@ export default function ResultPage({
       {/* Score Card — IRT atau Non-IRT */}
       {!use_irt ? (
         /* Non-IRT: tampilkan ringkasan benar/salah */
-        <div className="bg-linear-to-br from-[#004AAB] to-[#002B66] rounded-2xl p-8 text-white mb-6 shadow-lg">
+        <div className="bg-linear-to-br from-blue-600 to-blue-900 rounded-2xl p-8 text-white mb-6 shadow-lg">
           <div className="flex items-center gap-3 mb-6">
             <Trophy className="w-8 h-8 text-yellow-300" />
             <div>
@@ -91,7 +91,7 @@ export default function ResultPage({
           </div>
         </div>
       ) : irt_result?.is_ready ? (
-        <div className="bg-linear-to-br from-[#004AAB] to-[#002B66] rounded-2xl p-8 text-white mb-6 shadow-lg">
+        <div className="bg-linear-to-br from-blue-600 to-blue-900 rounded-2xl p-8 text-white mb-6 shadow-lg">
           <div className="flex items-center gap-3 mb-4">
             <Trophy className="w-8 h-8 text-yellow-300" />
             <div>
@@ -164,7 +164,7 @@ export default function ResultPage({
       <div className="flex flex-col sm:flex-row gap-3">
         <Link
           href={`/dashboard/try-out/${tryoutId}/review${attemptQuery}`}
-          className="flex-1 py-3.5 bg-[#004AAB] hover:bg-[#003B8A] text-white font-bold rounded-xl text-center transition-colors"
+          className="flex-1 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-center transition-colors"
         >
           Lihat Pembahasan
         </Link>

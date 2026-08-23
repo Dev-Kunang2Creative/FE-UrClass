@@ -153,13 +153,13 @@ export default function DetailPaketPage() {
         <div className="flex gap-3 w-full">
           <button
             onClick={() => router.push("/dashboard/pembelian/riwayat")}
-            className="flex-1 py-3 border border-[#004AAB] text-[#004AAB] font-semibold rounded-lg hover:bg-[#EBF4FF] transition-colors"
+            className="flex-1 py-3 border border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
           >
             Riwayat Pembelian
           </button>
           <button
             onClick={() => router.push("/dashboard/try-out")}
-            className="flex-1 py-3 bg-[#004AAB] hover:bg-[#003B8A] text-white font-semibold rounded-lg transition-colors"
+            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
           >
             Mulai Try Out
           </button>
@@ -208,13 +208,13 @@ export default function DetailPaketPage() {
                 }
               );
             }}
-            className="w-full py-3 border border-[#004AAB] text-[#004AAB] font-semibold rounded-lg hover:bg-[#EBF4FF] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full py-3 border border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isCheckingStatus ? "Mengecek..." : "Cek Status Pembayaran"}
           </button>
           <button
             onClick={() => router.push("/dashboard/pembelian/riwayat")}
-            className="w-full py-3 bg-[#004AAB] hover:bg-[#003B8A] text-white font-semibold rounded-lg transition-colors"
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
           >
             Lihat Riwayat Pembelian
           </button>
@@ -236,7 +236,7 @@ export default function DetailPaketPage() {
         </p>
         <button
           onClick={() => setPaymentState("idle")}
-          className="w-full py-3 bg-[#004AAB] hover:bg-[#003B8A] text-white font-semibold rounded-lg transition-colors"
+          className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
         >
           Coba Lagi
         </button>
@@ -260,7 +260,7 @@ export default function DetailPaketPage() {
 
       <div className="bg-white border border-slate-200 rounded-2xl w-full p-6 lg:p-8 flex flex-col gap-6 shadow-sm">
         {/* Package Title */}
-        <div className="w-full bg-[#EBF4FF] text-[#004AAB] font-bold text-xl text-center py-4 rounded-xl">
+        <div className="w-full bg-blue-50 text-blue-600 font-bold text-xl text-center py-4 rounded-xl">
           {pkg.title}
         </div>
 
@@ -269,7 +269,7 @@ export default function DetailPaketPage() {
           {/* Price Row */}
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-baseline gap-3">
-              <span className="font-bold text-2xl text-[#004AAB]">
+              <span className="font-bold text-2xl text-blue-600">
                 Rp{pkg.price.toLocaleString("id-ID")}
               </span>
               {pkg.originalPrice != null && (
@@ -328,7 +328,7 @@ export default function DetailPaketPage() {
         <button
           onClick={handleBayar}
           disabled={paymentState === "loading"}
-          className="w-full py-3.5 bg-[#004AAB] hover:bg-[#003B8A] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors text-base shadow-sm"
+          className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors text-base shadow-sm"
         >
           {paymentState === "loading" ? "Memproses..." : "Bayar Sekarang"}
         </button>

@@ -48,7 +48,7 @@ function SubtestCompleteContent({ tryoutId }: { tryoutId: string }) {
   if (isLoading || !completedSubtest) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004AAB]" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
       </div>
     );
   }
@@ -68,7 +68,7 @@ function SubtestCompleteContent({ tryoutId }: { tryoutId: string }) {
 
       {!isLastSubtest && nextSubtest ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center space-y-6">
-          <h2 className="text-xl font-bold text-[#004AAB]">{nextSubtest.name}</h2>
+          <h2 className="text-xl font-bold text-blue-600">{nextSubtest.name}</h2>
 
           <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
             <div className="flex items-center gap-1.5">
@@ -87,7 +87,7 @@ function SubtestCompleteContent({ tryoutId }: { tryoutId: string }) {
 
           <button
             onClick={handleStartNext}
-            className="w-full py-4 bg-[#004AAB] hover:bg-[#003B8A] text-white font-bold text-base rounded-xl transition-colors shadow-[0_4px_0_0_#002B66] active:shadow-none active:translate-y-1"
+            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base rounded-xl transition-colors shadow-[0_4px_0_0_#1e3a8a] active:shadow-none active:translate-y-1"
           >
             Mulai Subtest Berikutnya
           </button>
@@ -121,7 +121,7 @@ export default function SubtestCompletePage({
   const { id: tryoutId } = use(params);
 
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004AAB]" /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" /></div>}>
       <SubtestCompleteContent tryoutId={tryoutId} />
     </Suspense>
   );

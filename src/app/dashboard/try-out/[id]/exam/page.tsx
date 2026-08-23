@@ -322,7 +322,7 @@ function ExamContent({ tryoutId }: { tryoutId: string }) {
     return (
       <div className="fixed inset-0 z-40 bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004AAB] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-500 text-sm">Memuat soal subtest...</p>
         </div>
       </div>
@@ -423,7 +423,7 @@ export default function ExamPage({
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004AAB]" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
         </div>
       }
     >

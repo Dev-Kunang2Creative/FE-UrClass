@@ -40,7 +40,7 @@ export default function TryoutLeaderboardPage({
         <h1 className="text-xl font-bold text-gray-900">Leaderboard Tryout</h1>
       </div>
 
-      <div className="bg-linear-to-br from-[#004AAB] to-[#002B66] rounded-2xl p-6 md:p-8 text-white mb-6 shadow-lg">
+      <div className="bg-linear-to-br from-blue-600 to-blue-900 rounded-2xl p-6 md:p-8 text-white mb-6 shadow-lg">
         <div className="flex items-center gap-3">
           <Trophy className="w-8 h-8 text-yellow-300" />
           <div>
@@ -118,12 +118,12 @@ function LeaderboardRow({
   return (
     <div
       className={`grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto_auto] gap-4 items-center p-5 transition-colors ${
-        isMe ? "bg-blue-50 border-l-4 border-l-[#004AAB]" : ""
+        isMe ? "bg-blue-50 border-l-4 border-l-[#2563EB]" : ""
       }`}
     >
       <div
         className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
-          isMe ? "bg-[#004AAB] text-white" : "bg-slate-100 text-slate-700"
+          isMe ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"
         }`}
       >
         {entry.rank <= 3 ? (
@@ -145,7 +145,7 @@ function LeaderboardRow({
         <div className="flex items-center gap-2">
           <p className="font-bold text-slate-900 truncate">{entry.user_name}</p>
           {isMe && (
-            <span className="shrink-0 text-[0.65rem] font-bold text-white bg-[#004AAB] px-2 py-0.5 rounded-full">
+            <span className="shrink-0 text-[0.65rem] font-bold text-white bg-blue-600 px-2 py-0.5 rounded-full">
               Anda
             </span>
           )}
@@ -164,7 +164,7 @@ function LeaderboardRow({
 
       <div className="text-left md:text-right col-start-2 md:col-start-auto">
         <p className="text-xs text-slate-500">Skor</p>
-        <p className="text-xl font-bold text-[#004AAB]">
+        <p className="text-xl font-bold text-blue-600">
           {entry.score.final_score}
         </p>
       </div>
