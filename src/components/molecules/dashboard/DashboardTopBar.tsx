@@ -135,7 +135,10 @@ export default function DashboardTopBar({ userName }: DashboardTopBarProps) {
         {/* User Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger className="focus:outline-none">
-            <div className="flex items-center gap-2 hover:bg-gray-50 p-1 pr-2 rounded-full transition-colors cursor-pointer border border-transparent hover:border-gray-100">
+            <div
+              id="topbar-user-profile"
+              className="flex items-center gap-2 hover:bg-gray-50 p-1 pr-2 rounded-full transition-colors cursor-pointer border border-transparent hover:border-gray-100"
+            >
               <Avatar className="h-9 w-9 border-2 border-primary/20">
                 <AvatarFallback className="bg-primary/10 text-primary">
                   <User className="h-5 w-5" />

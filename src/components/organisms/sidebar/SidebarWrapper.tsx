@@ -43,9 +43,13 @@ import {
   LifeBuoy,
   Ticket,
   Images,
+  Settings,
 } from "lucide-react";
 import { SidebarUser } from "./SidebarUser";
 import { DASHBOARD_MENU } from "@/constants/dashboard-menu";
+
+import { useKategori } from "@/hooks/useKategori";
+import { KATEGORI_CONFIG } from "@/lib/kategori";
 
 interface SidebarWrapperProps {
   session: Session;
@@ -54,12 +58,19 @@ interface SidebarWrapperProps {
 export function SidebarWrapper({ session }: SidebarWrapperProps) {
   const pathname = usePathname();
   const [waModalOpen, setWaModalOpen] = useState(false);
+  const { kategori } = useKategori();
+  const config = KATEGORI_CONFIG[kategori];
 
   const role = session?.user.role as keyof typeof DASHBOARD_MENU;
 
   const menu = role ? DASHBOARD_MENU[role] : null;
 
   if (!menu) return null;
+
+  const activeMenuClass =
+    kategori === "cpns"
+      ? "bg-amber-50 text-amber-900 font-bold border border-amber-300 shadow-sm"
+      : "bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-sm";
 
   const buttonClass = (href: string) =>
     `hover:bg-primary/10 hover:text-primary dark:hover:bg-slate-900 ${
@@ -72,7 +83,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
     <Sidebar>
       {/* Header */}
       <SidebarHeader className="h-20 p-0 cursor-default bg-white border-b border-slate-100 dark:bg-slate-950">
-        <div className="flex items-center justify-start px-6 h-full w-full">
+        <div className="flex items-center justify-between px-5 h-full w-full">
           <Link
             href={session?.user.role === "admin" ? "/dashboard/admin" : "/dashboard"}
             className="inline-flex items-center group transition-transform hover:scale-[1.02]"
@@ -83,9 +94,14 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
               width={2135}
               height={1635}
               priority
-              className="h-12 w-auto object-contain"
+              className="h-11 w-auto object-contain"
             />
           </Link>
+          {session?.user.role === "user" && (
+            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border ${config.theme.badge}`}>
+              {config.label}
+            </span>
+          )}
         </div>
       </SidebarHeader>
 
@@ -255,7 +271,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       asChild
                       className={`h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center ${
                         pathname === "/dashboard"
-                          ? "bg-blue-50 text-blue-600 font-bold border border-blue-200"
+                          ? activeMenuClass
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
@@ -271,7 +287,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       asChild
                       className={`h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center ${
                         pathname.startsWith("/dashboard/try-out")
-                          ? "bg-blue-50 text-blue-600 font-bold border border-blue-200"
+                          ? activeMenuClass
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
@@ -287,13 +303,13 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       asChild
                       className={`h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center ${
                         pathname.startsWith("/dashboard/pembelian")
-                          ? "bg-blue-50 text-blue-600 font-bold border border-blue-200"
+                          ? activeMenuClass
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
                       <Link href="/dashboard/pembelian" className="flex items-center w-full gap-3">
                         <ShoppingCart className="w-5 h-5 shrink-0" />
-                        <span>Pembelian</span>
+                        <span>Pembelian Paket</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -303,7 +319,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       asChild
                       className={`h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center ${
                         pathname.startsWith("/dashboard/tiket")
-                          ? "bg-blue-50 text-blue-600 font-bold border border-blue-200"
+                          ? activeMenuClass
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
@@ -319,8 +335,10 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       className="h-11 justify-start px-4 rounded-xl transition-all w-full flex items-center text-slate-600 hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
                       onClick={() => setWaModalOpen(true)}
                     >
-                      <LifeBuoy className="w-5 h-5 shrink-0 text-blue-600" />
-                      <span>Pusat Bantuan</span>
+                      <div className="flex items-center w-full gap-3">
+                        <LifeBuoy className="w-5 h-5 shrink-0" />
+                        <span>Bantuan &amp; CS</span>
+                      </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>

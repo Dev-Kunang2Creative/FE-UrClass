@@ -86,15 +86,15 @@ export function SidebarUser({ session }: SidebarUserProps) {
             <DropdownMenuGroup>
               <Link href="/dashboard">
                 <DropdownMenuItem className="cursor-pointer">
-                  <Home />
-                  Dashboard
+                  <Home className="w-4 h-4 mr-2" />
+                  Beranda
                 </DropdownMenuItem>
               </Link>
 
               <Link href="/dashboard/settings">
                 <DropdownMenuItem className="cursor-pointer">
-                  <Settings />
-                  Pengaturan
+                  <Settings className="w-4 h-4 mr-2" />
+                  <span>Pengaturan &amp; Mode Belajar</span>
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuGroup>

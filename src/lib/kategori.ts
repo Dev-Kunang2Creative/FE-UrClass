@@ -10,55 +10,87 @@ export const KATEGORI_CONFIG: Record<
     deskripsi: string;
     icon: LucideIcon;
     tagline: string;
-    /** Heading above the promo carousel. */
     heading: string;
-    /**
-     * Per-track theme. Written as complete class strings, never assembled from
-     * fragments, so Tailwind's scanner can see them.
-     */
+    maxScore: number;
+    scoreScale: string;
     theme: {
-      /** Badge/chip next to the user's name. */
       accent: string;
-      /** Active pill in the kategori switcher. */
-      switcherActive: string;
-      /** Icon tint on the stat cards. */
+      badge: string;
+      btn: string;
+      cardBorder: string;
+      cardBg: string;
       statIcon: string;
-      /** Stat card border, at rest and on hover. */
       statCard: string;
-      /** Active carousel dot. */
       dot: string;
+      progress: string;
+      switcherActive: string;
     };
+    subtests: {
+      name: string;
+      code: string;
+      passingGrade?: number;
+      maxScore: number;
+      description: string;
+    }[];
   }
 > = {
   utbk: {
     label: "UTBK",
     full: "UTBK - SNBT",
-    deskripsi: "Seleksi Masuk Perguruan Tinggi",
+    deskripsi: "Seleksi Masuk Perguruan Tinggi Negeri",
     icon: BookOpenCheck,
-    tagline: "Kejar kampus impianmu lewat latihan TPS dan Literasi.",
+    tagline: "Kejar kampus impianmu lewat latihan TPS, Literasi, dan Penalaran Matematika.",
     heading: "Persiapan intensif target lolos UTBK - SNBT",
+    maxScore: 1000,
+    scoreScale: "Skala IRT (0 - 1000)",
     theme: {
       accent: "bg-blue-50 text-blue-700 border-blue-200",
-      switcherActive: "bg-blue-600 text-white",
-      statIcon: "text-blue-600",
-      statCard: "border-blue-100 hover:border-blue-300",
+      badge: "bg-blue-100 text-blue-800 border-blue-300",
+      btn: "bg-blue-600 hover:bg-blue-700 text-white",
+      cardBorder: "border-blue-200 hover:border-blue-400",
+      cardBg: "bg-gradient-to-br from-blue-50/60 to-indigo-50/40",
+      statIcon: "text-blue-600 bg-blue-50 border-blue-200",
+      statCard: "border-blue-200 hover:border-blue-400 shadow-[4px_4px_0px_0px_#1d4ed8]",
       dot: "bg-blue-600",
+      progress: "bg-blue-600",
+      switcherActive: "bg-blue-600 text-white shadow-sm",
     },
+    subtests: [
+      { name: "Penalaran Umum (PU)", code: "PU", maxScore: 1000, description: "Logika analitis, induktif & deduktif" },
+      { name: "Pengetahuan Kuantitatif (PK)", code: "PK", maxScore: 1000, description: "Kecakapan matematika dasar & logika angka" },
+      { name: "Pemahaman Bacaan & Menulis (PBM)", code: "PBM", maxScore: 1000, description: "Ejaan baku, kalimat efektif, struktur wacana" },
+      { name: "Pengetahuan & Pemahaman Umum (PPU)", code: "PPU", maxScore: 1000, description: "Kosakata, konteks bahasa, makna tersirat" },
+      { name: "Literasi Bahasa Indonesia", code: "LBI", maxScore: 1000, description: "Analisis teks saintifik, sosial & naratif" },
+      { name: "Literasi Bahasa Inggris", code: "LBE", maxScore: 1000, description: "Comprehension, inference & argument analysis" },
+      { name: "Penalaran Matematika", code: "PM", maxScore: 1000, description: "Pemecahan masalah matematis kontekstual" },
+    ],
   },
   cpns: {
     label: "CPNS",
-    full: "CPNS - SKD",
+    full: "CPNS - SKD & Kedinasan",
     deskripsi: "Seleksi Calon Aparatur Sipil Negara",
     icon: Landmark,
-    tagline: "Siapkan SKD-mu: TWK, TIU, dan TKP dalam satu tempat.",
-    heading: "Persiapan intensif target lolos SKD CPNS",
+    tagline: "Siapkan SKD terpadu: TWK, TIU, dan TKP lengkap dengan standar Passing Grade CAT resmi.",
+    heading: "Persiapan intensif target lolos SKD CPNS & Kedinasan",
+    maxScore: 550,
+    scoreScale: "Standar SKD CAT (Maks. 550)",
     theme: {
       accent: "bg-amber-50 text-amber-800 border-amber-200",
-      switcherActive: "bg-amber-700 text-white",
-      statIcon: "text-amber-700",
-      statCard: "border-amber-100 hover:border-amber-300",
-      dot: "bg-amber-700",
+      badge: "bg-amber-100 text-amber-900 border-amber-300",
+      btn: "bg-amber-600 hover:bg-amber-700 text-white",
+      cardBorder: "border-amber-200 hover:border-amber-400",
+      cardBg: "bg-gradient-to-br from-amber-50/60 to-orange-50/40",
+      statIcon: "text-amber-700 bg-amber-50 border-amber-200",
+      statCard: "border-amber-300 hover:border-amber-500 shadow-[4px_4px_0px_0px_#b45309]",
+      dot: "bg-amber-600",
+      progress: "bg-amber-600",
+      switcherActive: "bg-amber-600 text-white shadow-sm",
     },
+    subtests: [
+      { name: "Tes Wawasan Kebangsaan (TWK)", code: "TWK", passingGrade: 65, maxScore: 150, description: "Pancasila, UUD 1945, NKRI, Bela Negara, Bahasa Indo" },
+      { name: "Tes Inteligensi Umum (TIU)", code: "TIU", passingGrade: 80, maxScore: 175, description: "Verbal, Numerik, Logika Berhitung & Figural" },
+      { name: "Tes Karakteristik Pribadi (TKP)", code: "TKP", passingGrade: 166, maxScore: 225, description: "Integritas, Pelayanan Publik, Sosbud, Profesionalisme" },
+    ],
   },
 };
 
