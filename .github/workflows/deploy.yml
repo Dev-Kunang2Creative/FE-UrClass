@@ -41,6 +41,10 @@ jobs:
         run: python -u scripts/deploy-hostinger.py
 
       - name: Verify the site
+        env:
+          # Needed by the inlined-env check below, which compares the served
+          # HTML against the values this build was given.
+          FE_ENV_PRODUCTION: ${{ secrets.FE_ENV_PRODUCTION }}
         run: |
           fail=0
           probe() { # label, expected status, curl args...
@@ -114,6 +118,24 @@ jobs:
             echo "::warning::the app CSP is not being served and the cause is unclear \
           (app='${app_csp:-none}' backend='${be_csp:-none}') - worth checking by hand."
           fi
+
+          # NEXT_PUBLIC_* values are inlined at build time, so their presence in
+          # the served HTML is the only proof that this build actually used the
+          # current FE_ENV_PRODUCTION. Catches "secret updated, rebuild
+          # forgotten", which is the standard trap of this deploy model.
+          echo "--- build-time env actually inlined"
+          html=$(curl -s "$BASE_URL/login")
+          for var in NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY NEXT_PUBLIC_API_URL; do
+            want=$(printf '%s' "$FE_ENV_PRODUCTION" | grep "^$var=" | cut -d= -f2- | tr -d '"')
+            if [ -z "$want" ]; then
+              echo "  skip  $var is empty in the secret"
+            elif printf '%s' "$html" | grep -qF "$want"; then
+              echo "  PASS  $var is baked into the page"
+            else
+              echo "  FAIL  $var is not in the served HTML - stale build?"
+              fail=1
+            fi
+          done
 
           [ "$fail" = 0 ] || { echo "::error::verification failed"; exit 1; }
           echo "===== FE is live ====="
