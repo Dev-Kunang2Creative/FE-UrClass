@@ -29,18 +29,18 @@ export default function CardAuthRegister() {
       {/* Main Unified Auth Card */}
       <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_20px_60px_-15px_rgba(15,23,42,0.2)] border border-slate-100 p-7 sm:p-9 space-y-6">
         {/* Card Header with Logo */}
-        <div className="flex flex-col items-center text-center space-y-2">
+        <div className="flex flex-col items-center text-center space-y-3 pb-1">
           <Link href="/" className="inline-block transition-transform hover:scale-105">
             <Image
               src="/images/logo/urclass.png"
               alt="UrClass Logo"
-              width={240}
-              height={180}
+              width={320}
+              height={240}
               priority
-              className="h-16 w-auto object-contain mx-auto"
+              className="h-24 sm:h-28 w-auto object-contain mx-auto"
             />
           </Link>
-          <div className="pt-1">
+          <div>
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
               Daftar Akun
             </h2>

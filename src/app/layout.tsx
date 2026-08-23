@@ -35,6 +35,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://urclass.id",
   },
+  icons: {
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+    ],
+    shortcut: "/icon.png",
+    apple: [
+      { url: "/icon.png", type: "image/png" },
+    ],
+  },
   robots: {
     index: true,
     follow: true,
