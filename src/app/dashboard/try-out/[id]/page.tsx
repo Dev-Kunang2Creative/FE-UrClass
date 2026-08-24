@@ -3,7 +3,7 @@
 import { useState, use } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, FileText, Clock, Ticket, Upload, X, Instagram, ExternalLink, Calendar, Users, Radio } from "lucide-react";
+import { ChevronLeft, FileText, Clock, Ticket, Upload, X, Instagram, ExternalLink, Calendar, Users, Radio, ListChecks, Gauge, Shuffle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -531,6 +531,56 @@ export default function TryoutDetailPage({
                 </div>
               ))
             )}
+          </div>
+
+          {/* Fills the space under a short list with the two things a reader
+              actually wants to know before starting, both already in the
+              payload and shown nowhere: how the attempt is scored, and whether
+              the options get shuffled.
+
+              A mascot would go here, and there is not one in the repo: the only
+              UrClass artwork is the logo lockup, and every other image under
+              public/images carries the previous brand. Drop a transparent PNG at
+              public/images/logo/urclass-mascot.png and it can replace the icon
+              watermark below. */}
+          <div className="relative mt-auto min-w-0 overflow-hidden border-t-2 border-slate-900 px-5 py-4">
+            <TrackIcon
+              className="pointer-events-none absolute -bottom-6 -right-4 size-32 text-primary/10"
+              aria-hidden
+            />
+
+            <div className="relative flex min-w-0 flex-col gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <ListChecks className="size-4 shrink-0 text-primary" aria-hidden />
+                <p className="min-w-0 text-xs text-slate-600">
+                  <span className="font-bold text-slate-900">
+                    {subtests.length}
+                  </span>{" "}
+                  subtest dikerjakan berurutan
+                </p>
+              </div>
+
+              <div className="flex min-w-0 items-center gap-2">
+                <Gauge className="size-4 shrink-0 text-primary" aria-hidden />
+                <p className="min-w-0 text-xs text-slate-600">
+                  Penilaian{" "}
+                  <span className="font-bold text-slate-900">
+                    {tryout.use_irt ? "IRT" : "skor standar"}
+                  </span>
+                  {" - "}
+                  {trackConfig.scoreScale}
+                </p>
+              </div>
+
+              {tryout.randomize_options && (
+                <div className="flex min-w-0 items-center gap-2">
+                  <Shuffle className="size-4 shrink-0 text-primary" aria-hidden />
+                  <p className="min-w-0 text-xs text-slate-600">
+                    Urutan opsi jawaban diacak untuk setiap peserta
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
