@@ -66,8 +66,8 @@ export default function InfoCardCarousel() {
   );
 
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-base font-semibold text-gray-900">
+    <section className="flex flex-col gap-3">
+      <h2 className="text-sm sm:text-base font-bold text-slate-900">
         {KATEGORI_CONFIG[kategori].heading}
       </h2>
 
@@ -90,11 +90,11 @@ export default function InfoCardCarousel() {
           {cards.map((card, index) => (
             <CarouselItem
               key={index}
-              className="pl-3 basis-[75%] sm:basis-[55%] md:basis-[40%] lg:basis-[30%]"
+              className="pl-3 basis-[58%] sm:basis-[38%] md:basis-[28%] lg:basis-[22%] xl:basis-[18%]"
             >
               <Link
                 href={card.href}
-                className="block group relative w-full h-[280px] rounded-xl overflow-hidden border border-gray-200 transition-colors duration-300 hover:border-gray-300"
+                className="block group relative w-full h-[180px] sm:h-[195px] md:h-[210px] rounded-xl overflow-hidden border border-slate-200 transition-all duration-300 hover:border-slate-300 hover:shadow-md"
               >
                 <Image
                   src={card.src}
@@ -113,7 +113,7 @@ export default function InfoCardCarousel() {
       </Carousel>
 
       {/* Animated Dot Indicators */}
-      <div className="flex justify-center items-center gap-1.5">
+      <div className="flex justify-center items-center gap-1.5 pt-1">
         {Array.from({ length: snapCount }).map((_, index) => (
           <button
             key={index}

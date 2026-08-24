@@ -2,7 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ArrowDownCircle, ArrowUpCircle, Search } from "lucide-react";
+import {
+  ChevronLeft,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Search,
+  Ticket,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetTicketLogs } from "@/http/tiket/get-ticket-logs";
 import type { TicketLog } from "@/http/tiket/get-ticket-logs";
@@ -35,7 +41,8 @@ export default function RiwayatTiketPage() {
   const filtered = useMemo(() => {
     return logs
       .filter((log: TicketLog) => {
-        const matchesSearch = log.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        const matchesSearch =
+          log.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
           SOURCE_LABELS[log.source]?.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesType =
           typeFilter === "Semua" ||
@@ -61,112 +68,199 @@ export default function RiwayatTiketPage() {
 
   const resetPage = () => setCurrentPage(1);
 
+  const totalMasuk = logs
+    .filter((l: TicketLog) => l.type === "credit")
+    .reduce((a: number, l: TicketLog) => a + l.amount, 0);
+
+  const totalKeluar = logs
+    .filter((l: TicketLog) => l.type === "debit")
+    .reduce((a: number, l: TicketLog) => a + l.amount, 0);
+
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-2 mb-6">
-        <Link
-          href="/dashboard"
-          className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer text-gray-800"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </Link>
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Riwayat Tiket</h1>
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard"
+              className="p-1 hover:bg-slate-100 rounded-full transition-colors cursor-pointer text-slate-800"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </Link>
+            <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-900">
+              Riwayat Tiket
+            </h1>
+          </div>
+          <p className="text-slate-600 text-sm pl-9">
+            Pantau mutasi saldo, pemakaian, dan perolehan tiket belajarmu.
+          </p>
+        </div>
+
         <Mascot
           pose="laptop"
           decorative
           sizes="100px"
-          className="ml-auto h-16 w-auto shrink-0 md:h-20"
+          className="hidden sm:block h-16 w-auto shrink-0 md:h-20"
         />
       </div>
 
-      {/* Summary card */}
+      {/* Summary Cards */}
       {!isLoading && logs.length > 0 && (
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm">
-            <p className="text-sm text-slate-500 mb-1">Total Masuk</p>
-            <p className="text-2xl font-bold text-green-600">
-              +{logs.filter((l: TicketLog) => l.type === "credit").reduce((a: number, l: TicketLog) => a + l.amount, 0)}
-            </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="flex items-center gap-4 rounded-3xl border-2 border-slate-900 bg-white p-5 shadow-[5px_5px_0px_0px_#0f172a] hover:shadow-[7px_7px_0px_0px_#0f172a] hover:-translate-y-0.5 transition-all">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-2 border-slate-900 bg-emerald-100 text-emerald-700 shadow-[2px_2px_0px_0px_#0f172a]">
+              <ArrowDownCircle className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Total Masuk
+              </p>
+              <p className="text-2xl font-black text-emerald-600">
+                +{totalMasuk}
+              </p>
+            </div>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm">
-            <p className="text-sm text-slate-500 mb-1">Total Digunakan</p>
-            <p className="text-2xl font-bold text-red-500">
-              -{logs.filter((l: TicketLog) => l.type === "debit").reduce((a: number, l: TicketLog) => a + l.amount, 0)}
-            </p>
+
+          <div className="flex items-center gap-4 rounded-3xl border-2 border-slate-900 bg-white p-5 shadow-[5px_5px_0px_0px_#0f172a] hover:shadow-[7px_7px_0px_0px_#0f172a] hover:-translate-y-0.5 transition-all">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-2 border-slate-900 bg-rose-100 text-rose-700 shadow-[2px_2px_0px_0px_#0f172a]">
+              <ArrowUpCircle className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Total Digunakan
+              </p>
+              <p className="text-2xl font-black text-rose-600">
+                -{totalKeluar}
+              </p>
+            </div>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm">
-            <p className="text-sm text-slate-500 mb-1">Saldo Tiket</p>
-            <p className="text-2xl font-bold text-primary">{realBalance}</p>
+
+          <div className="flex items-center gap-4 rounded-3xl border-2 border-slate-900 bg-white p-5 shadow-[5px_5px_0px_0px_#0f172a] hover:shadow-[7px_7px_0px_0px_#0f172a] hover:-translate-y-0.5 transition-all">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-2 border-slate-900 bg-primary text-primary-foreground shadow-[2px_2px_0px_0px_#0f172a]">
+              <Ticket className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Saldo Tiket
+              </p>
+              <p className="text-2xl font-black text-primary">
+                {realBalance}
+              </p>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Filters */}
-      <div className="space-y-4">
-        <div className="relative w-full max-w-xl">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+      {/* Filters & Search */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative w-full max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
           <input
             type="text"
             placeholder="Cari riwayat tiket..."
             value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); resetPage(); }}
-            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-primary transition-all shadow-sm"
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              resetPage();
+            }}
+            className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-900 focus:ring-0 transition-all shadow-sm placeholder:text-slate-400"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 md:gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {TYPE_FILTERS.map((filter) => (
             <button
               key={filter}
-              onClick={() => { setTypeFilter(filter); resetPage(); }}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+              onClick={() => {
+                setTypeFilter(filter);
+                resetPage();
+              }}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all active:translate-y-0.5 ${
                 typeFilter === filter
-                  ? "bg-primary text-white"
-                  : "bg-[#EAEFF4] text-[#5A6A80] hover:bg-gray-200"
+                  ? "border-2 border-slate-900 bg-primary text-primary-foreground shadow-[2px_2px_0px_0px_#0f172a]"
+                  : "border-2 border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50 shadow-sm"
               }`}
             >
               {filter}
             </button>
           ))}
         </div>
-
       </div>
 
-      {/* List */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm p-6">
+      {/* Logs List Container */}
+      <div className="bg-white rounded-3xl border-2 border-slate-900 shadow-[5px_5px_0px_0px_#0f172a] p-5 sm:p-7">
         {isLoading ? (
-          <div className="flex justify-center p-10 text-slate-500">Memuat riwayat tiket...</div>
+          <div className="flex justify-center p-12 text-slate-500 font-medium animate-pulse">
+            Memuat riwayat tiket...
+          </div>
         ) : logs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-4">
-            <Mascot pose="berfikir" decorative sizes="112px" className="h-28 w-auto" />
-            <p>Belum ada riwayat tiket.</p>
+          <div className="flex flex-col items-center justify-center p-12 text-slate-500 gap-4">
+            <Mascot
+              pose="berfikir"
+              decorative
+              sizes="112px"
+              className="h-28 w-auto"
+            />
+            <p className="font-semibold text-slate-600">
+              Belum ada riwayat tiket.
+            </p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-4">
-            <Mascot pose="berfikir" decorative sizes="112px" className="h-28 w-auto" />
-            <p>Tidak ada riwayat yang cocok.</p>
+          <div className="flex flex-col items-center justify-center p-12 text-slate-500 gap-4">
+            <Mascot
+              pose="berfikir"
+              decorative
+              sizes="112px"
+              className="h-28 w-auto"
+            />
+            <p className="font-semibold text-slate-600">
+              Tidak ada riwayat yang cocok.
+            </p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
             {paginated.map((log: TicketLog) => (
               <div
                 key={log.id}
-                className="flex items-center justify-between p-4 border border-slate-100 bg-slate-50 rounded-xl hover:shadow-sm transition-shadow"
+                className="flex items-center justify-between p-3.5 sm:p-4 border-2 border-slate-100 bg-slate-50/70 rounded-2xl hover:bg-slate-100/90 hover:border-slate-200 transition-all gap-3"
               >
-                <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-full ${log.type === "credit" ? "bg-green-100" : "bg-red-100"}`}>
-                    {log.type === "credit"
-                      ? <ArrowDownCircle className="w-5 h-5 text-green-600" />
-                      : <ArrowUpCircle className="w-5 h-5 text-red-500" />
-                    }
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+                      log.type === "credit"
+                        ? "bg-emerald-100 text-emerald-700 border-emerald-300"
+                        : "bg-rose-100 text-rose-700 border-rose-300"
+                    }`}
+                  >
+                    {log.type === "credit" ? (
+                      <ArrowDownCircle className="w-5 h-5" />
+                    ) : (
+                      <ArrowUpCircle className="w-5 h-5" />
+                    )}
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-800">{log.description}</p>
-                    <p className="text-sm text-slate-400">{SOURCE_LABELS[log.source] ?? log.source} · {formatJakartaDateTime(log.created_at)}</p>
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-900 text-sm sm:text-base truncate">
+                      {log.description}
+                    </p>
+                    <p className="text-xs text-slate-500 font-medium truncate">
+                      <span className="font-bold text-slate-700">
+                        {SOURCE_LABELS[log.source] ?? log.source}
+                      </span>{" "}
+                      · {formatJakartaDateTime(log.created_at)}
+                    </p>
                   </div>
                 </div>
-                <span className={`font-bold text-lg ${log.type === "credit" ? "text-green-600" : "text-red-500"}`}>
-                  {log.type === "credit" ? "+" : "-"}{log.amount}
+
+                <span
+                  className={`shrink-0 font-black text-sm sm:text-base px-3 py-1 rounded-xl border ${
+                    log.type === "credit"
+                      ? "text-emerald-700 bg-emerald-100/80 border-emerald-300"
+                      : "text-rose-700 bg-rose-100/80 border-rose-300"
+                  }`}
+                >
+                  {log.type === "credit" ? "+" : "-"}
+                  {log.amount} Tiket
                 </span>
               </div>
             ))}
@@ -174,7 +268,7 @@ export default function RiwayatTiketPage() {
         )}
       </div>
 
-      <p className="text-xs text-slate-400 text-center">
+      <p className="text-xs text-slate-400 text-center font-medium">
         Riwayat hanya mencakup transaksi setelah sistem log diaktifkan.
       </p>
 
@@ -186,7 +280,10 @@ export default function RiwayatTiketPage() {
           perPageOptions={PER_PAGE_OPTIONS}
           itemLabel="riwayat"
           onPageChange={setCurrentPage}
-          onPerPageChange={(v) => { setItemsPerPage(v); resetPage(); }}
+          onPerPageChange={(v) => {
+            setItemsPerPage(v);
+            resetPage();
+          }}
         />
       )}
     </div>
