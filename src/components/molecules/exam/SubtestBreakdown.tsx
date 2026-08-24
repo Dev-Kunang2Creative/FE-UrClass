@@ -43,13 +43,13 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
   const failedRows = graded.filter((r) => !r.passed);
 
   return (
-    <div className="mb-6 rounded-2xl border-2 border-track-border bg-white p-5">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+    <div className="mb-6 rounded-3xl border-2 border-slate-900 bg-white p-5 sm:p-6 shadow-[5px_5px_0px_0px_#0f172a]">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="text-base font-bold text-gray-900">
+          <h3 className="text-base sm:text-lg font-black text-slate-900">
             Rincian per Subtest
           </h3>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500 font-medium">
             {graded.length > 0
               ? "Setiap subtest punya ambang sendiri yang wajib dilampaui."
               : "Tidak ada ambang minimum per subtest — yang dinilai skor akhir."}
@@ -58,23 +58,23 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
 
         {graded.length > 0 && (
           <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-black ${
+            className={`inline-flex items-center gap-1.5 rounded-xl border-2 border-slate-900 px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_0px_#0f172a] ${
               allPassed
-                ? "bg-green-100 text-green-800 ring-1 ring-green-300"
-                : "bg-red-100 text-red-800 ring-1 ring-red-300"
+                ? "bg-emerald-100 text-emerald-800"
+                : "bg-rose-100 text-rose-800"
             }`}
           >
             {allPassed ? (
-              <CheckCircle2 className="size-4" />
+              <CheckCircle2 className="size-4 text-emerald-700" />
             ) : (
-              <XCircle className="size-4" />
+              <XCircle className="size-4 text-rose-700" />
             )}
             {allPassed ? "Semua ambang terlampaui" : "Belum lolos ambang"}
           </span>
         )}
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         {rows.map((r) => {
           const pct = r.max_score > 0 ? (r.raw_score / r.max_score) * 100 : 0;
           const thresholdPct =
@@ -83,33 +83,33 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
               : null;
 
           return (
-            <div key={r.subtest_id}>
-              <div className="mb-1 flex items-baseline justify-between gap-3">
-                <p className="min-w-0 truncate text-sm font-semibold text-gray-800">
+            <div key={r.subtest_id} className="p-3 rounded-2xl bg-slate-50/80 border border-slate-100">
+              <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                <p className="min-w-0 truncate text-sm font-bold text-slate-800">
                   {r.code ? (
-                    <span className="mr-1.5 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-black text-gray-600">
+                    <span className="mr-1.5 rounded-md border border-slate-300 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-700 shadow-2xs">
                       {r.code}
                     </span>
                   ) : null}
                   {r.name}
                 </p>
-                <p className="shrink-0 text-sm font-bold text-gray-900">
+                <p className="shrink-0 text-sm font-black text-slate-900">
                   {r.raw_score}
-                  <span className="text-xs font-medium text-gray-400">
+                  <span className="text-xs font-semibold text-slate-400">
                     {" "}
                     / {r.max_score}
                   </span>
                 </p>
               </div>
 
-              <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+              <div className="relative h-2.5 w-full overflow-hidden rounded-full border border-slate-200 bg-slate-200/70">
                 <div
                   className={`h-full rounded-full transition-all ${
                     r.passed === undefined
                       ? "bg-primary"
                       : r.passed
-                        ? "bg-green-600"
-                        : "bg-red-500"
+                        ? "bg-emerald-500"
+                        : "bg-rose-500"
                   }`}
                   style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
                 />
@@ -117,22 +117,22 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
                     "how far off am I" is readable without arithmetic. */}
                 {thresholdPct !== null && (
                   <div
-                    className="absolute top-0 h-full w-0.5 bg-gray-900"
+                    className="absolute top-0 h-full w-0.5 bg-slate-900"
                     style={{ left: `${Math.min(100, thresholdPct)}%` }}
                     aria-hidden
                   />
                 )}
               </div>
 
-              <div className="mt-1 flex items-center justify-between gap-2 text-[11px]">
-                <span className="text-gray-500">
+              <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px]">
+                <span className="text-slate-500 font-medium">
                   {r.correct} benar dari {r.answered} terjawab
                   {r.total_questions ? ` · ${r.total_questions} soal` : ""}
                 </span>
                 {r.threshold !== undefined ? (
                   <span
                     className={`inline-flex items-center gap-1 font-bold ${
-                      r.passed ? "text-green-700" : "text-red-600"
+                      r.passed ? "text-emerald-700" : "text-rose-600"
                     }`}
                   >
                     {r.passed ? (
@@ -149,7 +149,7 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
                     )}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-gray-400">
+                  <span className="inline-flex items-center gap-1 text-slate-400 font-medium">
                     <MinusCircle className="size-3.5" />
                     tanpa ambang
                   </span>
@@ -161,7 +161,7 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
       </div>
 
       {failedRows.length > 0 && (
-        <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-[11px] leading-snug text-red-800 ring-1 ring-red-200">
+        <p className="mt-4 rounded-2xl border-2 border-slate-900 bg-rose-50 p-3.5 text-xs font-medium leading-snug text-rose-900 shadow-[2px_2px_0px_0px_#0f172a]">
           <strong>
             {failedRows.map((r) => r.code ?? r.name).join(", ")}
           </strong>{" "}

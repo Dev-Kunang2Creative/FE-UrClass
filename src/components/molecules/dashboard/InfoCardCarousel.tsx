@@ -90,22 +90,22 @@ export default function InfoCardCarousel() {
           {cards.map((card, index) => (
             <CarouselItem
               key={index}
-              className="pl-3 basis-[58%] sm:basis-[38%] md:basis-[28%] lg:basis-[22%] xl:basis-[18%]"
+              className="pl-3 basis-[82%] sm:basis-[52%] md:basis-[38%] lg:basis-[30%] xl:basis-[24%]"
             >
               <Link
                 href={card.href}
-                className="block group relative w-full h-[180px] sm:h-[195px] md:h-[210px] rounded-xl overflow-hidden border border-slate-200 transition-all duration-300 hover:border-slate-300 hover:shadow-md"
+                className="block group relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-slate-900 shadow-[3px_3px_0px_0px_#0f172a] hover:shadow-[5px_5px_0px_0px_#0f172a] hover:-translate-y-0.5 transition-all duration-300 bg-slate-100"
               >
                 <Image
                   src={card.src}
                   alt={card.alt}
-                  width={1080}
-                  height={1920}
+                  fill
+                  sizes="(max-width: 640px) 82vw, (max-width: 1024px) 38vw, 24vw"
                   quality={100}
                   unoptimized
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Link>
             </CarouselItem>
           ))}

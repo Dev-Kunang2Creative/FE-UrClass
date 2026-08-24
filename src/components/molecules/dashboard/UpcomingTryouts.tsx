@@ -27,7 +27,7 @@ export default function UpcomingTryouts({ items, loading }: UpcomingTryoutsProps
     // waste a phone screen on one entry.
     <section
       aria-label="Tryout yang bisa dikerjakan"
-      className="flex flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a] lg:h-[17.5rem]"
+      className="flex flex-1 h-full min-h-[16rem] flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]"
     >
       <div className="flex shrink-0 items-center justify-between gap-2 border-b-2 border-slate-900 px-5 py-3">
         <div className="flex items-center gap-2">

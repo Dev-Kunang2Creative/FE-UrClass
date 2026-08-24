@@ -55,7 +55,7 @@ export default function DashboardContent() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <DashboardHeader userName={session?.user?.name} />
 
-        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-3">
           {/* Actions. Ordered by urgency: an abandoned exam outranks a deadline,
               because the attempt is already spent. */}
           <div className="flex flex-col gap-6 lg:col-span-2">
