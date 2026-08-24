@@ -70,17 +70,19 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    jwt: async ({ token, user, trigger, session }) => {
-      // Intercept purely front-end fields on session update and store them in the JWT token.
-      // Exclude server-managed fields (ticket_balance, id, role, email) so they always come
-      // fresh from BE and are never frozen by an optimistic session update.
-      if (trigger === "update" && session?.user) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { ticket_balance, id, role, email, ...safeOverrides } = session.user as Auth & { ticket_balance?: number };
-        token.userOverrides = {
-          ...(token.userOverrides || {}),
-          ...safeOverrides,
-        };
+    jwt: async ({ token, user }) => {
+      // userOverrides is gone, and any left in an existing token is cleared
+      // here so it heals on the next session read rather than at the next
+      // login.
+      //
+      // It existed to keep optimistically-updated profile fields on screen,
+      // from a time when ProfileController::update saved only some of them.
+      // It saves all of them now, so overrides had nothing left to carry and
+      // one real cost: they were merged OVER the backend response, so a value
+      // frozen by an earlier edit shadowed the database indefinitely. Changing
+      // a target university would save correctly and still show the old one.
+      if (token.userOverrides) {
+        delete token.userOverrides;
       }
 
       if (user) {
@@ -96,17 +98,11 @@ export const authOptions: NextAuthOptions = {
       try {
         const auth = await getAuthApiHandler(access_token);
 
-        // Merge fresh backend data with any front-end only overrides we stored.
-        //
-        // province and city are explicitly dropped: they used to be front-end
-        // only because ProfileController never saved them, but they are real
-        // columns now. Any override left in an existing token would shadow the
-        // database forever - including a value changed on another device.
-        const { province: _province, city: _city, ...overrides } =
-          token.userOverrides || {};
-        const mergedUser = { ...auth, ...overrides };
-
-        return { ...session, user: mergedUser, access_token };
+        // The backend is the only source. Dropping province and city from the
+        // overrides was not enough: the same shadowing applied to every other
+        // profile field, which is why a changed target university kept
+        // displaying the old value.
+        return { ...session, user: auth, access_token };
       } catch (error: unknown) {
         // If BE returns 401 or is unreachable, return a degraded session
         // This prevents the entire app from crashing
@@ -115,15 +111,16 @@ export const authOptions: NextAuthOptions = {
         const message = error instanceof Error ? error.message : String(error);
         console.warn("[auth] Failed to fetch user from BE:", message);
 
-        const overrides = token.userOverrides || {};
+        // Degraded session: the backend is unreachable, so only what the token
+        // itself carries is trustworthy. Showing stale profile data here would
+        // be a guess dressed up as the truth.
         return {
           ...session,
           user: {
             id: token.sub || "",
-            name: overrides?.name || session?.user?.name || "Sobat UrClass",
-            email: overrides?.email || session?.user?.email || "",
-            role: overrides?.role || token.role || "user",
-            ...overrides,
+            name: session?.user?.name || "Sobat UrClass",
+            email: session?.user?.email || "",
+            role: token.role || "user",
           } as Auth,
           access_token,
           authError,
