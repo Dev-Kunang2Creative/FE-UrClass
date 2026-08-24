@@ -539,18 +539,14 @@ export default function TryoutDetailPage({
               payload and shown nowhere: how the attempt is scored, and whether
               the options get shuffled.
 
-              The mascot stands in the corner of it. Decorative, so it is hidden
-              from assistive tech - the three lines beside it already say
-              everything it is there to soften. */}
-          <div className="relative mt-auto min-w-0 overflow-hidden border-t-2 border-slate-900 px-5 pb-4 pt-4">
-            <Mascot
-              pose="semangat"
-              decorative
-              sizes="140px"
-              className="pointer-events-none absolute -bottom-3 right-1 h-32 w-auto opacity-90"
-            />
-
-            <div className="relative flex min-w-0 flex-col gap-2 pr-24">
+              The mascot stands beside it, in normal flow rather than absolutely
+              positioned: pinned with a negative offset inside an
+              overflow-hidden panel it was simply cut off, and a row that grows
+              to fit it cannot clip it at any size. Decorative, so it is hidden
+              from assistive tech - the lines next to it already say everything
+              it is there to soften. */}
+          <div className="mt-auto flex min-w-0 items-end gap-3 border-t-2 border-slate-900 px-5 py-4">
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
               <div className="flex min-w-0 items-center gap-2">
                 <ListChecks className="size-4 shrink-0 text-primary" aria-hidden />
                 <p className="min-w-0 text-xs text-slate-600">
@@ -582,6 +578,13 @@ export default function TryoutDetailPage({
                 </div>
               )}
             </div>
+
+            <Mascot
+              pose="semangat"
+              decorative
+              sizes="160px"
+              className="h-28 w-auto shrink-0 lg:h-36"
+            />
           </div>
         </div>
       </div>
