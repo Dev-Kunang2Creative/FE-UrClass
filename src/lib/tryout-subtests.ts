@@ -93,3 +93,37 @@ export function summariseSubtests(
       };
     });
 }
+
+/**
+ * What the scoring actually does to a wrong or blank answer, for this tryout.
+ *
+ * ScoringService reads score_correct, score_wrong and score_empty off each
+ * subtest, so "a wrong answer costs nothing" is a statement about
+ * configuration, not about the system - an admin can set score_wrong negative.
+ * Returns null when the payload does not carry the figures, in which case the
+ * screen says nothing rather than guessing.
+ */
+export function describeScoring(
+  tryoutSubtests: SubtestByTryout[] | undefined,
+): { penalisesWrong: boolean; emptyIsZero: boolean } | null {
+  const entries = tryoutSubtests ?? [];
+  if (entries.length === 0) return null;
+
+  const wrong: number[] = [];
+  const empty: number[] = [];
+
+  for (const entry of entries) {
+    const w = entry.subtest.score_wrong;
+    const e = entry.subtest.score_empty;
+    if (w == null || e == null) return null;
+    wrong.push(Number(w));
+    empty.push(Number(e));
+  }
+
+  if (wrong.some(Number.isNaN) || empty.some(Number.isNaN)) return null;
+
+  return {
+    penalisesWrong: wrong.some((value) => value < 0),
+    emptyIsZero: empty.every((value) => value === 0),
+  };
+}

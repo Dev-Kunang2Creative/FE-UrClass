@@ -8,7 +8,11 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useKategori } from "@/hooks/useKategori";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
-import { groupSubtests, summariseSubtests } from "@/lib/tryout-subtests";
+import {
+  describeScoring,
+  groupSubtests,
+  summariseSubtests,
+} from "@/lib/tryout-subtests";
 import Mascot from "@/components/atoms/mascot/Mascot";
 import { useStartTryout, type StartTryoutResponse } from "@/http/tryout/start-tryout";
 import { useGetUserTryoutDetail } from "@/http/tryout/get-user-tryout-detail";
@@ -28,6 +32,7 @@ export default function TryoutStartPage({
   const isCpns = kategori === "cpns";
   const trackConfig = KATEGORI_CONFIG[kategori];
 
+
   const [isChecked, setIsChecked] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -40,6 +45,8 @@ export default function TryoutStartPage({
 
   const tryout = tryoutDetail?.data;
   const tryoutTitle = tryout?.title || "Tryout";
+
+  const scoring = describeScoring(tryout?.tryout_subtests);
 
   const allSubtests = summariseSubtests(
     tryout?.tryout_subtests,
@@ -119,21 +126,76 @@ export default function TryoutStartPage({
             </h2>
           </div>
 
+          {/* Every rule here matches behaviour that exists in the code, and
+              several were missing from the eight generic lines this replaced -
+              the timer running server-side while you are away is the one a
+              reader most needs and was least likely to guess.
+
+              TryoutSubtestSession stores started_at and the endpoint derives
+              the deadline from it, so closing the tab does not pause anything;
+              once it passes the subtest flips to expired and returns no
+              questions. Answers post one at a time as they are chosen. On
+              time-up the exam screen auto-submits and advances. */}
           <ol className="min-h-0 min-w-0 flex-1 list-decimal space-y-2.5 overflow-y-auto py-4 pl-10 pr-5 text-sm leading-relaxed text-slate-700">
-            <li>Timer langsung berjalan begitu tryout dimulai.</li>
-            <li>Setiap subtest punya batas waktu sendiri.</li>
+            <li>Timer langsung berjalan begitu tombol Mulai Tryout ditekan.</li>
             <li>
-              Setelah satu subtest selesai, kamu lanjut ke subtest berikutnya.
+              Setiap subtest punya batas waktunya sendiri. Waktunya dihitung di
+              server, jadi{" "}
+              <span className="font-bold text-slate-900">
+                tetap berjalan walau kamu menutup tab atau koneksimu terputus
+              </span>
+              .
             </li>
             <li>
-              Pastikan semua soal terjawab sebelum menekan Selesai Subtest.
+              Kalau sempat keluar, kamu bisa masuk lagi dan lanjut dari subtest
+              terakhir - tapi waktu yang sudah lewat tidak dikembalikan.
             </li>
             <li>
-              Kalau masih ada soal yang kosong, sistem akan memberi peringatan.
+              Setiap jawaban langsung tersimpan saat kamu memilihnya. Tidak ada
+              tombol simpan.
             </li>
-            <li>Pastikan koneksi internet stabil.</li>
-            <li>Gunakan perangkat yang nyaman dipakai lama.</li>
-            <li>Siapkan waktu yang cukup, tanpa gangguan.</li>
+            <li>
+              Kalau waktu satu subtest habis, jawaban yang sudah masuk otomatis
+              dikumpulkan dan kamu lanjut ke subtest berikutnya.
+            </li>
+            <li>
+              Subtest yang sudah selesai atau waktunya habis tidak bisa
+              dikerjakan lagi, jadi selesaikan sebelum lanjut.
+            </li>
+            <li>
+              Kalau masih ada soal kosong saat menekan Selesai Subtest, sistem
+              memberi peringatan dulu - bukan langsung mengumpulkan.
+            </li>
+            {/* Read off the subtests rather than assumed: ScoringService takes
+                score_wrong from each one, and an admin can set it negative. If
+                the payload does not carry the figures, this line is omitted
+                instead of guessing. */}
+            {scoring && (
+              <li>
+                {scoring.penalisesWrong
+                  ? "Jawaban salah mengurangi nilai di sebagian subtest, jadi menebak ada risikonya."
+                  : "Jawaban salah tidak mengurangi nilai, jadi lebih baik menebak daripada dikosongkan."}
+                {scoring.emptyIsZero && " Soal yang dikosongkan bernilai nol."}
+              </li>
+            )}
+            {tryout?.randomize_options && (
+              <li>
+                Urutan opsi jawaban diacak untuk setiap peserta, jadi jangan
+                menyalin urutan dari orang lain.
+              </li>
+            )}
+            <li>
+              Pembahasan dan kunci jawaban dibuka dengan 1 tiket setelah tryout
+              selesai, terpisah dari tiket yang kamu pakai untuk mengerjakan.
+            </li>
+            <li>
+              Siapkan{" "}
+              <span className="font-bold text-slate-900">
+                {totalDuration} menit
+              </span>{" "}
+              tanpa gangguan, koneksi yang stabil, dan perangkat yang nyaman
+              dipakai selama itu.
+            </li>
           </ol>
 
           <div className="flex min-w-0 items-end gap-3 border-t-2 border-slate-900 px-5 py-4">
