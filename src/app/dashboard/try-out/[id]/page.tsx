@@ -10,7 +10,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useTickets } from "@/hooks/useTickets";
 import { useEnrollTryout } from "@/http/tryout/enroll-tryout";
-import { useGetUserTryoutDetail } from "@/http/tryout/get-user-tryout-detail";
+import {
+  useGetUserTryoutDetail,
+  wrongTrackFrom,
+} from "@/http/tryout/get-user-tryout-detail";
 import { useGetHistoryTryout } from "@/http/tryout/get-history-tryout";
 import { toast } from "sonner";
 import type { SubtestByTryout } from "@/types/subtest/subtest";
@@ -53,7 +56,7 @@ export default function TryoutDetailPage({
   const { data: session, status: sessionStatus, update: updateSession } = useSession();
   const token = session?.access_token || "";
   const { ticketCount } = useTickets();
-  const { kategori } = useKategori();
+  const { kategori, switchKategori, isSwitching } = useKategori();
   const trackConfig = KATEGORI_CONFIG[kategori];
   const TrackIcon = trackConfig.icon;
 
@@ -61,7 +64,11 @@ export default function TryoutDetailPage({
   const [proofImages, setProofImages] = useState<File[]>([]);
   const [proofPreviews, setProofPreviews] = useState<string[]>([]);
 
-  const { data: tryoutDetail, isLoading } = useGetUserTryoutDetail({
+  const {
+    data: tryoutDetail,
+    isLoading,
+    error: detailError,
+  } = useGetUserTryoutDetail({
     id: tryoutId,
     token,
   });
@@ -218,12 +225,48 @@ export default function TryoutDetailPage({
   }
 
   if (!tryout) {
+    // A tryout on the other jalur is not a missing tryout. The endpoint says
+    // which track it belongs to, so the reader is offered the switch instead of
+    // being told the thing does not exist.
+    const wrongTrack = wrongTrackFrom(detailError);
+    const otherTrack = wrongTrack?.kategori;
+
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-12 text-center">
-        <p className="text-slate-500">Tryout tidak ditemukan.</p>
-        <Link href="/dashboard/try-out" className="text-primary font-semibold mt-4 inline-block">
-          ← Kembali
-        </Link>
+      <div className="mx-auto w-full max-w-lg py-12">
+        <div className="rounded-3xl border-2 border-slate-900 bg-white p-6 text-center shadow-[5px_5px_0px_0px_#0f172a]">
+          {otherTrack ? (
+            <>
+              <p className="text-base font-black tracking-tight text-slate-900">
+                Tryout ini ada di jalur {KATEGORI_CONFIG[otherTrack].label}
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                Kamu sedang di jalur {trackConfig.label}. Ganti jalur untuk
+                membuka tryout ini.
+              </p>
+              <button
+                type="button"
+                onClick={() => switchKategori(otherTrack)}
+                disabled={isSwitching}
+                className="mt-4 w-full rounded-xl border-2 border-slate-900 bg-primary py-3 text-sm font-bold text-primary-foreground transition-all hover:brightness-95 active:translate-y-0.5 disabled:opacity-60"
+              >
+                {isSwitching
+                  ? "Mengganti jalur..."
+                  : `Pindah ke jalur ${KATEGORI_CONFIG[otherTrack].label}`}
+              </button>
+            </>
+          ) : (
+            <p className="text-sm font-semibold text-slate-700">
+              Tryout tidak ditemukan.
+            </p>
+          )}
+
+          <Link
+            href="/dashboard/try-out"
+            className="mt-4 inline-block text-sm font-bold text-primary hover:underline"
+          >
+            Kembali ke daftar tryout
+          </Link>
+        </div>
       </div>
     );
   }
