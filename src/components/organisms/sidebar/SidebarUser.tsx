@@ -40,7 +40,7 @@ export function SidebarUser({ session }: SidebarUserProps) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-full border border-slate-200 shrink-0">
-                <AvatarFallback className="rounded-full bg-blue-100 text-blue-700 font-bold text-xs">
+                <AvatarFallback className="rounded-full bg-primary/10 text-primary font-bold text-xs">
                   {generateFallbackFromName(session?.user.name || "U")}
                 </AvatarFallback>
               </Avatar>

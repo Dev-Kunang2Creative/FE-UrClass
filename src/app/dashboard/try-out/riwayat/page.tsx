@@ -93,7 +93,7 @@ export default function RiwayatTryoutPage() {
               setSearchQuery(event.target.value);
               resetPage();
             }}
-            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-sm"
+            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-primary transition-all shadow-sm"
           />
         </div>
 
@@ -107,7 +107,7 @@ export default function RiwayatTryoutPage() {
               }}
               className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
                 statusFilter === filter
-                  ? "bg-blue-600 text-white"
+                  ? "bg-primary text-white"
                   : "bg-[#EAEFF4] text-[#5A6A80] hover:bg-gray-200"
               }`}
             >
@@ -185,14 +185,14 @@ export default function RiwayatTryoutPage() {
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-baseline gap-1">
                     <span className="text-sm text-slate-500">Skor:</span>
-                    <span className="font-bold text-blue-600 text-xl">{hist.score}</span>
+                    <span className="font-bold text-primary text-xl">{hist.score}</span>
                   </div>
                   {hist.status === "selesai" ? (
                     <div className="flex flex-col items-end gap-2">
                       <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase tracking-wider">Selesai</span>
                       <Link 
                         href={`/dashboard/try-out/${hist.id}/result?attempt=${hist.attemptNumber}`}
-                        className="mt-1 text-sm font-semibold text-white bg-blue-600 px-4 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+                        className="mt-1 text-sm font-semibold text-white bg-primary px-4 py-1.5 rounded-lg hover:bg-primary/90 transition-colors"
                       >
                         Lihat Hasil
                       </Link>

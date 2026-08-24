@@ -48,7 +48,7 @@ export default function StatRow({
                 </span>
               </div>
             </div>
-            <span className="text-xs font-bold text-blue-600 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+            <span className="text-xs font-bold text-primary flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
               Beli Tiket <ArrowUpRight className="w-3.5 h-3.5" />
             </span>
           </div>
@@ -91,7 +91,7 @@ export default function StatRow({
                 </span>
               </div>
             </div>
-            <span className="text-xs font-bold text-blue-600 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+            <span className="text-xs font-bold text-primary flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
               Buka Katalog <ArrowUpRight className="w-3.5 h-3.5" />
             </span>
           </div>

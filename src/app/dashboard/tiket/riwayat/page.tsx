@@ -92,9 +92,9 @@ export default function RiwayatTiketPage() {
               -{logs.filter((l: TicketLog) => l.type === "debit").reduce((a: number, l: TicketLog) => a + l.amount, 0)}
             </p>
           </div>
-          <div className="bg-blue-50 rounded-2xl border border-blue-600/20 p-5 text-center shadow-sm">
-            <p className="text-sm text-blue-600 mb-1">Saldo Tiket</p>
-            <p className="text-2xl font-bold text-blue-600">{realBalance}</p>
+          <div className="bg-track-tint rounded-2xl border border-primary/20 p-5 text-center shadow-sm">
+            <p className="text-sm text-primary mb-1">Saldo Tiket</p>
+            <p className="text-2xl font-bold text-primary">{realBalance}</p>
           </div>
         </div>
       )}
@@ -108,7 +108,7 @@ export default function RiwayatTiketPage() {
             placeholder="Cari riwayat tiket..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); resetPage(); }}
-            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-sm"
+            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-primary transition-all shadow-sm"
           />
         </div>
 
@@ -119,7 +119,7 @@ export default function RiwayatTiketPage() {
               onClick={() => { setTypeFilter(filter); resetPage(); }}
               className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
                 typeFilter === filter
-                  ? "bg-blue-600 text-white"
+                  ? "bg-primary text-white"
                   : "bg-[#EAEFF4] text-[#5A6A80] hover:bg-gray-200"
               }`}
             >

@@ -310,7 +310,7 @@ export default function FormCompleteProfile({ onSuccess }: FormCompleteProfilePr
 
         {/* Target Pilihan 1 */}
         <div className="pt-2">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-primary mb-2">
             Target Pilihan 1 (Utama)
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -350,7 +350,7 @@ export default function FormCompleteProfile({ onSuccess }: FormCompleteProfilePr
 
         {/* Target Pilihan 2 */}
         <div className="pt-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-indigo-700 mb-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-primary mb-2">
             Target Pilihan 2 (Alternatif)
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -360,7 +360,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <LifeBuoy className="w-5 h-5 text-blue-600" />
+              <LifeBuoy className="w-5 h-5 text-primary" />
               Pusat Bantuan
             </DialogTitle>
             <DialogDescription>

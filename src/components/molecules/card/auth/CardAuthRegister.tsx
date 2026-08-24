@@ -104,7 +104,7 @@ export default function CardAuthRegister() {
           </span>
           <Link
             href="/login"
-            className="text-sm text-blue-600 hover:text-blue-700 font-bold underline"
+            className="text-sm text-primary hover:text-primary/80 font-bold underline"
           >
             Masuk sekarang
           </Link>

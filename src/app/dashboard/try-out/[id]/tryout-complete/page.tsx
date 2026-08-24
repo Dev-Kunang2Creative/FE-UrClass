@@ -102,11 +102,11 @@ export default function TryoutCompletePage({
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8 space-y-6">
         {/* Result Info */}
         <div className="flex items-start gap-4">
-          <div className="w-16 h-16 shrink-0 bg-blue-50 rounded-xl flex items-center justify-center">
+          <div className="w-16 h-16 shrink-0 bg-track-tint rounded-xl flex items-center justify-center">
             {isSimpleScoreReady ? (
-              <Trophy className="w-8 h-8 text-blue-600" />
+              <Trophy className="w-8 h-8 text-primary" />
             ) : (
-              <Calendar className="w-8 h-8 text-blue-600" />
+              <Calendar className="w-8 h-8 text-primary" />
             )}
           </div>
           <div>
@@ -116,7 +116,7 @@ export default function TryoutCompletePage({
                 <p className="text-sm text-gray-600 mt-1">
                   Try Out ini tidak menggunakan IRT. Skor Anda sudah tersedia.
                 </p>
-                <p className="text-blue-600 font-bold text-2xl mt-2">
+                <p className="text-primary font-bold text-2xl mt-2">
                   {scoreResult.final_score}
                 </p>
               </>
@@ -125,7 +125,7 @@ export default function TryoutCompletePage({
                 <p className="text-sm text-gray-600 mt-1">
                   Nilai Try Out Anda sedang diproses. Hasil lengkap akan diumumkan pada:
                 </p>
-                <p className="text-blue-600 font-bold text-base mt-2">
+                <p className="text-primary font-bold text-base mt-2">
                   {releaseDateStr}
                 </p>
               </>
@@ -138,8 +138,8 @@ export default function TryoutCompletePage({
         {/* Stats */}
         <div className="flex items-center justify-center gap-8 md:gap-12">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-              <FileText className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-track-tint rounded-lg flex items-center justify-center">
+              <FileText className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-xs text-gray-500">Total Soal Dikerjakan:</p>
@@ -150,8 +150,8 @@ export default function TryoutCompletePage({
           <div className="w-px h-12 bg-gray-200" />
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Clock className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-track-tint rounded-lg flex items-center justify-center">
+              <Clock className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-xs text-gray-500">Waktu Pengerjaan:</p>
@@ -174,7 +174,7 @@ export default function TryoutCompletePage({
           )}
           <Link
             href="/dashboard"
-            className="block w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base rounded-xl text-center transition-colors shadow-[0_4px_0_0_#1e3a8a] active:shadow-none active:translate-y-1"
+            className="block w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold text-base rounded-xl text-center transition-colors shadow-[0_4px_0_0_#0f172a] active:shadow-none active:translate-y-1"
           >
             Kembali ke Dashboard
           </Link>

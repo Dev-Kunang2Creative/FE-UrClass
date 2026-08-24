@@ -193,7 +193,7 @@ export default function DialogOnboardingTour({
             <Button
               type="button"
               onClick={handleClose}
-              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-[2px_2px_0px_0px_#0f172a]"
+              className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-[2px_2px_0px_0px_#0f172a]"
             >
               <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
               <span>Mulai Belajar! 🚀</span>
