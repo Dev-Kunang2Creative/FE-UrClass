@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, Search, LogOut, Settings, Home, User, Ticket, PlusCircle, MinusCircle } from "lucide-react";
+import { Bell, Search, LogOut, Settings, Home, User, PlusCircle, MinusCircle } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -22,6 +22,7 @@ import {
   TicketBalanceUpdatedDetail,
   useTickets,
 } from "@/hooks/useTickets";
+import TicketBadge from "@/components/molecules/dashboard/TicketBadge";
 
 interface DashboardTopBarProps {
   userName?: string;
@@ -88,16 +89,16 @@ export default function DashboardTopBar({ userName }: DashboardTopBarProps) {
 
       {/* Right side wrapper covering Notification + Ticket + Profile */}
       <div className="flex items-center justify-end gap-3 md:gap-4 ml-auto">
-        {/* Ticket Badge */}
-        <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EDF5FF] hover:bg-primary/10 transition-colors shrink-0 cursor-pointer">
-          <Ticket className="h-5 w-5 text-gray-700" />
-          <span className="font-bold text-gray-800 text-sm">{ticketCount}</span>
-        </button>
+        {/* NOTE: this whole component is not mounted anywhere - the dashboard
+            layout renders BreadcrumbNav instead. The balance now lives in
+            TicketBadge, used by that bar and mirrored in the sidebar, so there
+            is one implementation if this bar is ever brought back. */}
+        <TicketBadge />
 
         {/* Notification Bell */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild className="focus:outline-none">
-            <button className="relative p-2 rounded-full bg-[#EDF5FF] hover:bg-primary/10 transition-colors shrink-0 text-gray-600">
+            <button className="relative p-2 rounded-full bg-track-tint hover:bg-primary/10 transition-colors shrink-0 text-gray-600">
               <Bell className="h-5 w-5" />
             </button>
           </DropdownMenuTrigger>

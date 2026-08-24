@@ -49,6 +49,7 @@ import { SidebarUser } from "./SidebarUser";
 import { DASHBOARD_MENU } from "@/constants/dashboard-menu";
 
 import { useKategori } from "@/hooks/useKategori";
+import { useTickets } from "@/hooks/useTickets";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
 
 interface SidebarWrapperProps {
@@ -60,6 +61,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
   const [waModalOpen, setWaModalOpen] = useState(false);
   const { kategori } = useKategori();
   const config = KATEGORI_CONFIG[kategori];
+  const { ticketCount } = useTickets();
 
   const role = session?.user.role as keyof typeof DASHBOARD_MENU;
 
@@ -328,6 +330,18 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       <Link href="/dashboard/tiket/riwayat" className="flex items-center w-full gap-3 font-medium text-sm">
                         <Ticket className="w-4.5 h-4.5 shrink-0" />
                         <span>Riwayat Tiket</span>
+                        {/* The balance itself, not just a way to the ledger.
+                            On desktop there is no top bar, so without this the
+                            count appeared only on the dashboard home. */}
+                        <span
+                          className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-xs font-black ${
+                            ticketCount > 0
+                              ? "bg-track-tint text-primary"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {ticketCount}
+                        </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
