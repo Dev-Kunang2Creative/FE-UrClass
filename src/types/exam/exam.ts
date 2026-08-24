@@ -63,6 +63,22 @@ export interface TryoutResultData {
     final_score: number;
     accuracy: number;
   };
+  /**
+   * Per-subtest scores. Optional because older cached responses predate it.
+   * CPNS is judged per threshold - one subtest below its passing grade fails
+   * the whole SKD - so the aggregate alone hides the deciding number.
+   */
+  per_subtest?: {
+    subtest_id: string;
+    name: string;
+    exam_type: string | null;
+    scheme: string;
+    total_questions: number;
+    answered: number;
+    correct: number;
+    raw_score: number;
+    max_score: number;
+  }[];
   irt_result: {
     is_ready: boolean;
     release_date: string | null;

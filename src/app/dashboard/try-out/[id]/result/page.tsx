@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { useKategori } from "@/hooks/useKategori";
 import { useGetTryoutResult } from "@/http/tryout/get-tryout-result";
 import { formatJakartaDate } from "@/utils/date-time";
+import SubtestBreakdown from "@/components/molecules/exam/SubtestBreakdown";
 
 export default function ResultPage({
   params,
@@ -59,7 +60,7 @@ export default function ResultPage({
     );
   }
 
-  const { summary, irt_result, use_irt, score_result } = result;
+  const { summary, irt_result, use_irt, score_result, per_subtest } = result;
   const accuracy = Math.round(score_result?.accuracy ?? 0);
 
   const heroCardClass = isCpns
@@ -166,6 +167,10 @@ export default function ResultPage({
           </p>
         </div>
       )}
+
+      {/* Placed above the aggregate summary on purpose: for CPNS the per-
+          threshold verdict is the result, and totals are context. */}
+      <SubtestBreakdown perSubtest={per_subtest} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
