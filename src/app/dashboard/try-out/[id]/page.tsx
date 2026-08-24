@@ -3,7 +3,7 @@
 import { useState, use } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, FileText, Clock, Ticket, Upload, X, Instagram, ExternalLink } from "lucide-react";
+import { ChevronLeft, FileText, Clock, Ticket, Upload, X, Instagram, ExternalLink, Calendar, Users, Radio } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,6 +17,8 @@ import type { SubtestByTryout } from "@/types/subtest/subtest";
 import { getErrorMessage } from "@/utils/get-error-message";
 import { getTryoutButtonState, TRYOUT_BUTTON_CLASS } from "@/utils/tryout-button-state";
 import { useKategori } from "@/hooks/useKategori";
+import { useSchedule } from "@/hooks/useSchedule";
+import { PENDING_PILL, PHASE_PILL } from "@/lib/tryout-schedule";
 import { KATEGORI_CONFIG, type Kategori } from "@/lib/kategori";
 
 /**
@@ -67,6 +69,10 @@ export default function TryoutDetailPage({
   // Fetch enrolled tryouts as a fallback for user-specific status.
   const { data: historyData, isLoading: historyLoading } = useGetHistoryTryout({ token });
   const tryout = tryoutDetail?.data;
+  const schedule = useSchedule(
+    tryout?.start_date ? String(tryout.start_date) : null,
+    tryout?.end_date ? String(tryout.end_date) : null,
+  );
   const enrolledTryout = historyData?.data?.find((t) => t.id === tryoutId);
   const isEnrolled = Boolean(tryout?.user_is_enrolled) || !!enrolledTryout;
   const attemptCount = Number(tryout?.user_attempt_count ?? enrolledTryout?.attemptCount ?? 0);
@@ -223,6 +229,8 @@ export default function TryoutDetailPage({
   }
 
   const bannerUrl = tryout.image_url || null;
+  const participantsCount = Number(tryout.user_accesses_count ?? 0);
+  const schedulePill = schedule ? PHASE_PILL[schedule.phase] : PENDING_PILL;
 
   return (
     // One screen on a desktop, and nothing that can push the page sideways.
@@ -265,7 +273,7 @@ export default function TryoutDetailPage({
         </div>
       </div>
 
-      <div className="grid min-w-0 grid-cols-1 items-start gap-5 lg:grid-cols-5">
+      <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-5">
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-3">
           {/* The banner an admin uploaded, which this page never showed at all -
               the artwork existed on tryouts.image and only the list rendered
@@ -313,6 +321,14 @@ export default function TryoutDetailPage({
               {tryoutTitle}
             </h2>
 
+            {/* The description an admin wrote was in the payload and shown
+                nowhere on this page. */}
+            {tryout.description && (
+              <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-slate-600">
+                {tryout.description}
+              </p>
+            )}
+
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="min-w-0 rounded-2xl border-2 border-dashed border-slate-200 p-3">
                 <p className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
@@ -333,6 +349,56 @@ export default function TryoutDetailPage({
                   {totalQuestions}{" "}
                   <span className="text-xs font-bold text-slate-400">soal</span>
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Schedule and turnout. Both were in the payload already - start_date,
+              end_date and user_accesses_count - and this page showed neither, so
+              you could open a tryout with no idea whether it was still open. */}
+          <div className="min-w-0 rounded-3xl border-2 border-slate-900 bg-white p-5 shadow-[5px_5px_0px_0px_#0f172a]">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border-2 border-slate-900 px-2.5 py-1 text-[11px] font-bold ${schedulePill.className}`}
+              >
+                {schedule?.phase === "running" ? (
+                  <Radio className="size-3.5" aria-hidden />
+                ) : (
+                  <Clock className="size-3.5" aria-hidden />
+                )}
+                {schedulePill.text}
+              </span>
+              <span
+                className={`min-w-0 break-words text-xs font-semibold ${
+                  schedule?.urgent ? "text-red-600" : "text-slate-500"
+                }`}
+              >
+                {schedule?.label ?? "Menghitung waktu..."}
+              </span>
+            </div>
+
+            <div className="mt-4 space-y-2 border-t-2 border-dashed border-slate-200 pt-3">
+              <div className="flex min-w-0 items-start gap-2">
+                <Calendar className="mt-0.5 size-4 shrink-0 text-slate-400" />
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold text-slate-500">
+                    Periode pengerjaan
+                  </p>
+                  <p className="break-words text-sm font-semibold text-slate-900">
+                    {schedule?.dateRange ?? "-"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex min-w-0 items-start gap-2">
+                <Users className="mt-0.5 size-4 shrink-0 text-slate-400" />
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold text-slate-500">
+                    Peserta terdaftar
+                  </p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {participantsCount.toLocaleString("id-ID")} orang
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -384,7 +450,7 @@ export default function TryoutDetailPage({
             </h3>
           </div>
 
-          <div className="min-w-0 divide-y-2 divide-dashed divide-slate-200 overflow-y-auto px-5 py-1 lg:max-h-[27rem]">
+          <div className="min-w-0 flex-1 divide-y-2 divide-dashed divide-slate-200 overflow-y-auto px-5 py-1">
             {groups.length === 0 ? (
               <p className="py-5 text-sm text-slate-500">
                 Rincian subtest belum tersedia untuk tryout ini.

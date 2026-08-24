@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Radio, Calendar, Clock, Users } from "lucide-react";
 import Link from "next/link";
@@ -8,7 +7,8 @@ import {
   getTryoutButtonState,
   TRYOUT_BUTTON_CLASS,
 } from "@/utils/tryout-button-state";
-import { formatJakartaDate } from "@/utils/date-time";
+import { PENDING_PILL, PHASE_PILL } from "@/lib/tryout-schedule";
+import { useSchedule } from "@/hooks/useSchedule";
 import { useKategori } from "@/hooks/useKategori";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
 
@@ -24,56 +24,6 @@ interface TryoutCardProps {
   isEnrolled?: boolean;
   hasAttempted?: boolean;
   sessionStatus?: "not_started" | "in_progress" | "finished" | "expired";
-}
-
-type Phase = "upcoming" | "running" | "ended";
-
-interface Countdown {
-  phase: Phase;
-  label: string;
-  dateRange: string;
-  /** Under a day left on a running tryout. */
-  urgent: boolean;
-}
-
-const HOUR = 60 * 60 * 1000;
-const DAY = 24 * HOUR;
-
-const PHASE_PILL: Record<Phase, { text: string; className: string }> = {
-  running: { text: "Berlangsung", className: "bg-red-600 text-white" },
-  upcoming: { text: "Akan Datang", className: "bg-amber-600 text-white" },
-  ended: { text: "Selesai", className: "bg-slate-500 text-white" },
-};
-
-/**
- * Shown until the first tick. The phase depends on the clock, so it cannot be
- * computed during server rendering without risking a hydration mismatch -
- * defaulting to one of the real phases instead would flash a confident wrong
- * status ("Akan Datang" on a tryout already running) on every mount.
- */
-const PENDING_PILL = { text: "Memuat", className: "bg-slate-300 text-slate-700" };
-
-/** Keeps the previous object when nothing visible changed, so no re-render. */
-function same(prev: Countdown | null, next: Countdown): Countdown {
-  if (
-    prev &&
-    prev.phase === next.phase &&
-    prev.label === next.label &&
-    prev.dateRange === next.dateRange &&
-    prev.urgent === next.urgent
-  ) {
-    return prev;
-  }
-  return next;
-}
-
-function remaining(ms: number) {
-  const d = Math.floor(ms / DAY);
-  const h = Math.floor((ms % DAY) / HOUR);
-  const m = Math.floor((ms % HOUR) / (60 * 1000));
-  if (d > 0) return `${d} hari ${h} jam`;
-  if (h > 0) return `${h} jam ${m} menit`;
-  return `${m} menit`;
 }
 
 /**
@@ -123,59 +73,7 @@ export default function TryoutCard({
     : `/dashboard/try-out/${id}`;
 
   const isExternal = imageUrl?.startsWith("http");
-  const [countdown, setCountdown] = useState<Countdown | null>(null);
-
-  useEffect(() => {
-    const formatDate = (date: Date) =>
-      formatJakartaDate(date, {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      });
-
-    // One state object rather than six setState calls per tick.
-    const tick = () => {
-      const now = Date.now();
-      const start = new Date(startDate).getTime();
-      const end = new Date(endDate).getTime();
-      const dateRange = `${formatDate(new Date(start))} - ${formatDate(new Date(end))}`;
-
-      if (now < start) {
-        setCountdown((prev) => same(prev, {
-          phase: "upcoming",
-          label: `Mulai dalam ${remaining(start - now)}`,
-          dateRange,
-          urgent: false,
-        }));
-        return;
-      }
-      if (now <= end) {
-        const left = end - now;
-        setCountdown((prev) => same(prev, {
-          phase: "running",
-          label: `Berakhir dalam ${remaining(left)}`,
-          dateRange,
-          urgent: left < DAY,
-        }));
-        return;
-      }
-      setCountdown((prev) =>
-        same(prev, {
-          phase: "ended",
-          label: "Tryout sudah berakhir",
-          dateRange,
-          urgent: false,
-        }),
-      );
-    };
-
-    // A second keeps phase changes prompt; same() bails out when nothing
-    // rendered would differ, so the grid is not re-rendered once a second for
-    // a label that only changes by the minute.
-    tick();
-    const intervalId = setInterval(tick, 1000);
-    return () => clearInterval(intervalId);
-  }, [startDate, endDate]);
+  const countdown = useSchedule(startDate, endDate);
 
   const pill = countdown ? PHASE_PILL[countdown.phase] : PENDING_PILL;
 
