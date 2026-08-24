@@ -38,7 +38,6 @@ export default function TryoutPage() {
 
   const [activeFilter, setActiveFilter] = useState("Semua Tryout");
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("Semua");
   const [sortBy, setSortBy] = useState("status");
   const [showRedeemDialog, setShowRedeemDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,8 +84,6 @@ export default function TryoutPage() {
       .filter(
         (item) =>
           item.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          (categoryFilter === "Semua" ||
-            item.category?.toUpperCase() === categoryFilter.toUpperCase()) &&
           (activeFilter === "Semua Tryout" ||
             (activeFilter === "Tryout Premium" && item.type === "Premium") ||
             (activeFilter === "Tryout Gratis" && item.type === "Gratis") ||
@@ -104,14 +101,7 @@ export default function TryoutPage() {
 
         return getStatusOrder(a) - getStatusOrder(b);
       });
-  }, [
-    tryouts,
-    searchQuery,
-    categoryFilter,
-    activeFilter,
-    enrolledTryoutIds,
-    sortBy,
-  ]);
+  }, [tryouts, searchQuery, activeFilter, enrolledTryoutIds, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -127,11 +117,6 @@ export default function TryoutPage() {
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
-    setCurrentPage(1);
-  };
-
-  const handleCategoryFilterChange = (filter: string) => {
-    setCategoryFilter(filter);
     setCurrentPage(1);
   };
 
@@ -168,6 +153,13 @@ export default function TryoutPage() {
               : "Sobat UrClass, tingkatkan skor tryoutmu dan persiapkan diri menghadapi seleksi masuk PTN."}
           </p>
         </div>
+
+        <Mascot
+          pose="ayobelajar"
+          decorative
+          sizes="110px"
+          className="order-last h-20 w-auto shrink-0 sm:order-none md:h-24"
+        />
 
         {/* Buttons. Both were off-palette: the access-code button branched on
             isCpns to pick between hardcoded orange and blue, and Riwayat TO
@@ -209,7 +201,10 @@ export default function TryoutPage() {
           />
         </div>
 
-        {/* Filter Buttons */}
+        {/* Chips and the sort control on one row. The jenis select is gone: it
+            offered SKD/SKB/Kedinasan and UTBK/SNBP/UM against tryouts.category,
+            a free-text column that in practice holds one value per track, so
+            every option but the first filtered everything away. */}
         <div className="flex flex-wrap items-center gap-2 md:gap-3">
           {FILTER_OPTIONS.map((filter) => (
             <button
@@ -224,36 +219,9 @@ export default function TryoutPage() {
               {filter}
             </button>
           ))}
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <Select
-            value={categoryFilter}
-            onValueChange={handleCategoryFilterChange}
-          >
-            <SelectTrigger className="h-10 w-full rounded-xl border-2 border-slate-900 bg-white font-semibold sm:w-36">
-              <SelectValue placeholder="Jenis TO" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Semua">Semua Jenis</SelectItem>
-              {isCpns ? (
-                <>
-                  <SelectItem value="SKD">SKD</SelectItem>
-                  <SelectItem value="SKB">SKB</SelectItem>
-                  <SelectItem value="Kedinasan">Kedinasan</SelectItem>
-                </>
-              ) : (
-                <>
-                  <SelectItem value="UTBK">UTBK</SelectItem>
-                  <SelectItem value="SNBP">SNBP</SelectItem>
-                  <SelectItem value="UM">UM</SelectItem>
-                </>
-              )}
-            </SelectContent>
-          </Select>
 
           <Select value={sortBy} onValueChange={handleSortChange}>
-            <SelectTrigger className="h-10 w-full rounded-xl border-2 border-slate-900 bg-white font-semibold sm:w-48">
+            <SelectTrigger className="ml-auto h-9 w-full rounded-full border-2 border-slate-900 bg-white px-4 text-sm font-bold sm:w-48">
               <SelectValue placeholder="Urutkan" />
             </SelectTrigger>
             <SelectContent>

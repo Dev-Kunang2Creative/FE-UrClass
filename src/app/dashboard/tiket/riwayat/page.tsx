@@ -71,6 +71,12 @@ export default function RiwayatTiketPage() {
           <ChevronLeft className="w-6 h-6" />
         </Link>
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">Riwayat Tiket</h1>
+        <Mascot
+          pose="laptop"
+          decorative
+          sizes="100px"
+          className="ml-auto h-16 w-auto shrink-0 md:h-20"
+        />
       </div>
 
       {/* Summary card */}

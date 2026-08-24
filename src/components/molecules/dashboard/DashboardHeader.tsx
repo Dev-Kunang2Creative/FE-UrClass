@@ -30,13 +30,13 @@ export default function DashboardHeader({ userName }: DashboardHeaderProps) {
 
   return (
     <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-      {/* Small on purpose. This sits at the top of every dashboard visit, so it
-          greets and then gets out of the way. */}
+      {/* Big enough to register. At h-10 it read as an icon and went
+          unnoticed, which defeats the point of a greeting. */}
       <Mascot
         pose="hai"
         decorative
-        sizes="48px"
-        className="h-10 w-auto shrink-0"
+        sizes="80px"
+        className="h-14 w-auto shrink-0 sm:h-16"
       />
       <h1 className="min-w-0 flex-1 text-lg font-black tracking-tight text-slate-900 sm:text-xl">
         {greeting(new Date().getHours())},{" "}

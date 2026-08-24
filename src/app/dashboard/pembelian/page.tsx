@@ -83,6 +83,12 @@ export default function PembelianPage() {
           Tiket dari paket mana pun bisa kamu pakai untuk tryout UTBK maupun
           CPNS - tidak perlu beli dua kali.
         </p>
+        <Mascot
+          pose="sip2"
+          decorative
+          sizes="110px"
+          className="hidden h-20 w-auto shrink-0 self-end sm:block"
+        />
       </div>
 
       {/* Moved here from the dashboard. The promo slides all pointed at this
