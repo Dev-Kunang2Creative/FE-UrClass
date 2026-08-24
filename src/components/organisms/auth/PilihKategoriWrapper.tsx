@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 type KategoriId = Kategori;
 
@@ -102,6 +103,9 @@ export default function PilihKategoriWrapper() {
             priority
             className="h-20 sm:h-24 w-auto object-contain"
           />
+          {/* First screen after signing in, so the mascot introduces itself
+              here rather than only turning up later. */}
+          <Mascot pose="hai" sizes="120px" className="h-28 w-auto sm:h-32" />
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Selamat Datang, {userName}!

@@ -7,6 +7,7 @@ import { useFinishTryout } from "@/http/tryout/finish-tryout";
 import { useGetTryoutResult } from "@/http/tryout/get-tryout-result";
 import { Calendar, FileText, Clock, Trophy } from "lucide-react";
 import { formatJakartaDate } from "@/utils/date-time";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 export default function TryoutCompletePage({
   params,
@@ -89,13 +90,22 @@ export default function TryoutCompletePage({
   return (
     <div className="w-full max-w-3xl mx-auto animate-in fade-in duration-500 py-8 px-4">
       {/* Success Banner */}
-      <div className="bg-gradient-to-r from-[#3B9245] to-[#4CAF50] rounded-2xl p-8 text-center text-white mb-8 shadow-lg">
-        <h1 className="text-xl md:text-2xl font-bold mb-2">
-          Selamat! Pengerjaan Try Out Anda Berhasil Disubmit.
-        </h1>
-        <p className="text-white/80 text-sm">
-          Terima kasih telah mengerjakan. Anda selangkah lebih dekat ke universitas impian.
-        </p>
+      <div className="mb-8 flex items-center gap-4 rounded-3xl border-2 border-slate-900 bg-primary p-6 text-primary-foreground shadow-[5px_5px_0px_0px_#0f172a]">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-black tracking-tight md:text-2xl">
+            Selamat, tryout kamu berhasil dikumpulkan!
+          </h1>
+          <p className="mt-1 text-sm text-primary-foreground/80">
+            Terima kasih sudah mengerjakan sampai selesai. Satu langkah lagi
+            lebih dekat ke targetmu.
+          </p>
+        </div>
+        <Mascot
+          pose="yay"
+          decorative
+          sizes="130px"
+          className="h-28 w-auto shrink-0"
+        />
       </div>
 
       {/* Result Info Card */}

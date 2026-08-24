@@ -2,19 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Ticket, ArrowDownCircle, ArrowUpCircle, Search } from "lucide-react";
+import { ChevronLeft, ArrowDownCircle, ArrowUpCircle, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetTicketLogs } from "@/http/tiket/get-ticket-logs";
 import type { TicketLog } from "@/http/tiket/get-ticket-logs";
 import { formatJakartaDateTime } from "@/utils/date-time";
 import SmartPagination from "@/components/molecules/pagination/SmartPagination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 const TYPE_FILTERS = ["Semua", "Masuk", "Keluar"];
 const SOURCE_LABELS: Record<string, string> = {
@@ -30,7 +24,6 @@ export default function RiwayatTiketPage() {
   const token = session?.access_token || "";
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("Semua");
-  const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(9);
 
@@ -50,11 +43,14 @@ export default function RiwayatTiketPage() {
           (typeFilter === "Keluar" && log.type === "debit");
         return matchesSearch && matchesType;
       })
-      .sort((a: TicketLog, b: TicketLog) => {
-        if (sortBy === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      });
-  }, [logs, searchQuery, typeFilter, sortBy]);
+      // Newest first, always. A ledger is read from the most recent entry
+      // down, and the control offering the other direction was the only thing
+      // on the page that needed explaining.
+      .sort(
+        (a: TicketLog, b: TicketLog) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+  }, [logs, searchQuery, typeFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -92,8 +88,8 @@ export default function RiwayatTiketPage() {
               -{logs.filter((l: TicketLog) => l.type === "debit").reduce((a: number, l: TicketLog) => a + l.amount, 0)}
             </p>
           </div>
-          <div className="bg-track-tint rounded-2xl border border-primary/20 p-5 text-center shadow-sm">
-            <p className="text-sm text-primary mb-1">Saldo Tiket</p>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm">
+            <p className="text-sm text-slate-500 mb-1">Saldo Tiket</p>
             <p className="text-2xl font-bold text-primary">{realBalance}</p>
           </div>
         </div>
@@ -128,15 +124,6 @@ export default function RiwayatTiketPage() {
           ))}
         </div>
 
-        <Select value={sortBy} onValueChange={(v) => { setSortBy(v); resetPage(); }}>
-          <SelectTrigger className="h-10 w-full bg-white sm:w-52">
-            <SelectValue placeholder="Urutkan" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Terbaru</SelectItem>
-            <SelectItem value="oldest">Terlama</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* List */}
@@ -145,12 +132,12 @@ export default function RiwayatTiketPage() {
           <div className="flex justify-center p-10 text-slate-500">Memuat riwayat tiket...</div>
         ) : logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-4">
-            <Ticket className="w-12 h-12 text-slate-300" />
+            <Mascot pose="berfikir" decorative sizes="112px" className="h-28 w-auto" />
             <p>Belum ada riwayat tiket.</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-4">
-            <Ticket className="w-12 h-12 text-slate-300" />
+            <Mascot pose="berfikir" decorative sizes="112px" className="h-28 w-auto" />
             <p>Tidak ada riwayat yang cocok.</p>
           </div>
         ) : (

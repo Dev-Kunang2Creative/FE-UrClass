@@ -2,10 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronLeft, Receipt } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetHistoryPembelian } from "@/http/pembelian/get-history-pembelian";
 import { formatJakartaDate } from "@/utils/date-time";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 export default function RiwayatPembelianPage() {
   const { data: session } = useSession();
@@ -31,7 +32,7 @@ export default function RiwayatPembelianPage() {
           <div className="flex justify-center p-10 text-slate-500">Memuat riwayat...</div>
         ) : transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-4">
-            <Receipt className="w-12 h-12 text-slate-300" />
+            <Mascot pose="berfikir" decorative sizes="112px" className="h-28 w-auto" />
             <p>Belum ada riwayat pembelian paket.</p>
           </div>
         ) : (

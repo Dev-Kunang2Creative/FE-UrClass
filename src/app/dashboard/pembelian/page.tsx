@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { useGetAllPackages } from "@/http/pembelian/get-all-packages";
 import PackageCard from "@/components/molecules/card/PackageCard";
 import InfoCardCarousel from "@/components/molecules/dashboard/InfoCardCarousel";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 /**
  * One catalogue for both jalur.
@@ -121,7 +122,8 @@ export default function PembelianPage() {
             </div>
           ))
         ) : filteredPackages.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-slate-500">
+          <div className="col-span-full flex flex-col items-center gap-3 py-10 text-center text-slate-500">
+            <Mascot pose="berfikir" decorative sizes="112px" className="h-28 w-auto" />
             {query
               ? `Tidak ada paket yang cocok dengan "${searchQuery.trim()}".`
               : "Belum ada paket yang tersedia saat ini."}

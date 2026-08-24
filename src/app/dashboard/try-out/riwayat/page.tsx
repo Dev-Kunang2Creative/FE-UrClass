@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, BookOpen, Search } from "lucide-react";
+import { ChevronLeft, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetHistoryTryout } from "@/http/tryout/get-history-tryout";
 import { formatJakartaDateTime } from "@/utils/date-time";
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 const STATUS_FILTERS = ["Semua", "Selesai", "Mengerjakan"];
 const PER_PAGE_OPTIONS = [5, 9, 15];
@@ -163,12 +164,12 @@ export default function RiwayatTryoutPage() {
           <div className="flex justify-center p-10 text-slate-500">Memuat riwayat...</div>
         ) : histories.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-4">
-            <BookOpen className="w-12 h-12 text-slate-300" />
+            <Mascot pose="berfikir" decorative sizes="112px" className="h-28 w-auto" />
             <p>Belum ada riwayat Try Out yang pernah dikerjakan.</p>
           </div>
         ) : filteredHistories.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-4">
-            <BookOpen className="w-12 h-12 text-slate-300" />
+            <Mascot pose="berfikir" decorative sizes="112px" className="h-28 w-auto" />
             <p>Tidak ada riwayat yang cocok.</p>
           </div>
         ) : (

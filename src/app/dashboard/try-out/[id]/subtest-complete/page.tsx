@@ -6,6 +6,7 @@ import { Clock, FileText, PartyPopper } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetUserTryoutDetail } from "@/http/tryout/get-user-tryout-detail";
 import type { SubtestByTryout } from "@/types/subtest/subtest";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 function SubtestCompleteContent({ tryoutId }: { tryoutId: string }) {
   const router = useRouter();
@@ -55,15 +56,27 @@ function SubtestCompleteContent({ tryoutId }: { tryoutId: string }) {
 
   return (
     <div className="w-full max-w-3xl mx-auto animate-in fade-in duration-500 py-12 px-4">
-      <div className="bg-gradient-to-r from-[#3B9245] to-[#4CAF50] rounded-2xl p-8 text-center text-white mb-8 shadow-lg">
-        <h1 className="text-2xl font-bold mb-2">
-          Subtest {completedSubtest.name} Selesai
-        </h1>
-        <p className="text-white/80 text-sm">
-          {isLastSubtest
-            ? "Semua subtest telah selesai dikerjakan."
-            : "Selanjutnya kamu akan mengerjakan subtest berikutnya."}
-        </p>
+      {/* Was a #3B9245 to #4CAF50 gradient - a green belonging to neither
+          track - on the screen a reader sees between every subtest. */}
+      <div className="mb-8 flex items-center gap-4 rounded-3xl border-2 border-slate-900 bg-primary p-6 text-primary-foreground shadow-[5px_5px_0px_0px_#0f172a]">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-black tracking-tight sm:text-2xl">
+            Subtest {completedSubtest.name} selesai
+          </h1>
+          <p className="mt-1 text-sm text-primary-foreground/80">
+            {isLastSubtest
+              ? "Semua subtest telah selesai dikerjakan."
+              : "Selanjutnya kamu akan mengerjakan subtest berikutnya."}
+          </p>
+        </div>
+        {/* A thumbs-up rather than a celebration: this is a beat between
+            subtests, not the finish line. */}
+        <Mascot
+          pose="sip1"
+          decorative
+          sizes="120px"
+          className="h-24 w-auto shrink-0"
+        />
       </div>
 
       {!isLastSubtest && nextSubtest ? (

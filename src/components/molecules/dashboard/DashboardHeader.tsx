@@ -2,6 +2,7 @@
 
 import { useKategori } from "@/hooks/useKategori";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 interface DashboardHeaderProps {
   userName?: string;
@@ -29,7 +30,15 @@ export default function DashboardHeader({ userName }: DashboardHeaderProps) {
 
   return (
     <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-      <h1 className="min-w-0 text-lg font-black tracking-tight text-slate-900 sm:text-xl">
+      {/* Small on purpose. This sits at the top of every dashboard visit, so it
+          greets and then gets out of the way. */}
+      <Mascot
+        pose="hai"
+        decorative
+        sizes="48px"
+        className="h-10 w-auto shrink-0"
+      />
+      <h1 className="min-w-0 flex-1 text-lg font-black tracking-tight text-slate-900 sm:text-xl">
         {greeting(new Date().getHours())},{" "}
         <span className="text-primary">{userName || "Sobat UrClass"}</span>
       </h1>
