@@ -6,6 +6,7 @@ import { ChevronLeft, History, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetAllPackages } from "@/http/pembelian/get-all-packages";
 import PackageCard from "@/components/molecules/card/PackageCard";
+import InfoCardCarousel from "@/components/molecules/dashboard/InfoCardCarousel";
 import { useKategori } from "@/hooks/useKategori";
 
 const categories = [
@@ -71,6 +72,11 @@ export default function PembelianPage() {
       </div>
 
       {/* Search and Filters */}
+      {/* Moved here from the dashboard. The promo slides all pointed at this
+          page or the tryout list, so on the dashboard they were motion without
+          information; here the reader is already deciding whether to buy. */}
+      <InfoCardCarousel />
+
       <div className="flex flex-col gap-4 mt-2">
         <div className="relative w-full max-w-xl">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">

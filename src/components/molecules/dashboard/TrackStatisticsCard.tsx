@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { TryoutHistoryData } from "@/http/tryout/get-history-tryout";
+import { scoreSummary } from "@/lib/dashboard-tasks";
 
 interface TrackStatisticsCardProps {
   histories?: TryoutHistoryData[];
@@ -31,24 +32,10 @@ export default function TrackStatisticsCard({
   const { data: session } = useSession();
   const user = session?.user;
 
-  // Filter histories with valid finished scores
-  const finishedHistories = histories.filter(
-    (h) => h.status === "selesai" && Number(h.score) > 0,
-  );
-
-  const totalAttempted = finishedHistories.length;
-  const avgScore =
-    totalAttempted > 0
-      ? Math.round(
-          finishedHistories.reduce((acc, curr) => acc + Number(curr.score), 0) /
-            totalAttempted,
-        )
-      : 0;
-
-  const highestScore =
-    totalAttempted > 0
-      ? Math.max(...finishedHistories.map((h) => Number(h.score)))
-      : 0;
+  // Shared with ProgressAside so the average shown up in the sidebar and the
+  // one shown here cannot drift apart.
+  const { attempts: totalAttempted, average: avgScore, highest: highestScore } =
+    scoreSummary(histories);
 
   if (kategori === "cpns") {
     // CPNS Specific Calculations
