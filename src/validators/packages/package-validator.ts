@@ -44,8 +44,9 @@ export const packageSchema = z
 
     is_active: z.boolean().optional().default(true),
 
-    // Exam track this package belongs to.
-    kategori: z.enum(["utbk", "cpns"]).default("utbk"),
+    // No kategori: a package is sold to both jalur. The ticket it grants is a
+    // single balance that works on UTBK and CPNS alike, so there is nothing to
+    // target. The backend ignores the field if an older client still sends it.
   })
   .refine(
     (data) => data.discount_price == null || data.discount_price < data.price,

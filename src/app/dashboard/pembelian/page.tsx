@@ -2,44 +2,43 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, History, Search } from "lucide-react";
+import { ChevronLeft, History, Search, Ticket } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetAllPackages } from "@/http/pembelian/get-all-packages";
 import PackageCard from "@/components/molecules/card/PackageCard";
 import InfoCardCarousel from "@/components/molecules/dashboard/InfoCardCarousel";
-import { useKategori } from "@/hooks/useKategori";
 
-const categories = [
-  "Semua Paket",
-  "Paket Try Out",
-  "Mega Paket",
-];
-
+/**
+ * One catalogue for both jalur.
+ *
+ * The list used to be filtered by the reader's kategori while the ticket it
+ * sold was a single balance usable on either track, so half the store was
+ * hidden for no reason the buyer could act on. The backend now returns every
+ * active package (PackageCatalogController) and the note below says plainly
+ * what a ticket is worth.
+ *
+ * The category chips are gone with it. They matched on title substrings -
+ * "try out", and a bare "to" that would also hit words like "total" - which
+ * only ever worked against the old per-track names. Three packages and a
+ * search box need no taxonomy.
+ */
 export default function PembelianPage() {
   const { data: session } = useSession();
   const token = session?.access_token || "";
-  const { kategori } = useKategori();
-  const isCpns = kategori === "cpns";
 
-  const [activeCategory, setActiveCategory] = useState("Semua Paket");
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data, isLoading } = useGetAllPackages({ token });
   const packages = data?.data || [];
 
-  const filteredPackages = packages.filter((pkg) => {
-    const matchesSearch = pkg.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-
-    let matchesCategory = true;
-    if (activeCategory === "Paket Try Out")
-      matchesCategory = pkg.title.toLowerCase().includes("try out") || pkg.title.toLowerCase().includes("to");
-    if (activeCategory === "Mega Paket")
-      matchesCategory = pkg.title.toLowerCase().includes("mega");
-
-    return matchesSearch && matchesCategory;
-  });
+  const query = searchQuery.trim().toLowerCase();
+  const filteredPackages = query
+    ? packages.filter(
+        (pkg) =>
+          pkg.title.toLowerCase().includes(query) ||
+          pkg.description.toLowerCase().includes(query),
+      )
+    : packages;
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
@@ -71,7 +70,20 @@ export default function PembelianPage() {
         </Link>
       </div>
 
-      {/* Search and Filters */}
+      {/* Says what the buyer is actually getting. Without it, a CPNS reader
+          seeing packages next to a UTBK-themed dashboard has no way to know the
+          ticket is not track-locked. */}
+      <div className="flex items-start gap-3 rounded-2xl border-2 border-slate-900 bg-track-tint px-4 py-3 shadow-[4px_4px_0px_0px_#0f172a]">
+        <Ticket className="mt-0.5 size-5 shrink-0 text-primary" />
+        <p className="text-sm leading-snug text-slate-700">
+          <span className="font-bold text-slate-900">
+            Satu tiket, dua jalur.
+          </span>{" "}
+          Tiket dari paket mana pun bisa kamu pakai untuk tryout UTBK maupun
+          CPNS - tidak perlu beli dua kali.
+        </p>
+      </div>
+
       {/* Moved here from the dashboard. The promo slides all pointed at this
           page or the tryout list, so on the dashboard they were motion without
           information; here the reader is already deciding whether to buy. */}
@@ -84,33 +96,11 @@ export default function PembelianPage() {
           </div>
           <input
             type="text"
-            className={`w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 text-sm shadow-sm transition-all ${
-              isCpns
-                ? "focus:ring-orange-500/20 focus:border-orange-600"
-                : "focus:ring-blue-500/20 focus:border-blue-600"
-            }`}
+            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-primary text-sm shadow-sm transition-all"
             placeholder="Cari paket sesuai kebutuhanmu"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
-
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
-              className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-                activeCategory === category
-                  ? isCpns
-                    ? "bg-orange-800 text-white shadow-sm"
-                    : "bg-blue-600 text-white shadow-sm"
-                  : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-              }`}
-            >
-              {category}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -132,7 +122,9 @@ export default function PembelianPage() {
           ))
         ) : filteredPackages.length === 0 ? (
           <div className="col-span-full py-12 text-center text-slate-500">
-            Tidak ada paket yang cocok dengan pencarian atau kategori Anda.
+            {query
+              ? `Tidak ada paket yang cocok dengan "${searchQuery.trim()}".`
+              : "Belum ada paket yang tersedia saat ini."}
           </div>
         ) : (
           filteredPackages.map((pkg) => (

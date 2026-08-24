@@ -35,10 +35,7 @@ import { CURRENCIES } from "@/constants/currency";
 import { useSession } from "next-auth/react";
 import { useUpdatePackage } from "@/http/packages/update-package";
 import { ImagePlus, X } from "lucide-react";
-
-const STORAGE_BASE_URL =
-  process.env.NEXT_PUBLIC_STORAGE_URL ??
-  "https://dev-api.amunisiptn.com/storage";
+import { storageUrl } from "@/lib/storage";
 
 interface FormUpdatePackageProps {
   packageId: string;
@@ -159,7 +156,7 @@ export default function FormUpdatePackage({
   // The preview src to show: new file > existing from server
   const displayPreview =
     thumbnailPreview ??
-    (existingThumbnail ? `${STORAGE_BASE_URL}/${existingThumbnail}` : null);
+    storageUrl(existingThumbnail);
 
   if (isLoadingDetail) {
     return (
@@ -417,34 +414,10 @@ export default function FormUpdatePackage({
               )}
             />
 
-            <Controller
-              control={form.control}
-              name="kategori"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>
-                    Jalur <span className="text-red-500">*</span>
-                  </FieldLabel>
-
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value ?? "utbk"}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih jalur" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="utbk">UTBK</SelectItem>
-                      <SelectItem value="cpns">CPNS</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {fieldState.error && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
+            {/* No Jalur field: every package is sold to both UTBK and CPNS.
+                A ticket is one balance (users.ticket_balance) spendable on
+                either track, so tagging a package with a jalur would have
+                promised targeting the catalogue no longer applies. */}
 
             <Controller
               control={form.control}

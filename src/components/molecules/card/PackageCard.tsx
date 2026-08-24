@@ -3,10 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Package, Tag, Ticket } from "lucide-react";
-
-const STORAGE_BASE_URL =
-  process.env.NEXT_PUBLIC_STORAGE_URL ??
-  "https://dev-api.amunisiptn.com/storage";
+import { storageUrl } from "@/lib/storage";
 
 interface PackageCardProps {
   id: string;
@@ -29,8 +26,7 @@ export default function PackageCard({
   description,
   ticketAmount,
 }: PackageCardProps) {
-  const thumbnailSrc = thumbnail ? `${STORAGE_BASE_URL}/${thumbnail}` : null;
-
+  const thumbnailSrc = storageUrl(thumbnail);
   const isExternal = thumbnailSrc?.startsWith("http");
 
   return (
@@ -47,7 +43,7 @@ export default function PackageCard({
           />
         ) : (
           /* Fallback: decorative gradient with icon */
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary to-[#0065F0] gap-2">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary to-track-accent gap-2">
             <Package className="w-10 h-10 text-white/40" />
           </div>
         )}
@@ -107,7 +103,7 @@ export default function PackageCard({
         {/* CTA Button */}
         <Link
           href={`/dashboard/pembelian/${id}`}
-          className="w-full flex justify-center items-center py-2.5 bg-primary hover:bg-primary/90 active:bg-[#002F75] text-white font-semibold rounded-lg transition-colors text-sm shadow-sm mt-1"
+          className="w-full flex justify-center items-center py-2.5 bg-primary hover:bg-primary/90 active:brightness-90 text-primary-foreground font-semibold rounded-lg transition-colors text-sm shadow-sm mt-1"
         >
           Beli Paket
         </Link>

@@ -332,34 +332,10 @@ export default function FormCreatePackage() {
               )}
             />
 
-            <Controller
-              control={form.control}
-              name="kategori"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>
-                    Jalur <span className="text-red-500">*</span>
-                  </FieldLabel>
-
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value ?? "utbk"}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih jalur" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="utbk">UTBK</SelectItem>
-                      <SelectItem value="cpns">CPNS</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {fieldState.error && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
+            {/* No Jalur field: every package is sold to both UTBK and CPNS.
+                A ticket is one balance (users.ticket_balance) spendable on
+                either track, so tagging a package with a jalur would have
+                promised targeting the catalogue no longer applies. */}
 
             <Controller
               control={form.control}
