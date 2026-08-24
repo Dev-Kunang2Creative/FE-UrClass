@@ -16,7 +16,6 @@ import {
 } from "@/http/tryout/get-user-tryout-detail";
 import { useGetHistoryTryout } from "@/http/tryout/get-history-tryout";
 import { toast } from "sonner";
-import type { SubtestByTryout } from "@/types/subtest/subtest";
 import { getErrorMessage } from "@/utils/get-error-message";
 import { getTryoutButtonState, TRYOUT_BUTTON_CLASS } from "@/utils/tryout-button-state";
 import { useKategori } from "@/hooks/useKategori";
@@ -24,14 +23,7 @@ import { useSchedule } from "@/hooks/useSchedule";
 import Mascot from "@/components/atoms/mascot/Mascot";
 import { PENDING_PILL, PHASE_PILL } from "@/lib/tryout-schedule";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
-import { groupSubtests } from "@/lib/tryout-subtests";
-
-interface TryoutSubtestSummary {
-  name: string;
-  questions: number;
-  duration: number;
-  category: string;
-}
+import { groupSubtests, summariseSubtests } from "@/lib/tryout-subtests";
 
 export default function TryoutDetailPage({
   params,
@@ -92,19 +84,13 @@ export default function TryoutDetailPage({
   const tryoutType = isFree ? "Gratis" : "Premium";
   const tryoutCategory = tryout?.category || "-";
 
-  // Parse subtests from API data
-  const subtests: TryoutSubtestSummary[] = (tryout?.tryout_subtests || [])
-    .sort((a: SubtestByTryout, b: SubtestByTryout) => a.order_no - b.order_no)
-    .map((ts: SubtestByTryout) => {
-      const rawName = ts.subtest.name;
-      const displayName = rawName.includes("_") ? rawName.split("_").slice(1).join("_") : rawName;
-      return {
-        name: displayName,
-        questions: ts.subtest.max_questions || 0,
-        duration: ts.duration_minutes || 0,
-        category: ts.subtest.category,
-      };
-    });
+  // Shared with the instructions screen, which read questions_count while this
+  // page read max_questions - so the same tryout was announced as 160 soal here
+  // and 19 one click later.
+  const subtests = summariseSubtests(
+    tryout?.tryout_subtests,
+    kategori === "cpns" ? "SKD" : "TPS",
+  );
 
   const totalQuestions = subtests.reduce((sum, s) => sum + s.questions, 0);
   const totalDuration = subtests.reduce((sum, s) => sum + s.duration, 0);

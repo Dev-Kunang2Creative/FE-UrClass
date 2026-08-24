@@ -1,4 +1,5 @@
 import type { Kategori } from "@/lib/kategori";
+import type { SubtestByTryout } from "@/types/subtest/subtest";
 
 export interface SubtestSummary {
   name: string;
@@ -59,4 +60,36 @@ export function groupSubtests(
       duration: items.reduce((sum, item) => sum + item.duration, 0),
     };
   });
+}
+
+/**
+ * Turns the tryout_subtests payload into what the screens display.
+ *
+ * The question count comes from questions_count, the number of active questions
+ * that exist, falling back to max_questions only when the count is absent.
+ * The two pages disagreed on this: the detail page read max_questions and
+ * announced "160 soal" while the instructions screen read questions_count and
+ * said 19 - for the same tryout, one click apart. max_questions is the target
+ * an admin configured; questions_count is what the reader will actually be
+ * asked. Promising the first and delivering the second is the worse error.
+ */
+export function summariseSubtests(
+  tryoutSubtests: SubtestByTryout[] | undefined,
+  fallbackCategory: string,
+): SubtestSummary[] {
+  return (tryoutSubtests ?? [])
+    .slice()
+    .sort((a, b) => a.order_no - b.order_no)
+    .map((entry) => {
+      const rawName = entry.subtest.name;
+      return {
+        // Seeded names carry a track prefix, as in "utbk_Penalaran Umum".
+        name: rawName.includes("_")
+          ? rawName.split("_").slice(1).join("_")
+          : rawName,
+        questions: entry.subtest.questions_count ?? entry.subtest.max_questions ?? 0,
+        duration: entry.duration_minutes || 0,
+        category: entry.subtest.category || fallbackCategory,
+      };
+    });
 }

@@ -8,20 +8,12 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useKategori } from "@/hooks/useKategori";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
-import { groupSubtests } from "@/lib/tryout-subtests";
+import { groupSubtests, summariseSubtests } from "@/lib/tryout-subtests";
 import Mascot from "@/components/atoms/mascot/Mascot";
 import { useStartTryout, type StartTryoutResponse } from "@/http/tryout/start-tryout";
 import { useGetUserTryoutDetail } from "@/http/tryout/get-user-tryout-detail";
 import { toast } from "sonner";
-import type { SubtestByTryout } from "@/types/subtest/subtest";
 import { getErrorMessage } from "@/utils/get-error-message";
-
-interface TryoutSubtestSummary {
-  name: string;
-  questions: number;
-  duration: number;
-  category: string;
-}
 
 export default function TryoutStartPage({
   params,
@@ -49,19 +41,10 @@ export default function TryoutStartPage({
   const tryout = tryoutDetail?.data;
   const tryoutTitle = tryout?.title || "Tryout";
 
-  // Parse subtests from API
-  const allSubtests: TryoutSubtestSummary[] = (tryout?.tryout_subtests || [])
-    .sort((a: SubtestByTryout, b: SubtestByTryout) => a.order_no - b.order_no)
-    .map((ts: SubtestByTryout) => {
-      const rawName = ts.subtest.name;
-      const displayName = rawName.includes("_") ? rawName.split("_").slice(1).join("_") : rawName;
-      return {
-        name: displayName,
-        questions: ts.subtest.questions_count ?? ts.subtest.max_questions ?? 0,
-        duration: ts.duration_minutes || 0,
-        category: ts.subtest.category || (isCpns ? "SKD" : "TPS"),
-      };
-    });
+  const allSubtests = summariseSubtests(
+    tryout?.tryout_subtests,
+    isCpns ? "SKD" : "TPS",
+  );
 
   const totalQuestions = allSubtests.reduce((s, t) => s + t.questions, 0);
   const totalDuration = allSubtests.reduce((s, t) => s + t.duration, 0);
@@ -124,11 +107,11 @@ export default function TryoutStartPage({
         </span>
       </div>
 
-      <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-5">
+      <div className="grid min-w-0 grid-cols-1 gap-5 lg:h-[calc(100vh-7.5rem)] lg:grid-cols-5">
         {/* Rules. The one thing on this page that has to be read, so it gets
             the wide column and scrolls inside itself rather than pushing the
             start button away. */}
-        <div className="flex min-w-0 flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a] lg:col-span-3">
+        <div className="flex min-w-0 flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a] lg:col-span-3 lg:h-full">
           <div className="flex min-w-0 items-center gap-2 border-b-2 border-slate-900 px-5 py-3">
             <ScrollText className="size-4 shrink-0 text-primary" aria-hidden />
             <h2 className="min-w-0 truncate text-sm font-black uppercase tracking-wide text-slate-900">
@@ -136,7 +119,7 @@ export default function TryoutStartPage({
             </h2>
           </div>
 
-          <ol className="min-w-0 flex-1 list-decimal space-y-2.5 overflow-y-auto py-4 pl-10 pr-5 text-sm leading-relaxed text-slate-700 lg:max-h-[26rem]">
+          <ol className="min-h-0 min-w-0 flex-1 list-decimal space-y-2.5 overflow-y-auto py-4 pl-10 pr-5 text-sm leading-relaxed text-slate-700">
             <li>Timer langsung berjalan begitu tryout dimulai.</li>
             <li>Setiap subtest punya batas waktu sendiri.</li>
             <li>
@@ -179,14 +162,14 @@ export default function TryoutStartPage({
         </div>
 
         {/* Subtests, then the consent and the action. */}
-        <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
-          <div className="flex min-w-0 flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]">
-            <div className="border-b-2 border-slate-900 px-5 py-3">
+        <div className="flex min-w-0 flex-col gap-5 lg:col-span-2 lg:h-full">
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]">
+            <div className="shrink-0 border-b-2 border-slate-900 px-5 py-3">
               <h2 className="text-sm font-black uppercase tracking-wide text-slate-900">
                 Yang akan dikerjakan
               </h2>
             </div>
-            <div className="min-w-0 divide-y-2 divide-dashed divide-slate-200 overflow-y-auto px-5 py-1 lg:max-h-[15rem]">
+            <div className="min-h-0 min-w-0 flex-1 divide-y-2 divide-dashed divide-slate-200 overflow-y-auto px-5 py-1">
               {groups.length === 0 ? (
                 <p className="py-4 text-sm text-slate-500">
                   Rincian subtest belum tersedia.
@@ -217,7 +200,7 @@ export default function TryoutStartPage({
             </div>
           </div>
 
-          <div className="min-w-0 rounded-3xl border-2 border-slate-900 bg-white p-5 shadow-[5px_5px_0px_0px_#0f172a]">
+          <div className="min-w-0 shrink-0 rounded-3xl border-2 border-slate-900 bg-white p-5 shadow-[5px_5px_0px_0px_#0f172a]">
             <label className="flex min-w-0 cursor-pointer items-start gap-3">
               <input
                 type="checkbox"
