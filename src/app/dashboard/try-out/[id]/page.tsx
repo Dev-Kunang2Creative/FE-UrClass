@@ -2,6 +2,7 @@
 
 import { useState, use } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronLeft, FileText, Clock, Ticket, Upload, X, Instagram, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -15,6 +16,22 @@ import { toast } from "sonner";
 import type { SubtestByTryout } from "@/types/subtest/subtest";
 import { getErrorMessage } from "@/utils/get-error-message";
 import { getTryoutButtonState, TRYOUT_BUTTON_CLASS } from "@/utils/tryout-button-state";
+import { useKategori } from "@/hooks/useKategori";
+import { KATEGORI_CONFIG, type Kategori } from "@/lib/kategori";
+
+/**
+ * Headings for the subtest groups, per track.
+ *
+ * subtests.category is an enum of only TPS|Literasi, so the three SKD
+ * subtests are stored as "TPS" - which meant a CPNS candidate was shown
+ * "Tes Potensi Skolastik (TPS)", a UTBK term, above their TWK/TIU/TKP.
+ * Widening the enum is the real fix, but the exam flow branches on
+ * category === "TPS", so the correction belongs here for now.
+ */
+const GROUP_LABEL: Record<Kategori, Partial<Record<string, string>>> = {
+  utbk: { TPS: "Tes Potensi Skolastik (TPS)", Literasi: "Tes Literasi" },
+  cpns: { TPS: "Seleksi Kompetensi Dasar (SKD)" },
+};
 
 interface TryoutSubtestSummary {
   name: string;
@@ -34,6 +51,9 @@ export default function TryoutDetailPage({
   const { data: session, status: sessionStatus, update: updateSession } = useSession();
   const token = session?.access_token || "";
   const { ticketCount } = useTickets();
+  const { kategori } = useKategori();
+  const trackConfig = KATEGORI_CONFIG[kategori];
+  const TrackIcon = trackConfig.icon;
 
   const [showEnrollDialog, setShowEnrollDialog] = useState(false);
   const [proofImages, setProofImages] = useState<File[]>([]);
@@ -85,15 +105,23 @@ export default function TryoutDetailPage({
       };
     });
 
-  // Calculate totals  
-  const tpsSubtests = subtests.filter((s) => s.category === "TPS");
-  const litSubtests = subtests.filter((s) => s.category === "Literasi");
   const totalQuestions = subtests.reduce((sum, s) => sum + s.questions, 0);
   const totalDuration = subtests.reduce((sum, s) => sum + s.duration, 0);
-  const tpsQuestions = tpsSubtests.reduce((sum, s) => sum + s.questions, 0);
-  const tpsDuration = tpsSubtests.reduce((sum, s) => sum + s.duration, 0);
-  const litQuestions = litSubtests.reduce((sum, s) => sum + s.questions, 0);
-  const litDuration = litSubtests.reduce((sum, s) => sum + s.duration, 0);
+
+  // Derived from the data rather than two hardcoded UTBK buckets, so a track
+  // with one group renders one group and a new category still shows up.
+  const groups = Array.from(new Set(subtests.map((s) => s.category))).map(
+    (category) => {
+      const items = subtests.filter((s) => s.category === category);
+      return {
+        category,
+        label: GROUP_LABEL[kategori][category] ?? category,
+        items,
+        questions: items.reduce((sum, s) => sum + s.questions, 0),
+        duration: items.reduce((sum, s) => sum + s.duration, 0),
+      };
+    },
+  );
 
   // Enroll mutation
   const enrollMutation = useEnrollTryout({
@@ -185,8 +213,8 @@ export default function TryoutDetailPage({
 
   if (!tryout) {
     return (
-      <div className="w-full max-w-3xl mx-auto py-12 px-4 text-center">
-        <p className="text-gray-500">Tryout tidak ditemukan.</p>
+      <div className="mx-auto w-full max-w-3xl px-4 py-12 text-center">
+        <p className="text-slate-500">Tryout tidak ditemukan.</p>
         <Link href="/dashboard/try-out" className="text-primary font-semibold mt-4 inline-block">
           ← Kembali
         </Link>
@@ -194,82 +222,142 @@ export default function TryoutDetailPage({
     );
   }
 
+  const bannerUrl = tryout.image_url || null;
+
   return (
-    <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-500 pb-12 bg-white min-h-screen">
-      {/* Header */}
-      <div className="flex items-center gap-2 p-6 border-b border-gray-100 mb-6">
-        <Link href="/dashboard/try-out" className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer text-gray-800">
-          <ChevronLeft className="w-6 h-6" />
+    // The page used to paint its own full-height white sheet over the themed
+    // background, so the detail view was the one dashboard screen with no track
+    // texture behind it.
+    <div className="mx-auto w-full max-w-5xl animate-in fade-in space-y-6 pb-12 duration-500">
+      <div className="flex items-center gap-2">
+        <Link
+          href="/dashboard/try-out"
+          className="rounded-full p-1 text-slate-800 transition-colors hover:bg-white/70"
+        >
+          <ChevronLeft className="h-6 w-6" />
         </Link>
-        <h1 className="text-xl font-bold text-gray-900">Detail Try Out</h1>
+        <h1 className="text-xl font-black tracking-tight text-slate-900">
+          Detail Try Out
+        </h1>
       </div>
 
-      <div className="px-6 md:px-10 space-y-6 max-w-4xl mx-auto">
+      {/* The banner an admin uploaded, which this page never showed at all -
+          the artwork existed on tryouts.image and was only rendered in the
+          list. Falls back to the same track panel the cards use. */}
+      <div className="relative h-40 w-full overflow-hidden rounded-3xl border-2 border-slate-900 shadow-[5px_5px_0px_0px_#0f172a] sm:h-52">
+        {bannerUrl ? (
+          <Image
+            src={bannerUrl}
+            alt={`Banner ${tryoutTitle}`}
+            fill
+            className="object-cover"
+            unoptimized={bannerUrl.startsWith("http")}
+          />
+        ) : (
+          <div className="flex h-full w-full flex-col justify-center gap-1.5 bg-primary px-6">
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-[0.13]"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 12px)",
+              }}
+            />
+            <TrackIcon
+              className="pointer-events-none absolute -bottom-10 -right-8 size-48 text-white/10"
+              aria-hidden
+            />
+            <TrackIcon
+              className="relative size-8 text-primary-foreground"
+              aria-hidden
+            />
+            <span className="relative text-sm font-black uppercase tracking-[0.18em] text-primary-foreground">
+              {trackConfig.full}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="mx-auto max-w-4xl space-y-6">
         {/* Title */}
-        <div className="text-center space-y-3">
-          <div className="flex justify-center gap-2">
-            <span className="px-4 py-1.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
+        <div className="space-y-3 text-center">
+          <div className="flex flex-wrap justify-center gap-2">
+            <span className="rounded-full border-2 border-slate-900 bg-track-tint px-3 py-1 text-xs font-bold text-slate-900">
               {tryoutCategory}
             </span>
-            <span className={`px-4 py-1.5 rounded-full text-xs font-bold ${isFree ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+            {/* Was green for free and amber for premium - two colours from
+                outside either track. Free reads as the plain option, premium as
+                the marked one. */}
+            <span
+              className={`rounded-full border-2 border-slate-900 px-3 py-1 text-xs font-bold ${
+                isFree ? "bg-white text-slate-900" : "bg-slate-900 text-white"
+              }`}
+            >
               {tryoutType}
             </span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">{tryoutTitle}</h2>
+          <h2 className="text-2xl font-black tracking-tight text-slate-900">
+            {tryoutTitle}
+          </h2>
 
-          <div className="flex items-center justify-center gap-4 text-sm text-primary font-semibold">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm font-semibold text-slate-700">
             <div className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-gray-400" />
+              <Clock className="h-4 w-4 text-primary" />
               <span>Total Waktu {totalDuration} menit</span>
             </div>
-            <div className="w-px h-4 bg-gray-300" />
+            <div className="hidden h-4 w-px bg-slate-300 sm:block" />
             <div className="flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-gray-400" />
+              <FileText className="h-4 w-4 text-primary" />
               <span>Total Soal {totalQuestions} soal</span>
             </div>
           </div>
         </div>
 
         {/* Subtests Info */}
-        <div className="border border-gray-200 rounded-xl p-6 md:p-8 space-y-8">
-          {/* TPS */}
-          {tpsSubtests.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="font-bold text-gray-900 text-lg">Tes Potensi Skolastik (TPS)</h4>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>Jumlah Soal : {tpsQuestions} Soal</p>
-                <p>Durasi : {tpsDuration} menit</p>
+        <div className="divide-y-2 divide-dashed divide-slate-200 rounded-3xl border-2 border-slate-900 bg-white p-6 shadow-[5px_5px_0px_0px_#0f172a] md:p-8">
+          {groups.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              Rincian subtest belum tersedia untuk tryout ini.
+            </p>
+          ) : (
+            groups.map((group) => (
+              <div key={group.category} className="space-y-3 py-5 first:pt-0 last:pb-0">
+                <h4 className="text-lg font-black tracking-tight text-slate-900">
+                  {group.label}
+                </h4>
+                <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-600">
+                  <p>
+                    Jumlah Soal :{" "}
+                    <span className="font-bold text-slate-900">
+                      {group.questions}
+                    </span>{" "}
+                    soal
+                  </p>
+                  <p>
+                    Durasi :{" "}
+                    <span className="font-bold text-slate-900">
+                      {group.duration}
+                    </span>{" "}
+                    menit
+                  </p>
+                </div>
+                <div className="pt-1">
+                  <p className="mb-2 text-sm font-semibold text-slate-700">
+                    Isi subtest :
+                  </p>
+                  <ul className="space-y-1.5 text-sm text-slate-600">
+                    {group.items.map((item) => (
+                      <li key={item.name} className="flex items-baseline gap-2">
+                        <span className="text-primary">•</span>
+                        <span>
+                          {item.name} : {item.questions} soal
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <div className="pt-2">
-                <p className="text-sm text-gray-600 mb-2">Isi subtest :</p>
-                <ul className="text-sm text-gray-600 space-y-1.5">
-                  {tpsSubtests.map((s) => (
-                    <li key={s.name}>• {s.name} : {s.questions} soal</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {tpsSubtests.length > 0 && litSubtests.length > 0 && <hr className="border-gray-100" />}
-
-          {/* Literasi */}
-          {litSubtests.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="font-bold text-gray-900 text-lg">Tes Literasi</h4>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>Jumlah Soal : {litQuestions} Soal</p>
-                <p>Durasi : {litDuration} menit</p>
-              </div>
-              <div className="pt-2">
-                <p className="text-sm text-gray-600 mb-2">Isi subtest :</p>
-                <ul className="text-sm text-gray-600 space-y-1.5">
-                  {litSubtests.map((s) => (
-                    <li key={s.name}>• {s.name} : {s.questions} soal</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+            ))
           )}
         </div>
 
@@ -280,13 +368,13 @@ export default function TryoutDetailPage({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   onClick={() => router.push(`/dashboard/try-out/${tryoutId}/start`)}
-                  className={`w-full py-3.5 rounded-xl font-bold text-sm ${buttonShadowClass} active:shadow-none active:translate-y-1 transition-all ${TRYOUT_BUTTON_CLASS[buttonState.variant]}`}
+                  className={`w-full rounded-xl border-2 border-slate-900 py-3.5 text-sm font-bold ${buttonShadowClass} transition-all active:translate-y-1 active:shadow-none ${TRYOUT_BUTTON_CLASS[buttonState.variant]}`}
                 >
                   {buttonState.label}
                 </button>
                 <button
                   onClick={() => router.push(`/dashboard/try-out/${tryoutId}/result`)}
-                  className="w-full py-3.5 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_4px_0_0_#0f172a] active:shadow-none active:translate-y-1 transition-all"
+                  className="w-full rounded-xl border-2 border-slate-900 bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-[0_4px_0_0_#0f172a] transition-all hover:brightness-95 active:translate-y-1 active:shadow-none"
                 >
                   Lihat Hasil Skor & Pembahasan
                 </button>
@@ -294,7 +382,7 @@ export default function TryoutDetailPage({
             ) : (
               <button
                 onClick={() => router.push(`/dashboard/try-out/${tryoutId}/start`)}
-                className={`w-full py-3.5 rounded-xl font-bold text-sm ${buttonShadowClass} active:shadow-none active:translate-y-1 transition-all ${TRYOUT_BUTTON_CLASS[buttonState.variant]}`}
+                className={`w-full rounded-xl border-2 border-slate-900 py-3.5 text-sm font-bold ${buttonShadowClass} transition-all active:translate-y-1 active:shadow-none ${TRYOUT_BUTTON_CLASS[buttonState.variant]}`}
               >
                 {buttonState.label}
               </button>
@@ -302,7 +390,7 @@ export default function TryoutDetailPage({
           ) : (
             <button 
               onClick={() => setShowEnrollDialog(true)}
-              className="w-full py-3.5 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_4px_0_0_#0f172a] active:shadow-none active:translate-y-1 transition-all"
+              className="w-full rounded-xl border-2 border-slate-900 bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-[0_4px_0_0_#0f172a] transition-all hover:brightness-95 active:translate-y-1 active:shadow-none"
             >
               {isFree ? "Daftar Tryout (Gratis)" : `Daftar Tryout (1 Tiket)`}
             </button>

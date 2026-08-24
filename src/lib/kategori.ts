@@ -107,6 +107,17 @@ export function isKategori(value: unknown): value is Kategori {
 }
 
 /**
+ * The reader current track: the session value when it is loaded, otherwise the
+ * one the server already resolved. Shared so the CSS variables on data-track
+ * and the hooks that read the config can never disagree about which track is
+ * being shown.
+ */
+export function resolveKategori(raw: unknown, fallback: Kategori | null): Kategori {
+  if (isKategori(raw)) return raw;
+  return fallback ?? "utbk";
+}
+
+/**
  * Match a subtest name coming from the API to its config entry, so the exam
  * screen can show the metric that track actually cares about: a passing grade
  * for CPNS, the IRT scale for UTBK.

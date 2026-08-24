@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { updateKategoriApiHandler } from "@/http/profile/update-kategori";
-import { isKategori, type Kategori } from "@/lib/kategori";
+import { resolveKategori, type Kategori } from "@/lib/kategori";
 import { useInitialTrack } from "@/components/providers/TrackProvider";
 
 /**
@@ -23,8 +23,9 @@ export function useKategori() {
   const [isSwitching, setIsSwitching] = useState(false);
   const serverTrack = useInitialTrack();
 
-  const raw = session?.user?.kategori;
-  const kategori: Kategori = isKategori(raw) ? raw : (serverTrack ?? "utbk");
+  // Same rule as the data-track attribute in TrackShell, so the palette and
+  // the labels are always describing the same track.
+  const kategori: Kategori = resolveKategori(session?.user?.kategori, serverTrack);
 
   const switchKategori = async (next: Kategori) => {
     if (next === kategori || !session?.access_token) return;
