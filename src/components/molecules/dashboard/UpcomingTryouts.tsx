@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarClock, ArrowRight, Inbox } from "lucide-react";
+import { CalendarClock, ArrowRight } from "lucide-react";
+import Mascot from "@/components/atoms/mascot/Mascot";
 import { deadlineLabel } from "@/lib/dashboard-tasks";
 import type { UserTryoutData } from "@/http/tryout/get-user-tryouts";
 
@@ -45,7 +46,7 @@ export default function UpcomingTryouts({ items, loading }: UpcomingTryoutsProps
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center gap-2 px-5 py-8 text-center">
-          <Inbox className="size-7 text-slate-300" />
+          <Mascot pose="berfikir" decorative sizes="96px" className="h-24 w-auto" />
           <p className="text-sm font-semibold text-slate-600">
             Belum ada tryout yang siap dikerjakan
           </p>

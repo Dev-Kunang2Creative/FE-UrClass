@@ -21,6 +21,7 @@ import { getErrorMessage } from "@/utils/get-error-message";
 import { getTryoutButtonState, TRYOUT_BUTTON_CLASS } from "@/utils/tryout-button-state";
 import { useKategori } from "@/hooks/useKategori";
 import { useSchedule } from "@/hooks/useSchedule";
+import Mascot from "@/components/atoms/mascot/Mascot";
 import { PENDING_PILL, PHASE_PILL } from "@/lib/tryout-schedule";
 import { KATEGORI_CONFIG, type Kategori } from "@/lib/kategori";
 
@@ -538,18 +539,18 @@ export default function TryoutDetailPage({
               payload and shown nowhere: how the attempt is scored, and whether
               the options get shuffled.
 
-              A mascot would go here, and there is not one in the repo: the only
-              UrClass artwork is the logo lockup, and every other image under
-              public/images carries the previous brand. Drop a transparent PNG at
-              public/images/logo/urclass-mascot.png and it can replace the icon
-              watermark below. */}
-          <div className="relative mt-auto min-w-0 overflow-hidden border-t-2 border-slate-900 px-5 py-4">
-            <TrackIcon
-              className="pointer-events-none absolute -bottom-6 -right-4 size-32 text-primary/10"
-              aria-hidden
+              The mascot stands in the corner of it. Decorative, so it is hidden
+              from assistive tech - the three lines beside it already say
+              everything it is there to soften. */}
+          <div className="relative mt-auto min-w-0 overflow-hidden border-t-2 border-slate-900 px-5 pb-4 pt-4">
+            <Mascot
+              pose="semangat"
+              decorative
+              sizes="140px"
+              className="pointer-events-none absolute -bottom-3 right-1 h-32 w-auto opacity-90"
             />
 
-            <div className="relative flex min-w-0 flex-col gap-2">
+            <div className="relative flex min-w-0 flex-col gap-2 pr-24">
               <div className="flex min-w-0 items-center gap-2">
                 <ListChecks className="size-4 shrink-0 text-primary" aria-hidden />
                 <p className="min-w-0 text-xs text-slate-600">

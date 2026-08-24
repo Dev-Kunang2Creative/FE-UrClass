@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import TryoutCardSkeleton from "@/components/molecules/card/TryoutCardSkeleton";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 const FILTER_OPTIONS = [
   "Semua Tryout",
@@ -313,7 +314,8 @@ export default function TryoutPage() {
             />
           </>
         ) : (
-          <div className="flex w-full flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-300 bg-white/60 py-14 text-center">
+          <div className="flex w-full flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-300 bg-white/60 py-12 text-center">
+            <Mascot pose="berfikir" decorative sizes="112px" className="h-28 w-auto" />
             <p className="text-sm font-bold text-slate-700">
               Tidak ada tryout yang cocok
             </p>
