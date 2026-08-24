@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function TryoutCardSkeleton() {
   return (
     <div className="flex flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]">
-      <div className="hidden h-20 w-full border-b-2 border-slate-900 sm:block">
+      <div className="h-36 w-full border-b-2 border-slate-900 sm:h-40">
         <Skeleton className="h-full w-full rounded-none" />
       </div>
 

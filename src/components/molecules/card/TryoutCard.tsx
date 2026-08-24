@@ -181,31 +181,47 @@ export default function TryoutCard({
 
   return (
     <article className="flex flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a] transition-all hover:-translate-y-0.5 hover:shadow-[7px_7px_0px_0px_#0f172a]">
-      {imageUrl ? (
-        <div className="relative hidden h-32 w-full border-b-2 border-slate-900 sm:block">
+      {/* The banner an admin uploaded, at banner height and on every screen.
+          It used to be hidden below sm, so on a phone - where most of this is
+          read - the uploaded artwork never appeared at all. Both branches share
+          a height so a grid mixing tryouts with and without artwork stays
+          even. */}
+      <div className="relative h-36 w-full shrink-0 overflow-hidden border-b-2 border-slate-900 sm:h-40">
+        {imageUrl ? (
           <Image
             src={imageUrl}
-            alt={title}
+            alt={`Banner ${title}`}
             fill
             className="object-cover"
             unoptimized={!!isExternal}
           />
-        </div>
-      ) : (
-        <div className="relative hidden h-20 items-center gap-3 overflow-hidden border-b-2 border-slate-900 bg-primary px-5 sm:flex">
-          <TrackIcon
-            className="size-6 shrink-0 text-primary-foreground"
-            aria-hidden
-          />
-          <span className="truncate text-xs font-black uppercase tracking-[0.18em] text-primary-foreground">
-            {config.full}
-          </span>
-          <TrackIcon
-            className="pointer-events-none absolute -bottom-7 -right-5 size-28 text-white/10"
-            aria-hidden
-          />
-        </div>
-      )}
+        ) : (
+          /* No upload on this tryout. Deliberately not a stock photo: the
+             fallback here used to be a study-abroad advert belonging to
+             another company. A track-coloured panel says nothing untrue. */
+          <div className="flex h-full w-full flex-col justify-center gap-1 bg-primary px-5">
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-[0.13]"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 12px)",
+              }}
+            />
+            <TrackIcon
+              className="pointer-events-none absolute -bottom-8 -right-6 size-36 text-white/10"
+              aria-hidden
+            />
+            <TrackIcon
+              className="relative size-7 text-primary-foreground"
+              aria-hidden
+            />
+            <span className="relative truncate text-xs font-black uppercase tracking-[0.18em] text-primary-foreground">
+              {config.full}
+            </span>
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-1 flex-col p-4 md:p-5">
         <div className="mb-3 flex flex-wrap gap-2">
