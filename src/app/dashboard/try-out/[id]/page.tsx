@@ -23,21 +23,8 @@ import { useKategori } from "@/hooks/useKategori";
 import { useSchedule } from "@/hooks/useSchedule";
 import Mascot from "@/components/atoms/mascot/Mascot";
 import { PENDING_PILL, PHASE_PILL } from "@/lib/tryout-schedule";
-import { KATEGORI_CONFIG, type Kategori } from "@/lib/kategori";
-
-/**
- * Headings for the subtest groups, per track.
- *
- * subtests.category is an enum of only TPS|Literasi, so the three SKD
- * subtests are stored as "TPS" - which meant a CPNS candidate was shown
- * "Tes Potensi Skolastik (TPS)", a UTBK term, above their TWK/TIU/TKP.
- * Widening the enum is the real fix, but the exam flow branches on
- * category === "TPS", so the correction belongs here for now.
- */
-const GROUP_LABEL: Record<Kategori, Partial<Record<string, string>>> = {
-  utbk: { TPS: "Tes Potensi Skolastik (TPS)", Literasi: "Tes Literasi" },
-  cpns: { TPS: "Seleksi Kompetensi Dasar (SKD)" },
-};
+import { KATEGORI_CONFIG } from "@/lib/kategori";
+import { groupSubtests } from "@/lib/tryout-subtests";
 
 interface TryoutSubtestSummary {
   name: string;
@@ -122,20 +109,9 @@ export default function TryoutDetailPage({
   const totalQuestions = subtests.reduce((sum, s) => sum + s.questions, 0);
   const totalDuration = subtests.reduce((sum, s) => sum + s.duration, 0);
 
-  // Derived from the data rather than two hardcoded UTBK buckets, so a track
-  // with one group renders one group and a new category still shows up.
-  const groups = Array.from(new Set(subtests.map((s) => s.category))).map(
-    (category) => {
-      const items = subtests.filter((s) => s.category === category);
-      return {
-        category,
-        label: GROUP_LABEL[kategori][category] ?? category,
-        items,
-        questions: items.reduce((sum, s) => sum + s.questions, 0),
-        duration: items.reduce((sum, s) => sum + s.duration, 0),
-      };
-    },
-  );
+  // Shared with the pre-exam instructions, so the same tryout cannot be
+  // described two ways on two consecutive screens.
+  const groups = groupSubtests(subtests, kategori);
 
   // Enroll mutation
   const enrollMutation = useEnrollTryout({
