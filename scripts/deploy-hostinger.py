@@ -120,7 +120,19 @@ def upload_once(size):
         return f"cannot get an upload url (HTTP {st}): {d}"
 
     d = d.get("data", d)
-    target = f"{d['url'].rstrip('/')}/{ARCHIVE}?override=true"
+
+    # The API can answer 200 with an incomplete body: one deploy died on
+    # ValueError: unknown url type: '/fe-app.zip?override=true', which is what
+    # an empty "url" produces. Treat it as a failed attempt so the retry loop
+    # fetches fresh credentials instead of crashing.
+    host = str(d.get("url") or "").strip()
+    if not host.startswith(("http://", "https://")):
+        return f"upload url missing or relative in the response: {host!r}"
+    for key in ("auth_key", "rest_auth_key"):
+        if not d.get(key):
+            return f"upload response has no {key}"
+
+    target = f"{host.rstrip('/')}/{ARCHIVE}?override=true"
     tus = {"X-Auth": d["auth_key"], "X-Auth-Rest": d["rest_auth_key"],
            "Tus-Resumable": "1.0.0"}
 
