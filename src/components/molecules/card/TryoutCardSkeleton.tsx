@@ -2,39 +2,28 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 
+/** Mirrors TryoutCard so the grid does not reflow when data lands. */
 export default function TryoutCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col">
-      {/* Background Image Header */}
-      <div className="relative hidden sm:block w-full h-40">
+    <div className="flex flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]">
+      <div className="hidden h-20 w-full border-b-2 border-slate-900 sm:block">
         <Skeleton className="h-full w-full rounded-none" />
-        <div className="absolute top-3 left-3 flex gap-2">
-          <Skeleton className="h-6 w-20 rounded-full" />
-          <Skeleton className="h-6 w-16 rounded-full" />
-        </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4 md:p-5 flex flex-col flex-1">
-        {/* Mobile badges */}
-        <div className="mb-3 flex gap-2 sm:hidden">
+      <div className="flex flex-1 flex-col p-4 md:p-5">
+        <div className="mb-3 flex gap-2">
           <Skeleton className="h-6 w-20 rounded-full" />
           <Skeleton className="h-6 w-16 rounded-full" />
         </div>
 
-        {/* Title */}
-        <Skeleton className="h-5 w-4/5 mb-3 rounded-md" />
+        <Skeleton className="mb-3 h-5 w-4/5 rounded-md" />
 
-        {/* Status badges */}
-        <div className="flex items-stretch gap-2 mb-4">
-          <Skeleton className="h-8 w-24 rounded-lg" />
-          <Skeleton className="h-8 flex-1 rounded-lg" />
+        <div className="mb-4 flex items-center gap-2">
+          <Skeleton className="h-6 w-24 rounded-lg" />
+          <Skeleton className="h-4 w-28 rounded-md" />
         </div>
 
-        <hr className="border-gray-100 mb-4" />
-
-        {/* Details */}
-        <div className="space-y-2 mb-5">
+        <div className="mb-5 space-y-2 border-t-2 border-dashed border-slate-200 pt-3">
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-4 rounded-full" />
             <Skeleton className="h-4 w-44 rounded-md" />
@@ -45,8 +34,7 @@ export default function TryoutCardSkeleton() {
           </div>
         </div>
 
-        {/* Button */}
-        <Skeleton className="h-11 w-full rounded-lg mt-auto" />
+        <Skeleton className="mt-auto h-11 w-full rounded-xl" />
       </div>
     </div>
   );

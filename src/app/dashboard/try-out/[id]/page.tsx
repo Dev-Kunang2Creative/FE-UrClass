@@ -55,10 +55,17 @@ export default function TryoutDetailPage({
     Boolean(enrolledTryout?.hasAttempted) ||
     (!!tryout?.user_session_status && tryout.user_session_status !== "not_started");
   const isFinished = tryout?.user_session_status === "finished" || enrolledTryout?.status === "selesai";
-  const buttonState = getTryoutButtonState({ isEnrolled, hasAttempted });
-  const buttonShadowClass = buttonState.variant === "yellow"
-    ? "shadow-[0_4px_0_0_#a16207]"
-    : "shadow-[0_4px_0_0_#2b6a32]";
+  // sessionStatus was available here all along and never passed, so an
+  // unfinished attempt was labelled "Kerjakan Ulang" - a restart - on the one
+  // screen someone lands on when they come back to finish.
+  const buttonState = getTryoutButtonState({
+    isEnrolled,
+    hasAttempted,
+    sessionStatus: tryout?.user_session_status,
+  });
+  // One shadow for both variants. The old pair hardcoded yellow-700 and a
+  // green, matching variant names that no longer exist and neither track.
+  const buttonShadowClass = "shadow-[0_4px_0_0_#0f172a]";
   const tryoutTitle = tryout?.title || "";
   const isFree = tryout?.is_free ?? true;
   const tryoutType = isFree ? "Gratis" : "Premium";

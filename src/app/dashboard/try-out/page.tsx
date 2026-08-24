@@ -163,33 +163,32 @@ export default function TryoutPage() {
             >
               <ChevronLeft className="w-6 h-6" />
             </Link>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+            <h1 className="text-xl font-black tracking-tight text-slate-900 md:text-2xl">
               Daftar Tryout {isCpns ? "CPNS & Kedinasan" : "UTBK - SNBT"}
             </h1>
           </div>
-          <p className="text-gray-600 text-sm pl-9">
+          <p className="pl-9 text-sm text-slate-600">
             {isCpns
               ? "Sobat UrClass, latih kemampuan CAT SKD (TWK, TIU, TKP) dengan standar penilaian resmi."
               : "Sobat UrClass, tingkatkan skor tryoutmu dan persiapkan diri menghadapi seleksi masuk PTN."}
           </p>
         </div>
 
-        {/* Buttons */}
-        <div className="flex items-center gap-2">
+        {/* Buttons. Both were off-palette: the access-code button branched on
+            isCpns to pick between hardcoded orange and blue, and Riwayat TO
+            was a green that belongs to neither track. Primary action takes
+            the track colour, the secondary one is outlined. */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setShowRedeemDialog(true)}
-            className={`flex items-center gap-2 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit ${
-              isCpns
-                ? "bg-orange-700 hover:bg-orange-800"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
+            className="flex w-fit items-center gap-2 rounded-xl border-2 border-slate-900 bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:brightness-95 active:translate-y-0.5"
           >
             <KeyRound className="w-4 h-4" />
             <span>Kode Akses</span>
           </button>
           <Link
             href="/dashboard/try-out/riwayat"
-            className="flex items-center gap-2 bg-[#3C8D60] hover:bg-[#327851] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit md:mt-0"
+            className="flex w-fit items-center gap-2 rounded-xl border-2 border-slate-900 bg-white px-4 py-2 text-sm font-bold text-slate-900 transition-all hover:bg-track-tint active:translate-y-0.5"
           >
             <History className="w-4 h-4" />
             <span>Riwayat TO</span>
@@ -201,7 +200,7 @@ export default function TryoutPage() {
       <div className="space-y-4 pt-2">
         {/* Search Bar */}
         <div className="relative w-full max-w-xl">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 w-5 h-5 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder={
@@ -211,11 +210,7 @@ export default function TryoutPage() {
             }
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className={`w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all shadow-sm ${
-              isCpns
-                ? "focus:ring-orange-600/20 focus:border-orange-600"
-                : "focus:ring-blue-600/20 focus:border-blue-600"
-            }`}
+            className="w-full rounded-xl border-2 border-slate-900 bg-white py-3 pl-11 pr-4 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring/30"
           />
         </div>
 
@@ -225,12 +220,10 @@ export default function TryoutPage() {
             <button
               key={filter}
               onClick={() => handleFilterChange(filter)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`rounded-full border-2 border-slate-900 px-4 py-1.5 text-sm font-bold transition-colors ${
                 activeFilter === filter
-                  ? isCpns
-                    ? "bg-orange-800 text-white"
-                    : "bg-blue-600 text-white"
-                  : "bg-[#EAEFF4] text-[#5A6A80] hover:bg-gray-200"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-white text-slate-700 hover:bg-track-tint"
               }`}
             >
               {filter}
@@ -243,7 +236,7 @@ export default function TryoutPage() {
             value={categoryFilter}
             onValueChange={handleCategoryFilterChange}
           >
-            <SelectTrigger className="h-10 w-full bg-white sm:w-36">
+            <SelectTrigger className="h-10 w-full rounded-xl border-2 border-slate-900 bg-white font-semibold sm:w-36">
               <SelectValue placeholder="Jenis TO" />
             </SelectTrigger>
             <SelectContent>
@@ -265,7 +258,7 @@ export default function TryoutPage() {
           </Select>
 
           <Select value={sortBy} onValueChange={handleSortChange}>
-            <SelectTrigger className="h-10 w-full bg-white sm:w-48">
+            <SelectTrigger className="h-10 w-full rounded-xl border-2 border-slate-900 bg-white font-semibold sm:w-48">
               <SelectValue placeholder="Urutkan" />
             </SelectTrigger>
             <SelectContent>
@@ -306,6 +299,10 @@ export default function TryoutPage() {
                     historyMap.get(item.id)?.hasAttempted ||
                     false
                   }
+                  // Without this the card cannot tell an unfinished session
+                  // from a finished one, so someone mid-exam was offered
+                  // "Kerjakan Ulang" - a restart - instead of "Lanjutkan".
+                  sessionStatus={item.sessionStatus}
                 />
               ))}
             </div>
@@ -321,8 +318,13 @@ export default function TryoutPage() {
             />
           </>
         ) : (
-          <div className="w-full py-12 flex flex-col items-center justify-center text-gray-500">
-            <p>Tidak ada tryout yang ditemukan.</p>
+          <div className="flex w-full flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-300 bg-white/60 py-14 text-center">
+            <p className="text-sm font-bold text-slate-700">
+              Tidak ada tryout yang cocok
+            </p>
+            <p className="max-w-sm text-xs text-slate-500">
+              Coba hapus kata pencarian atau ganti filternya.
+            </p>
           </div>
         )}
       </div>

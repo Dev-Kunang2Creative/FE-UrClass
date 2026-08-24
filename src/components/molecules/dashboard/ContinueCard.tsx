@@ -18,8 +18,12 @@ interface ContinueCardProps {
  * someone who closed the tab mid-exam had no route back from here - and the
  * tryout list offered them "Kerjakan Ulang", which reads as start over.
  *
- * Links straight into /exam rather than the detail page. The exam screen
- * tolerates an already-started subtest, so one click resumes instead of two.
+ * Goes to /start, not straight to /exam. /exam reads its subtest from a query
+ * param and defaults to 0, so a bare link would drop someone who was on
+ * subtest three back onto the first one. /start is safe to re-enter: the
+ * backend reuses any unfinished session instead of opening a new attempt
+ * (UserTryoutController::start), and startSubtest is a firstOrCreate, so no
+ * timer or answer is reset by passing through it.
  */
 export default function ContinueCard({ tryouts, loading }: ContinueCardProps) {
   if (loading) {
@@ -57,7 +61,7 @@ export default function ContinueCard({ tryouts, loading }: ContinueCardProps) {
         )}
 
         <Link
-          href={`/dashboard/try-out/${first.id}/exam`}
+          href={`/dashboard/try-out/${first.id}/start`}
           className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
         >
           <PlayCircle className="size-4" />
@@ -73,7 +77,7 @@ export default function ContinueCard({ tryouts, loading }: ContinueCardProps) {
               {rest.map((t) => (
                 <li key={t.id}>
                   <Link
-                    href={`/dashboard/try-out/${t.id}/exam`}
+                    href={`/dashboard/try-out/${t.id}/start`}
                     className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-sm text-slate-700 transition-colors hover:bg-track-tint"
                   >
                     <span className="min-w-0 truncate font-medium">{t.title}</span>
