@@ -214,6 +214,7 @@ export default function RiwayatTryoutPage() {
           perPage={itemsPerPage}
           perPageOptions={PER_PAGE_OPTIONS}
           itemLabel="riwayat"
+          layout="stacked"
           onPageChange={setCurrentPage}
           onPerPageChange={(value) => {
             setItemsPerPage(value);

@@ -17,6 +17,13 @@ interface SmartPaginationProps {
   itemLabel: string;
   onPageChange: (page: number) => void;
   onPerPageChange: (perPage: number) => void;
+  /**
+   * "split" pushes the summary left and the controls right - right for a wide
+   * table, wrong under a card grid, where the two halves latch onto the cards
+   * and read as part of them. "stacked" centres both rows in their own band
+   * below the content.
+   */
+  layout?: "split" | "stacked";
 }
 
 function buildVisiblePages(current: number, total: number) {
@@ -36,6 +43,7 @@ export default function SmartPagination({
   itemLabel,
   onPageChange,
   onPerPageChange,
+  layout = "split",
 }: SmartPaginationProps) {
   if (totalItems <= 0) return null;
 
@@ -45,9 +53,21 @@ export default function SmartPagination({
   const end = Math.min(safePage * perPage, totalItems);
   const visiblePages = buildVisiblePages(safePage, totalPages);
 
+  const stacked = layout === "stacked";
+
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-      <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+    <div
+      className={
+        stacked
+          ? "mt-8 flex flex-col items-center gap-4 border-t-2 border-dashed border-slate-200 pt-6"
+          : "flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2"
+      }
+    >
+      <div
+        className={`flex flex-wrap items-center gap-3 text-sm text-gray-500 ${
+          stacked ? "order-1 justify-center" : ""
+        }`}
+      >
         <span>
           Menampilkan {start}-{end} dari {totalItems} {itemLabel}
         </span>
@@ -71,7 +91,11 @@ export default function SmartPagination({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div
+        className={`flex items-center gap-2 overflow-x-auto pb-1 ${
+          stacked ? "order-2 justify-center" : ""
+        }`}
+      >
         <button
           type="button"
           onClick={() => onPageChange(Math.max(1, safePage - 1))}

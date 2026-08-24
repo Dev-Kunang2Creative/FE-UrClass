@@ -43,23 +43,16 @@ export default function TryoutPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(9);
 
-  const {
-    data: tryoutsData,
-    isLoading: isTryoutsLoading,
-    isFetching: isTryoutsFetching,
-  } = useGetUserTryouts({
+  const { data: tryoutsData, isLoading: isTryoutsLoading } = useGetUserTryouts({
     token,
   });
 
   const tryouts = useMemo(() => tryoutsData?.data || [], [tryoutsData]);
 
-  const {
-    data: historyData,
-    isLoading: isHistoryLoading,
-    isFetching: isHistoryFetching,
-  } = useGetHistoryTryout({
-    token,
-  });
+  const { data: historyData, isLoading: isHistoryLoading } =
+    useGetHistoryTryout({
+      token,
+    });
 
   const enrolledTryoutIds = useMemo(
     () => new Set(historyData?.data?.map((t) => t.id) || []),
@@ -70,12 +63,13 @@ export default function TryoutPage() {
     [historyData],
   );
 
+  // isFetching used to be in here, which meant every background refetch - and
+  // React Query refetches on window focus by default - replaced the whole grid
+  // with skeletons and then put it back. Coming back to the tab made the page
+  // visibly flash. isLoading is only true when there is no data to show yet,
+  // which is the only time a skeleton is the honest thing to render.
   const isPageLoading =
-    sessionStatus === "loading" ||
-    isTryoutsLoading ||
-    isTryoutsFetching ||
-    isHistoryLoading ||
-    isHistoryFetching;
+    sessionStatus === "loading" || isTryoutsLoading || isHistoryLoading;
 
   const getStatusOrder = (item: { startDate: string; endDate: string }) => {
     const start = item.startDate ? new Date(item.startDate).getTime() : 0;
@@ -313,6 +307,7 @@ export default function TryoutPage() {
               perPage={itemsPerPage}
               perPageOptions={PER_PAGE_OPTIONS}
               itemLabel="tryout"
+              layout="stacked"
               onPageChange={setCurrentPage}
               onPerPageChange={handleItemsPerPageChange}
             />

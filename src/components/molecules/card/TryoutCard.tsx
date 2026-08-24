@@ -45,6 +45,28 @@ const PHASE_PILL: Record<Phase, { text: string; className: string }> = {
   ended: { text: "Selesai", className: "bg-slate-500 text-white" },
 };
 
+/**
+ * Shown until the first tick. The phase depends on the clock, so it cannot be
+ * computed during server rendering without risking a hydration mismatch -
+ * defaulting to one of the real phases instead would flash a confident wrong
+ * status ("Akan Datang" on a tryout already running) on every mount.
+ */
+const PENDING_PILL = { text: "Memuat", className: "bg-slate-300 text-slate-700" };
+
+/** Keeps the previous object when nothing visible changed, so no re-render. */
+function same(prev: Countdown | null, next: Countdown): Countdown {
+  if (
+    prev &&
+    prev.phase === next.phase &&
+    prev.label === next.label &&
+    prev.dateRange === next.dateRange &&
+    prev.urgent === next.urgent
+  ) {
+    return prev;
+  }
+  return next;
+}
+
 function remaining(ms: number) {
   const d = Math.floor(ms / DAY);
   const h = Math.floor((ms % DAY) / HOUR);
@@ -111,7 +133,7 @@ export default function TryoutCard({
         year: "numeric",
       });
 
-    // One state object, so a tick is one render rather than six.
+    // One state object rather than six setState calls per tick.
     const tick = () => {
       const now = Date.now();
       const start = new Date(startDate).getTime();
@@ -119,38 +141,43 @@ export default function TryoutCard({
       const dateRange = `${formatDate(new Date(start))} - ${formatDate(new Date(end))}`;
 
       if (now < start) {
-        setCountdown({
+        setCountdown((prev) => same(prev, {
           phase: "upcoming",
           label: `Mulai dalam ${remaining(start - now)}`,
           dateRange,
           urgent: false,
-        });
+        }));
         return;
       }
       if (now <= end) {
         const left = end - now;
-        setCountdown({
+        setCountdown((prev) => same(prev, {
           phase: "running",
           label: `Berakhir dalam ${remaining(left)}`,
           dateRange,
           urgent: left < DAY,
-        });
+        }));
         return;
       }
-      setCountdown({
-        phase: "ended",
-        label: "Tryout sudah berakhir",
-        dateRange,
-        urgent: false,
-      });
+      setCountdown((prev) =>
+        same(prev, {
+          phase: "ended",
+          label: "Tryout sudah berakhir",
+          dateRange,
+          urgent: false,
+        }),
+      );
     };
 
+    // A second keeps phase changes prompt; same() bails out when nothing
+    // rendered would differ, so the grid is not re-rendered once a second for
+    // a label that only changes by the minute.
     tick();
     const intervalId = setInterval(tick, 1000);
     return () => clearInterval(intervalId);
   }, [startDate, endDate]);
 
-  const pill = PHASE_PILL[countdown?.phase ?? "upcoming"];
+  const pill = countdown ? PHASE_PILL[countdown.phase] : PENDING_PILL;
 
   return (
     <article className="flex flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a] transition-all hover:-translate-y-0.5 hover:shadow-[7px_7px_0px_0px_#0f172a]">
@@ -216,7 +243,7 @@ export default function TryoutCard({
               countdown?.urgent ? "text-red-600" : "text-slate-500"
             }`}
           >
-            {countdown?.label ?? "Menghitung..."}
+            {countdown?.label ?? "Menghitung waktu..."}
           </span>
         </div>
 
