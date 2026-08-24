@@ -29,26 +29,50 @@ export default function DashboardContent() {
     (!session.user.phone_number || !session.user.school_origin) &&
     !profileDialogDismissed;
 
+  const statRow = (
+    <StatRow
+      kategoriLabel={KATEGORI_CONFIG[kategori].label}
+      theme={KATEGORI_CONFIG[kategori].theme}
+      ticketCount={ticketCount}
+      tryoutCount={tryouts?.data.length}
+      loading={tryoutsLoading}
+    />
+  );
+
+  const evaluation = (
+    <TrackStatisticsCard
+      histories={historyData?.data}
+      loading={historyLoading}
+    />
+  );
+
   return (
     <>
       <section className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <HeroBanner userName={session?.user?.name ?? "Sobat UrClass"} />
-        
-        <StatRow
-          kategoriLabel={KATEGORI_CONFIG[kategori].label}
-          theme={KATEGORI_CONFIG[kategori].theme}
-          ticketCount={ticketCount}
-          tryoutCount={tryouts?.data.length}
-          loading={tryoutsLoading}
-        />
 
-        {/* Dynamic Track-Specific Evaluation & Statistics */}
-        <TrackStatisticsCard
-          histories={historyData?.data}
-          loading={historyLoading}
-        />
+        {/* Order follows what each candidate is actually asking.
 
-        <InfoCardCarousel />
+            CPNS: "am I above the three thresholds?" - that is the entire
+            question, and failing one subtest fails the whole SKD, so the
+            evaluation sits directly under the hero.
+
+            UTBK: there is no threshold to clear, only a rank to climb. The
+            lever is material coverage, so discovery comes first and the score
+            trend reads as progress rather than a pass/fail verdict. */}
+        {kategori === "cpns" ? (
+          <>
+            {evaluation}
+            {statRow}
+            <InfoCardCarousel />
+          </>
+        ) : (
+          <>
+            <InfoCardCarousel />
+            {statRow}
+            {evaluation}
+          </>
+        )}
       </section>
 
       {/* Conditionally rendered popup for new users without full profiles */}

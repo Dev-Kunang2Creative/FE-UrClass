@@ -61,8 +61,15 @@ def call(url, method="GET", data=None, headers=None, timeout=300, raw=False):
                 return r.status, body, dict(r.headers)
             return r.status, (json.loads(body) if body else {}), dict(r.headers)
     except urllib.error.HTTPError as e:
+        # Must come first: HTTPError subclasses URLError.
         detail = e.read().decode(errors="replace")[:400]
         return e.code, {"error": detail}, dict(e.headers)
+    except (urllib.error.URLError, OSError, TimeoutError) as e:
+        # A refused or unreachable host used to escape as a traceback, which
+        # made a transient network blip look like a deploy bug and skipped the
+        # retry entirely. Reported as status 0 so callers can retry it.
+        payload = {"error": f"network: {e}"}
+        return 0, (b"" if raw else payload), {}
 
 
 def authed(url, method="GET", data=None, **kw):
@@ -105,12 +112,13 @@ def build_archive():
     return size
 
 
-def upload(size):
+def upload_once(size):
+    """One full attempt. Returns None on success or a reason string."""
     st, d, _ = authed(f"{API}/files/upload-urls", "POST",
                       json.dumps({"username": USER, "domain": DOMAIN}).encode())
     if st != 200:
-        print(f"cannot get an upload url (HTTP {st}): {d}")
-        sys.exit(1)
+        return f"cannot get an upload url (HTTP {st}): {d}"
+
     d = d.get("data", d)
     target = f"{d['url'].rstrip('/')}/{ARCHIVE}?override=true"
     tus = {"X-Auth": d["auth_key"], "X-Auth-Rest": d["rest_auth_key"],
@@ -120,8 +128,7 @@ def upload(size):
                        {**tus, "Upload-Length": str(size), "Upload-Offset": "0"},
                        raw=True)
     if st not in (200, 201):
-        print(f"create upload failed (HTTP {st}): {body[:300]}")
-        sys.exit(1)
+        return f"create upload failed (HTTP {st}): {body[:200]}"
 
     with open(ARCHIVE, "rb") as fh:
         payload = fh.read()
@@ -130,9 +137,36 @@ def upload(size):
         "Upload-Offset": "0"}, raw=True)
     off = hdrs.get("Upload-Offset") or hdrs.get("upload-offset")
     if st not in (200, 204) or (off and int(off) != size):
-        print(f"upload failed (HTTP {st}, offset {off} of {size}): {body[:300]}")
-        sys.exit(1)
+        return f"send failed (HTTP {st}, offset {off} of {size}): {body[:200]}"
+
     print(f"uploaded {off or size} bytes")
+    return None
+
+
+def upload(size):
+    """Retry the whole sequence, credentials included.
+
+    The upload host is IPv4-only on a single address that drops connections
+    intermittently - a deploy died on "[Errno 101] Network is unreachable"
+    while the two before it, same script, went through. One refused connection
+    is not a reason to fail a deploy.
+
+    Credentials are re-fetched per attempt rather than reused: a half-finished
+    TUS session cannot be resumed from offset 0.
+    """
+    attempts = 4
+    for attempt in range(1, attempts + 1):
+        reason = upload_once(size)
+        if reason is None:
+            return
+        print(f"attempt {attempt}/{attempts} failed: {reason}")
+        if attempt < attempts:
+            wait = 15 * attempt
+            print(f"  retrying in {wait}s")
+            time.sleep(wait)
+
+    print("upload failed after every attempt")
+    sys.exit(1)
 
 
 def start_build():
