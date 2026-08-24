@@ -73,7 +73,7 @@ export default function DialogOnboardingTour({
       badgeClass: config.theme.badge,
       description: `Akunmu saat ini berada dalam Mode ${config.label}. Seluruh bank soal, simulasi tryout, paket pembelian, dan analitik performa diatur khusus untuk jalur persiapan ini.`,
       icon: kategori === "cpns" ? Landmark : BookOpenCheck,
-      iconBg: kategori === "cpns" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800",
+      iconBg: kategori === "cpns" ? "bg-orange-100 text-orange-800" : "bg-blue-100 text-blue-800",
       highlight: "Kamu siap memulai persiapan intensif meraih target impianmu!",
     },
     {
@@ -114,7 +114,7 @@ export default function DialogOnboardingTour({
         {/* Top Header Banner */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white text-center relative">
           <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 mb-3">
-            <StepIcon className="w-8 h-8 text-amber-300" />
+            <StepIcon className="w-8 h-8 text-orange-300" />
           </div>
           <DialogTitle className="text-xl sm:text-2xl font-black text-white tracking-tight">
             {current.title}
@@ -133,7 +133,7 @@ export default function DialogOnboardingTour({
           </DialogDescription>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <Sparkles className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
             <p className="text-xs sm:text-sm font-medium text-slate-800">
               {current.highlight}
             </p>

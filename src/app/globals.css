@@ -158,3 +158,93 @@ body {
     background-attachment: fixed;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Per-track theme.
+
+   The track used to be styled with literal Tailwind classes in a handful of
+   components, which is why CPNS still felt blue: --primary is what the 14
+   shadcn primitives read, and it never changed. Buttons, focus rings,
+   checkboxes, tabs and every chart stayed blue while only the six hand-themed
+   components went amber.
+
+   Driving the variables instead means the whole surface re-themes at once, and
+   there is one place to change rather than thirteen.
+
+   Set by data-track on the dashboard wrapper (server-rendered from the
+   session, so there is no hydration flash).
+
+   Contrast against white was measured, not guessed:
+     UTBK  #004aab  8.18:1
+     CPNS  #c14100  5.21:1
+   Both clear WCAG AA for body text. The brighter oranges you might reach for
+   first - #ff6900 at 2.89:1 and #f54900 at 3.59:1 - cannot carry white text,
+   so the bright tone is confined to --track-accent, which is only ever used on
+   light surfaces with dark text.
+   --------------------------------------------------------------------------- */
+
+[data-track="utbk"] {
+  --primary: oklch(0.4348 0.1683 258.97);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.546 0.245 262.881);
+  --sidebar-primary: oklch(0.4348 0.1683 258.97);
+  --sidebar-ring: oklch(0.546 0.245 262.881);
+
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+
+  /* Bright tone for badges and highlights on light surfaces only. */
+  --track-accent: oklch(0.623 0.214 259.815);
+  --track-tint: oklch(0.968 0.017 254);
+  --track-border: oklch(0.882 0.059 254);
+}
+
+[data-track="cpns"] {
+  --primary: oklch(0.55 0.18 45);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.646 0.222 41.116);
+  --sidebar-primary: oklch(0.55 0.18 45);
+  --sidebar-ring: oklch(0.646 0.222 41.116);
+
+  --chart-1: oklch(0.82 0.09 60);
+  --chart-2: oklch(0.72 0.16 52);
+  --chart-3: oklch(0.646 0.222 41.116);
+  --chart-4: oklch(0.553 0.195 38.402);
+  --chart-5: oklch(0.47 0.16 35);
+
+  --track-accent: oklch(0.646 0.222 41.116);
+  --track-tint: oklch(0.971 0.021 55);
+  --track-border: oklch(0.885 0.062 55);
+}
+
+/* Exposed to Tailwind so the track tokens are usable as bg-track-tint,
+   border-track-border, text-track-accent. */
+@theme inline {
+  --color-track-accent: var(--track-accent);
+  --color-track-tint: var(--track-tint);
+  --color-track-border: var(--track-border);
+}
+
+/* Background texture differs per track. Same shape language, different
+   surface - one of the levers that actually changes the impression without
+   touching radius or type. */
+[data-track="utbk"] .track-surface {
+  background-color: var(--track-tint);
+  background-image: radial-gradient(
+    color-mix(in oklch, var(--track-accent) 18%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+}
+
+[data-track="cpns"] .track-surface {
+  background-color: var(--track-tint);
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--track-accent) 10%, transparent) 0 1px,
+    transparent 1px 11px
+  );
+}

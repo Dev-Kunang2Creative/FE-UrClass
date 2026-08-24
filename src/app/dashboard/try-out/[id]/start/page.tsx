@@ -98,7 +98,7 @@ export default function TryoutStartPage({
       <div className="flex items-center justify-center min-h-[60vh]">
         <div
           className={`animate-spin rounded-full h-10 w-10 border-b-2 ${
-            isCpns ? "border-amber-700" : "border-blue-600"
+            isCpns ? "border-orange-700" : "border-blue-600"
           }`}
         />
       </div>
@@ -120,13 +120,13 @@ export default function TryoutStartPage({
         <div
           className={`rounded-xl p-6 text-center border ${
             isCpns
-              ? "bg-amber-50 border-amber-200"
+              ? "bg-orange-50 border-orange-200"
               : "bg-blue-50 border-blue-100"
           }`}
         >
           <h2
             className={`text-xl font-bold mb-2 ${
-              isCpns ? "text-amber-800" : "text-blue-600"
+              isCpns ? "text-orange-800" : "text-blue-600"
             }`}
           >
             Instruksi Pengerjaan Tryout {isCpns ? "CPNS" : "UTBK"}
@@ -139,7 +139,7 @@ export default function TryoutStartPage({
           <h3 className="text-xl font-bold text-gray-900">{tryoutTitle}</h3>
           <div
             className={`flex items-center justify-center gap-4 text-xs md:text-sm font-semibold ${
-              isCpns ? "text-amber-800" : "text-blue-600"
+              isCpns ? "text-orange-800" : "text-blue-600"
             }`}
           >
             <div className="flex items-center gap-1.5">

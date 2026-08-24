@@ -180,7 +180,7 @@ export default function TryoutPage() {
             onClick={() => setShowRedeemDialog(true)}
             className={`flex items-center gap-2 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit ${
               isCpns
-                ? "bg-amber-700 hover:bg-amber-800"
+                ? "bg-orange-700 hover:bg-orange-800"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
@@ -213,7 +213,7 @@ export default function TryoutPage() {
             onChange={(e) => handleSearchChange(e.target.value)}
             className={`w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all shadow-sm ${
               isCpns
-                ? "focus:ring-amber-600/20 focus:border-amber-600"
+                ? "focus:ring-orange-600/20 focus:border-orange-600"
                 : "focus:ring-blue-600/20 focus:border-blue-600"
             }`}
           />
@@ -228,7 +228,7 @@ export default function TryoutPage() {
               className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
                 activeFilter === filter
                   ? isCpns
-                    ? "bg-amber-700 text-white"
+                    ? "bg-orange-800 text-white"
                     : "bg-blue-600 text-white"
                   : "bg-[#EAEFF4] text-[#5A6A80] hover:bg-gray-200"
               }`}

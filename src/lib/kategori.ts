@@ -74,17 +74,23 @@ export const KATEGORI_CONFIG: Record<
     heading: "Persiapan intensif target lolos SKD CPNS & Kedinasan",
     maxScore: 550,
     scoreScale: "Standar SKD CAT (Maks. 550)",
+    // Orange, not amber. Amber sits close to a warning colour and reads as
+    // less distinct from blue than a true orange does.
+    //
+    // Anything carrying white text uses orange-700 (#ca3500, 5.23:1) rather
+    // than orange-600 (#f54900, 3.59:1), which fails WCAG AA for body text.
+    // The brighter tone is reserved for tints under dark text.
     theme: {
-      accent: "bg-amber-50 text-amber-800 border-amber-200",
-      badge: "bg-amber-100 text-amber-900 border-amber-300",
-      btn: "bg-amber-600 hover:bg-amber-700 text-white",
-      cardBorder: "border-amber-200 hover:border-amber-400",
-      cardBg: "bg-gradient-to-br from-amber-50/60 to-orange-50/40",
-      statIcon: "text-amber-700 bg-amber-50 border-amber-200",
-      statCard: "border-amber-300 hover:border-amber-500 shadow-[4px_4px_0px_0px_#b45309]",
-      dot: "bg-amber-600",
-      progress: "bg-amber-600",
-      switcherActive: "bg-amber-600 text-white shadow-sm",
+      accent: "bg-orange-50 text-orange-800 border-orange-200",
+      badge: "bg-orange-100 text-orange-900 border-orange-300",
+      btn: "bg-orange-700 hover:bg-orange-800 text-white",
+      cardBorder: "border-orange-200 hover:border-orange-400",
+      cardBg: "bg-gradient-to-br from-orange-50/70 to-red-50/40",
+      statIcon: "text-orange-700 bg-orange-50 border-orange-200",
+      statCard: "border-orange-300 hover:border-orange-500 shadow-[4px_4px_0px_0px_#9a3412]",
+      dot: "bg-orange-600",
+      progress: "bg-orange-600",
+      switcherActive: "bg-orange-700 text-white shadow-sm",
     },
     subtests: [
       { name: "Tes Wawasan Kebangsaan (TWK)", code: "TWK", passingGrade: 65, maxScore: 150, description: "Pancasila, UUD 1945, NKRI, Bela Negara, Bahasa Indo" },
@@ -98,4 +104,23 @@ export const KATEGORI_LIST = ["utbk", "cpns"] as const;
 
 export function isKategori(value: unknown): value is Kategori {
   return value === "utbk" || value === "cpns";
+}
+
+/**
+ * Match a subtest name coming from the API to its config entry, so the exam
+ * screen can show the metric that track actually cares about: a passing grade
+ * for CPNS, the IRT scale for UTBK.
+ *
+ * Matches on the code in parentheses first ("Tes Wawasan Kebangsaan (TWK)"),
+ * since names get edited in the admin panel far more often than codes do.
+ */
+export function findSubtestMeta(kategori: Kategori, subtestName: string) {
+  const list = KATEGORI_CONFIG[kategori].subtests;
+  const haystack = subtestName.toUpperCase();
+
+  return (
+    list.find((s) => haystack.includes(`(${s.code})`)) ??
+    list.find((s) => haystack.includes(s.code)) ??
+    list.find((s) => s.name.toUpperCase() === haystack)
+  );
 }

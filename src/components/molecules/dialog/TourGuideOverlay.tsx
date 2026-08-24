@@ -117,9 +117,9 @@ export default function TourGuideOverlay() {
           </p>
           <p className="text-xs sm:text-sm text-slate-300">
             {currentStep < steps.length - 1 ? (
-              <>Klik <strong className="text-amber-400">"Lanjut"</strong> untuk melanjutkan.</>
+              <>Klik <strong className="text-orange-400">"Lanjut"</strong> untuk melanjutkan.</>
             ) : (
-              <>Klik <strong className="text-amber-400">"Mulai Belajar"</strong> untuk menutup panduan.</>
+              <>Klik <strong className="text-orange-400">"Mulai Belajar"</strong> untuk menutup panduan.</>
             )}
           </p>
         </div>
@@ -131,7 +131,7 @@ export default function TourGuideOverlay() {
               <button
                 type="button"
                 onClick={() => setCurrentStep((prev) => prev + 1)}
-                className="px-8 py-2.5 rounded-full bg-[#f59e0b] hover:bg-[#d97706] active:bg-[#b45309] text-black font-extrabold text-sm shadow-lg transition-all hover:scale-105 cursor-pointer"
+                className="px-8 py-2.5 rounded-full bg-[#f97316] hover:bg-[#c2410c] active:bg-[#9a3412] text-black font-extrabold text-sm shadow-lg transition-all hover:scale-105 cursor-pointer"
               >
                 Lanjut
               </button>
@@ -147,7 +147,7 @@ export default function TourGuideOverlay() {
             <button
               type="button"
               onClick={handleFinish}
-              className="px-8 py-3 rounded-full bg-[#f59e0b] hover:bg-[#d97706] active:bg-[#b45309] text-black font-black text-sm shadow-xl transition-all hover:scale-105 flex items-center gap-2 cursor-pointer"
+              className="px-8 py-3 rounded-full bg-[#f97316] hover:bg-[#c2410c] active:bg-[#9a3412] text-black font-black text-sm shadow-xl transition-all hover:scale-105 flex items-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4 stroke-[3]" />
               <span>Sudah Mengerti, Mulai Belajar! 🚀</span>

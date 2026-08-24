@@ -80,7 +80,7 @@ export default function PembelianPage() {
             type="text"
             className={`w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 text-sm shadow-sm transition-all ${
               isCpns
-                ? "focus:ring-amber-500/20 focus:border-amber-600"
+                ? "focus:ring-orange-500/20 focus:border-orange-600"
                 : "focus:ring-blue-500/20 focus:border-blue-600"
             }`}
             placeholder="Cari paket sesuai kebutuhanmu"
@@ -97,7 +97,7 @@ export default function PembelianPage() {
               className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
                 activeCategory === category
                   ? isCpns
-                    ? "bg-amber-700 text-white shadow-sm"
+                    ? "bg-orange-800 text-white shadow-sm"
                     : "bg-blue-600 text-white shadow-sm"
                   : "bg-slate-200 text-slate-700 hover:bg-slate-300"
               }`}

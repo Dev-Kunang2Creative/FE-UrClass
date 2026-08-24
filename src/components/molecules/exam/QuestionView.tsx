@@ -134,7 +134,7 @@ export default function QuestionView({
                     : "border-gray-200 bg-white text-gray-900"
                 : isSelected
                   ? isCpns
-                    ? "border-amber-700 bg-amber-50/70"
+                    ? "border-orange-700 bg-orange-50/70"
                     : "border-blue-600 bg-blue-50"
                   : "border-gray-200 hover:border-gray-300 hover:bg-gray-50";
 
@@ -146,7 +146,7 @@ export default function QuestionView({
                     : "bg-gray-100 text-gray-600"
                 : isSelected
                   ? isCpns
-                    ? "bg-amber-700 text-white"
+                    ? "bg-orange-800 text-white"
                     : "bg-blue-600 text-white"
                   : "bg-gray-100 text-gray-600";
 
@@ -158,7 +158,7 @@ export default function QuestionView({
                     : "text-gray-700"
                 : isSelected
                   ? isCpns
-                    ? "text-amber-900 font-semibold"
+                    ? "text-orange-900 font-semibold"
                     : "text-blue-600 font-semibold"
                   : "text-gray-700";
 
@@ -213,13 +213,13 @@ export default function QuestionView({
           <div
             className={`mt-6 rounded-xl border p-5 ${
               isCpns
-                ? "border-amber-200 bg-amber-50/70"
+                ? "border-orange-200 bg-orange-50/70"
                 : "border-blue-100 bg-blue-50"
             }`}
           >
             <h3
               className={`mb-3 text-sm font-bold ${
-                isCpns ? "text-amber-800" : "text-blue-600"
+                isCpns ? "text-orange-800" : "text-blue-600"
               }`}
             >
               Pembahasan
@@ -242,7 +242,7 @@ export default function QuestionView({
               />
             )}
             {!isEssay && !question.correct_answer && (
-              <p className="mt-3 text-xs font-medium text-amber-700">
+              <p className="mt-3 text-xs font-medium text-orange-700">
                 Kunci jawaban belum tersedia.
               </p>
             )}
@@ -269,7 +269,7 @@ export default function QuestionView({
             onClick={onNext}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors text-white ${
               isCpns
-                ? "bg-amber-700 hover:bg-amber-800"
+                ? "bg-orange-700 hover:bg-orange-800"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
@@ -281,7 +281,7 @@ export default function QuestionView({
             onClick={onFinish}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors text-white ${
               isCpns
-                ? "bg-amber-700 hover:bg-amber-800"
+                ? "bg-orange-700 hover:bg-orange-800"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >

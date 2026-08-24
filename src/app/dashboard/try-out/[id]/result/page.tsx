@@ -36,7 +36,7 @@ export default function ResultPage({
       <div className="flex items-center justify-center min-h-[60vh]">
         <div
           className={`animate-spin rounded-full h-10 w-10 border-b-2 ${
-            isCpns ? "border-amber-700" : "border-blue-600"
+            isCpns ? "border-orange-700" : "border-blue-600"
           }`}
         />
       </div>
@@ -50,7 +50,7 @@ export default function ResultPage({
         <Link
           href={`/dashboard/try-out/${tryoutId}`}
           className={`font-semibold mt-4 inline-block ${
-            isCpns ? "text-amber-700 hover:text-amber-800" : "text-blue-600 hover:text-blue-700"
+            isCpns ? "text-orange-700 hover:text-orange-800" : "text-blue-600 hover:text-blue-700"
           }`}
         >
           ← Kembali
@@ -63,7 +63,7 @@ export default function ResultPage({
   const accuracy = Math.round(score_result?.accuracy ?? 0);
 
   const heroCardClass = isCpns
-    ? "bg-linear-to-br from-amber-700 via-amber-800 to-amber-950 border-2 border-amber-800"
+    ? "bg-linear-to-br from-orange-700 via-orange-800 to-orange-950 border-2 border-orange-800"
     : "bg-linear-to-br from-blue-600 to-blue-900 border-2 border-blue-700";
 
   return (
@@ -155,10 +155,10 @@ export default function ResultPage({
           </div>
         </div>
       ) : (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center mb-6">
-          <Clock className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-          <h2 className="text-xl font-bold text-amber-800">Hasil IRT Sedang Diproses</h2>
-          <p className="text-amber-600 text-sm mt-2">
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-8 text-center mb-6">
+          <Clock className="w-12 h-12 text-orange-500 mx-auto mb-3" />
+          <h2 className="text-xl font-bold text-orange-800">Hasil IRT Sedang Diproses</h2>
+          <p className="text-orange-600 text-sm mt-2">
             Skor IRT akan tersedia setelah tryout berakhir dan cukup peserta menyelesaikan ujian.
             {irt_result?.release_date && (
               <span className="block mt-1">Perkiraan rilis: {formatJakartaDate(irt_result.release_date)}</span>
@@ -169,7 +169,7 @@ export default function ResultPage({
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-        <SummaryCard icon={<Target className={`w-5 h-5 ${isCpns ? "text-amber-600" : "text-blue-500"}`} />} label="Total Soal" value={summary.total_questions} bgColor={isCpns ? "bg-amber-50" : "bg-blue-50"} />
+        <SummaryCard icon={<Target className={`w-5 h-5 ${isCpns ? "text-orange-600" : "text-blue-500"}`} />} label="Total Soal" value={summary.total_questions} bgColor={isCpns ? "bg-orange-50" : "bg-blue-50"} />
         <SummaryCard icon={<BarChart3 className="w-5 h-5 text-purple-500" />} label="Dijawab" value={summary.answered} bgColor="bg-purple-50" />
         <SummaryCard icon={<CheckCircle2 className="w-5 h-5 text-green-500" />} label="Benar" value={summary.correct} bgColor="bg-green-50" />
         <SummaryCard icon={<XCircle className="w-5 h-5 text-red-500" />} label="Salah" value={summary.wrong} bgColor="bg-red-50" />
@@ -182,7 +182,7 @@ export default function ResultPage({
           href={`/dashboard/try-out/${tryoutId}/review${attemptQuery}`}
           className={`flex-1 py-3.5 text-white font-bold rounded-xl text-center transition-colors ${
             isCpns
-              ? "bg-amber-700 hover:bg-amber-800 shadow-[2px_2px_0px_0px_#1e293b]"
+              ? "bg-orange-700 hover:bg-orange-800 shadow-[2px_2px_0px_0px_#1e293b]"
               : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
