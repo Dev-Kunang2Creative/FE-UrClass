@@ -225,176 +225,204 @@ export default function TryoutDetailPage({
   const bannerUrl = tryout.image_url || null;
 
   return (
-    // The page used to paint its own full-height white sheet over the themed
-    // background, so the detail view was the one dashboard screen with no track
+    // One screen on a desktop, and nothing that can push the page sideways.
+    // The page also used to paint its own full-height white sheet over the
+    // themed background, so it was the one dashboard screen with no track
     // texture behind it.
-    <div className="mx-auto w-full max-w-5xl animate-in fade-in space-y-6 pb-12 duration-500">
-      <div className="flex items-center gap-2">
+    //
+    // It was a single narrow column - banner, then title, then the whole
+    // subtest list, then the button - which on any real tryout meant scrolling
+    // past the artwork to reach the thing you came to press.
+    //
+    // min-w-0 on every flex and grid child is what actually prevents the
+    // horizontal scrollbar: without it a long word or a wide flex row expands
+    // its track instead of wrapping.
+    <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-5 pb-6 animate-in fade-in duration-500">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
         <Link
           href="/dashboard/try-out"
           className="rounded-full p-1 text-slate-800 transition-colors hover:bg-white/70"
         >
           <ChevronLeft className="h-6 w-6" />
         </Link>
-        <h1 className="text-xl font-black tracking-tight text-slate-900">
+        <h1 className="text-lg font-black tracking-tight text-slate-900 sm:text-xl">
           Detail Try Out
         </h1>
-      </div>
 
-      {/* The banner an admin uploaded, which this page never showed at all -
-          the artwork existed on tryouts.image and was only rendered in the
-          list. Falls back to the same track panel the cards use. */}
-      <div className="relative h-40 w-full overflow-hidden rounded-3xl border-2 border-slate-900 shadow-[5px_5px_0px_0px_#0f172a] sm:h-52">
-        {bannerUrl ? (
-          <Image
-            src={bannerUrl}
-            alt={`Banner ${tryoutTitle}`}
-            fill
-            className="object-cover"
-            unoptimized={bannerUrl.startsWith("http")}
-          />
-        ) : (
-          <div className="flex h-full w-full flex-col justify-center gap-1.5 bg-primary px-6">
-            <div
-              aria-hidden
-              className="absolute inset-0 opacity-[0.13]"
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 12px)",
-              }}
-            />
-            <TrackIcon
-              className="pointer-events-none absolute -bottom-10 -right-8 size-48 text-white/10"
-              aria-hidden
-            />
-            <TrackIcon
-              className="relative size-8 text-primary-foreground"
-              aria-hidden
-            />
-            <span className="relative text-sm font-black uppercase tracking-[0.18em] text-primary-foreground">
-              {trackConfig.full}
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div className="mx-auto max-w-4xl space-y-6">
-        {/* Title */}
-        <div className="space-y-3 text-center">
-          <div className="flex flex-wrap justify-center gap-2">
-            <span className="rounded-full border-2 border-slate-900 bg-track-tint px-3 py-1 text-xs font-bold text-slate-900">
-              {tryoutCategory}
-            </span>
-            {/* Was green for free and amber for premium - two colours from
-                outside either track. Free reads as the plain option, premium as
-                the marked one. */}
-            <span
-              className={`rounded-full border-2 border-slate-900 px-3 py-1 text-xs font-bold ${
-                isFree ? "bg-white text-slate-900" : "bg-slate-900 text-white"
-              }`}
-            >
-              {tryoutType}
-            </span>
-          </div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900">
-            {tryoutTitle}
-          </h2>
-
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm font-semibold text-slate-700">
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4 text-primary" />
-              <span>Total Waktu {totalDuration} menit</span>
-            </div>
-            <div className="hidden h-4 w-px bg-slate-300 sm:block" />
-            <div className="flex items-center gap-1.5">
-              <FileText className="h-4 w-4 text-primary" />
-              <span>Total Soal {totalQuestions} soal</span>
-            </div>
-          </div>
+        {/* Badges moved up here from a centred block of their own, which spent
+            a whole row of vertical space saying two words. */}
+        <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
+          <span className="rounded-full border-2 border-slate-900 bg-track-tint px-3 py-0.5 text-[11px] font-bold text-slate-900">
+            {tryoutCategory}
+          </span>
+          <span
+            className={`rounded-full border-2 border-slate-900 px-3 py-0.5 text-[11px] font-bold ${
+              isFree ? "bg-white text-slate-900" : "bg-slate-900 text-white"
+            }`}
+          >
+            {tryoutType}
+          </span>
         </div>
+      </div>
 
-        {/* Subtests Info */}
-        <div className="divide-y-2 divide-dashed divide-slate-200 rounded-3xl border-2 border-slate-900 bg-white p-6 shadow-[5px_5px_0px_0px_#0f172a] md:p-8">
-          {groups.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              Rincian subtest belum tersedia untuk tryout ini.
-            </p>
-          ) : (
-            groups.map((group) => (
-              <div key={group.category} className="space-y-3 py-5 first:pt-0 last:pb-0">
-                <h4 className="text-lg font-black tracking-tight text-slate-900">
-                  {group.label}
-                </h4>
-                <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-600">
-                  <p>
-                    Jumlah Soal :{" "}
-                    <span className="font-bold text-slate-900">
-                      {group.questions}
-                    </span>{" "}
-                    soal
-                  </p>
-                  <p>
-                    Durasi :{" "}
-                    <span className="font-bold text-slate-900">
-                      {group.duration}
-                    </span>{" "}
-                    menit
-                  </p>
-                </div>
-                <div className="pt-1">
-                  <p className="mb-2 text-sm font-semibold text-slate-700">
-                    Isi subtest :
-                  </p>
-                  <ul className="space-y-1.5 text-sm text-slate-600">
-                    {group.items.map((item) => (
-                      <li key={item.name} className="flex items-baseline gap-2">
-                        <span className="text-primary">•</span>
-                        <span>
-                          {item.name} : {item.questions} soal
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+      <div className="grid min-w-0 grid-cols-1 items-start gap-5 lg:grid-cols-5">
+        <div className="flex min-w-0 flex-col gap-5 lg:col-span-3">
+          {/* The banner an admin uploaded, which this page never showed at all -
+              the artwork existed on tryouts.image and only the list rendered
+              it. Falls back to the same track panel the cards use. */}
+          <div className="relative h-32 w-full overflow-hidden rounded-3xl border-2 border-slate-900 shadow-[5px_5px_0px_0px_#0f172a] sm:h-40">
+            {bannerUrl ? (
+              <Image
+                src={bannerUrl}
+                alt={`Banner ${tryoutTitle}`}
+                fill
+                className="object-cover"
+                unoptimized={bannerUrl.startsWith("http")}
+              />
+            ) : (
+              <div className="flex h-full w-full flex-col justify-center gap-1.5 bg-primary px-6">
+                <div
+                  aria-hidden
+                  className="absolute inset-0 opacity-[0.13]"
+                  style={{
+                    backgroundImage:
+                      "repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 12px)",
+                  }}
+                />
+                <TrackIcon
+                  className="pointer-events-none absolute -bottom-10 -right-8 size-48 text-white/10"
+                  aria-hidden
+                />
+                <TrackIcon
+                  className="relative size-7 text-primary-foreground"
+                  aria-hidden
+                />
+                {/* truncate, not merely overflow-hidden on the parent: this
+                    label is uppercase at 0.18em tracking, so a track name like
+                    CPNS - SKD & Kedinasan is wide enough to push a narrow
+                    phone sideways on its own. */}
+                <span className="relative truncate text-xs font-black uppercase tracking-[0.18em] text-primary-foreground">
+                  {trackConfig.full}
+                </span>
               </div>
-            ))
-          )}
-        </div>
+            )}
+          </div>
 
-        {/* Action Button */}
-        <div className="pt-4">
-          {isEnrolled ? (
-            buttonState.action === "retry_tryout" && isFinished ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="min-w-0 rounded-3xl border-2 border-slate-900 bg-white p-5 shadow-[5px_5px_0px_0px_#0f172a]">
+            <h2 className="break-words text-xl font-black leading-snug tracking-tight text-slate-900 sm:text-2xl">
+              {tryoutTitle}
+            </h2>
+
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="min-w-0 rounded-2xl border-2 border-dashed border-slate-200 p-3">
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
+                  <Clock className="size-3.5 shrink-0 text-primary" />
+                  Total waktu
+                </p>
+                <p className="mt-0.5 text-lg font-black text-slate-900">
+                  {totalDuration}{" "}
+                  <span className="text-xs font-bold text-slate-400">menit</span>
+                </p>
+              </div>
+              <div className="min-w-0 rounded-2xl border-2 border-dashed border-slate-200 p-3">
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
+                  <FileText className="size-3.5 shrink-0 text-primary" />
+                  Total soal
+                </p>
+                <p className="mt-0.5 text-lg font-black text-slate-900">
+                  {totalQuestions}{" "}
+                  <span className="text-xs font-bold text-slate-400">soal</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div className="min-w-0">
+            {isEnrolled ? (
+              buttonState.action === "retry_tryout" && isFinished ? (
+                <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+                  <button
+                    onClick={() => router.push(`/dashboard/try-out/${tryoutId}/start`)}
+                    className={`w-full min-w-0 rounded-xl border-2 border-slate-900 px-3 py-3.5 text-sm font-bold ${buttonShadowClass} transition-all active:translate-y-1 active:shadow-none ${TRYOUT_BUTTON_CLASS[buttonState.variant]}`}
+                  >
+                    {buttonState.label}
+                  </button>
+                  <button
+                    onClick={() => router.push(`/dashboard/try-out/${tryoutId}/result`)}
+                    className="w-full min-w-0 rounded-xl border-2 border-slate-900 bg-primary px-3 py-3.5 text-sm font-bold text-primary-foreground shadow-[0_4px_0_0_#0f172a] transition-all hover:brightness-95 active:translate-y-1 active:shadow-none"
+                  >
+                    Lihat Hasil &amp; Pembahasan
+                  </button>
+                </div>
+              ) : (
                 <button
                   onClick={() => router.push(`/dashboard/try-out/${tryoutId}/start`)}
                   className={`w-full rounded-xl border-2 border-slate-900 py-3.5 text-sm font-bold ${buttonShadowClass} transition-all active:translate-y-1 active:shadow-none ${TRYOUT_BUTTON_CLASS[buttonState.variant]}`}
                 >
                   {buttonState.label}
                 </button>
-                <button
-                  onClick={() => router.push(`/dashboard/try-out/${tryoutId}/result`)}
-                  className="w-full rounded-xl border-2 border-slate-900 bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-[0_4px_0_0_#0f172a] transition-all hover:brightness-95 active:translate-y-1 active:shadow-none"
-                >
-                  Lihat Hasil Skor & Pembahasan
-                </button>
-              </div>
+              )
             ) : (
               <button
-                onClick={() => router.push(`/dashboard/try-out/${tryoutId}/start`)}
-                className={`w-full rounded-xl border-2 border-slate-900 py-3.5 text-sm font-bold ${buttonShadowClass} transition-all active:translate-y-1 active:shadow-none ${TRYOUT_BUTTON_CLASS[buttonState.variant]}`}
+                onClick={() => setShowEnrollDialog(true)}
+                className="w-full rounded-xl border-2 border-slate-900 bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-[0_4px_0_0_#0f172a] transition-all hover:brightness-95 active:translate-y-1 active:shadow-none"
               >
-                {buttonState.label}
+                {isFree ? "Daftar Tryout (Gratis)" : "Daftar Tryout (1 Tiket)"}
               </button>
-            )
-          ) : (
-            <button 
-              onClick={() => setShowEnrollDialog(true)}
-              className="w-full rounded-xl border-2 border-slate-900 bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-[0_4px_0_0_#0f172a] transition-all hover:brightness-95 active:translate-y-1 active:shadow-none"
-            >
-              {isFree ? "Daftar Tryout (Gratis)" : `Daftar Tryout (1 Tiket)`}
-            </button>
-          )}
+            )}
+          </div>
+        </div>
+
+        {/* Subtests. A long list scrolls inside this panel rather than pushing
+            the button off the screen: a tryout with many subtests cannot be
+            made to fit by wishing, and the action is what must stay reachable. */}
+        <div className="flex min-w-0 flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a] lg:col-span-2">
+          <div className="border-b-2 border-slate-900 px-5 py-3">
+            <h3 className="text-sm font-black uppercase tracking-wide text-slate-900">
+              Rincian subtest
+            </h3>
+          </div>
+
+          <div className="min-w-0 divide-y-2 divide-dashed divide-slate-200 overflow-y-auto px-5 py-1 lg:max-h-[27rem]">
+            {groups.length === 0 ? (
+              <p className="py-5 text-sm text-slate-500">
+                Rincian subtest belum tersedia untuk tryout ini.
+              </p>
+            ) : (
+              groups.map((group) => (
+                <div key={group.category} className="min-w-0 space-y-2 py-4">
+                  <h4 className="break-words text-sm font-black tracking-tight text-slate-900">
+                    {group.label}
+                  </h4>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+                    <p>
+                      <span className="font-bold text-slate-900">
+                        {group.questions}
+                      </span>{" "}
+                      soal
+                    </p>
+                    <p>
+                      <span className="font-bold text-slate-900">
+                        {group.duration}
+                      </span>{" "}
+                      menit
+                    </p>
+                  </div>
+                  <ul className="space-y-1 text-xs text-slate-600">
+                    {group.items.map((item) => (
+                      <li key={item.name} className="flex min-w-0 items-baseline gap-2">
+                        <span className="shrink-0 text-primary">&bull;</span>
+                        <span className="min-w-0 break-words">
+                          {item.name} : {item.questions} soal
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
