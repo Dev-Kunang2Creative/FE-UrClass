@@ -96,8 +96,14 @@ export const authOptions: NextAuthOptions = {
       try {
         const auth = await getAuthApiHandler(access_token);
 
-        // Merge fresh backend data with any front-end only overrides (like province, city) we stored
-        const overrides = token.userOverrides || {};
+        // Merge fresh backend data with any front-end only overrides we stored.
+        //
+        // province and city are explicitly dropped: they used to be front-end
+        // only because ProfileController never saved them, but they are real
+        // columns now. Any override left in an existing token would shadow the
+        // database forever - including a value changed on another device.
+        const { province: _province, city: _city, ...overrides } =
+          token.userOverrides || {};
         const mergedUser = { ...auth, ...overrides };
 
         return { ...session, user: mergedUser, access_token };

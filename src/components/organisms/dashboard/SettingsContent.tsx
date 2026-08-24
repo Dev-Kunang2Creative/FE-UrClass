@@ -19,7 +19,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import FormCompleteProfile from "@/components/molecules/form/profile/FormCompleteProfile";
 import { useKategori } from "@/hooks/useKategori";
-import { KATEGORI_CONFIG, type Kategori } from "@/lib/kategori";
+import { KATEGORI_CONFIG } from "@/lib/kategori";
+import { formatJakartaDate } from "@/utils/date-time";
 
 export default function SettingsContent() {
   const { data: session } = useSession();
@@ -39,20 +40,38 @@ export default function SettingsContent() {
   
   // Extract user info, using optional chaining and defaults
   const name = user?.name || "Sobat UrClass";
-  const email = user?.email || "-";
-  const phone = user?.phone_number || "-";
-  const school = user?.school_origin || "-";
-  const gradeLevel = user?.grade_level || "-";
+  const email = user?.email || "";
+  const phone = user?.phone_number || "";
+  const school = user?.school_origin || "";
+  const gradeLevel = user?.grade_level || "";
   
-  // New fields
-  const gender = user?.gender === 'L' ? 'Laki-laki' : user?.gender === 'P' ? 'Perempuan' : '-';
-  const birthDate = user?.birth_date || "-";
-  const province = user?.province || "-";
-  const city = user?.city || "-";
-  const targetUniversity1 = user?.target_university_1 || "-";
-  const targetMajor1 = user?.target_major_1 || "-";
-  const targetUniversity2 = user?.target_university_2 || "-";
-  const targetMajor2 = user?.target_major_2 || "-";
+  const gender =
+    user?.gender === "L" ? "Laki-laki" : user?.gender === "P" ? "Perempuan" : "";
+  // Was printed raw, so a stored 2005-03-14T00:00:00.000000Z was shown as-is.
+  const birthDate = user?.birth_date
+    ? formatJakartaDate(user.birth_date, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
+  const province = user?.province || "";
+  const city = user?.city || "";
+  const targetUniversity1 = user?.target_university_1 || "";
+  const targetMajor1 = user?.target_major_1 || "";
+  const targetUniversity2 = user?.target_university_2 || "";
+  const targetMajor2 = user?.target_major_2 || "";
+
+  // What the server actually requires. Named so the reader is told which
+  // fields are missing instead of hunting for dashes down two cards.
+  const missing = [
+    !phone && "nomor HP",
+    !gender && "jenis kelamin",
+    !birthDate && "tanggal lahir",
+    !school && "asal sekolah",
+    kategori === "utbk" && !targetUniversity1 && "target universitas",
+    kategori === "utbk" && !targetMajor1 && "target jurusan",
+  ].filter((item): item is string => typeof item === "string");
 
   return (
     <div className="space-y-6">
@@ -165,68 +184,95 @@ export default function SettingsContent() {
       </div>
 
       {/* Profile Header Card */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-          <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-[#EFF6FF] shrink-0">
-            <AvatarFallback className="bg-blue-50 text-blue-600 text-3xl">
-              <User className="h-8 w-8 sm:h-10 sm:w-10" />
+      <div className="flex flex-col justify-between gap-6 rounded-3xl border-2 border-slate-900 bg-white p-6 shadow-[5px_5px_0px_0px_#0f172a] md:flex-row md:items-center">
+        <div className="flex min-w-0 items-center gap-4 sm:gap-6">
+          <Avatar className="size-16 shrink-0 border-2 border-slate-900 sm:size-20">
+            {/* Was a blue ring and a blue glyph, which followed a CPNS reader
+                onto their own settings page. */}
+            <AvatarFallback className="bg-track-tint text-primary">
+              <User className="size-8 sm:size-10" />
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg sm:text-xl font-bold text-blue-600 truncate">{name}</h2>
-            <div className="flex items-center gap-2 text-gray-500 mt-1 shrink-0">
-              <Mail className="h-4 w-4 shrink-0" />
-              <span className="text-sm break-all">{email}</span>
+            <h2 className="truncate text-lg font-black tracking-tight text-slate-900 sm:text-xl">
+              {name}
+            </h2>
+            <div className="mt-1 flex items-center gap-2 text-slate-500">
+              <Mail className="size-4 shrink-0" />
+              <span className="break-all text-sm">{email || "-"}</span>
             </div>
           </div>
         </div>
-        
-        {/* Edit Button toggle */}
+
         {!isEdit ? (
-          <Button 
-            variant="outline" 
-            className="shrink-0 text-blue-600 border-blue-600 hover:bg-blue-50"
+          <Button
+            className="shrink-0 border-2 border-slate-900 bg-primary font-bold text-primary-foreground hover:brightness-95"
             onClick={() => setIsEdit(true)}
           >
-            <Edit2 className="w-4 h-4 mr-2" />
+            <Edit2 className="mr-2 size-4" />
             Edit Profil
           </Button>
         ) : (
-          <Button 
-            variant="ghost" 
-            className="shrink-0 text-gray-500 hover:text-gray-700"
+          <Button
+            variant="outline"
+            className="shrink-0 border-2 border-slate-900 font-bold"
             onClick={() => setIsEdit(false)}
           >
-            <X className="w-4 h-4 mr-2" />
+            <X className="mr-2 size-4" />
             Batalkan
           </Button>
         )}
       </div>
 
+      {/* Nudge, not a scolding. The read view used to print "-" for anything
+          missing, which says nothing about why it matters. */}
+      {!isEdit && missing.length > 0 && (
+        <div className="flex flex-col gap-3 rounded-3xl border-2 border-amber-500 bg-amber-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-2.5">
+            <Sparkles className="mt-0.5 size-5 shrink-0 text-amber-700" />
+            <div>
+              <p className="text-sm font-bold text-amber-900">
+                {missing.length} data belum diisi
+              </p>
+              <p className="text-xs leading-snug text-amber-800">
+                {missing.join(", ")}. Lengkapi supaya sertifikat dan laporan
+                nilaimu memakai data yang benar.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => setIsEdit(true)}
+            className="shrink-0 border-2 border-slate-900 bg-amber-600 font-bold text-white hover:bg-amber-700"
+          >
+            Lengkapi sekarang
+          </Button>
+        </div>
+      )}
+
       {isEdit ? (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-2xl">
-          <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-            <h3 className="text-blue-600 font-semibold flex items-center gap-2">
-              <Edit2 className="w-4 h-4" />
+        // Full width, so switching into edit does not shrink the page from a
+        // two-column read view into a narrow single column.
+        <div className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]">
+          <div className="flex items-center gap-2 border-b-2 border-slate-900 bg-track-tint px-6 py-4">
+            <Edit2 className="size-4 text-primary" />
+            <h3 className="text-sm font-black tracking-tight text-slate-900">
               Perbarui Profil
             </h3>
           </div>
           <div className="p-6">
-            <FormCompleteProfile onSuccess={() => setIsEdit(false)} />
+            <FormCompleteProfile mode="edit" onSuccess={() => setIsEdit(false)} />
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Personal Detail Card */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-              <h3 className="text-blue-600 font-semibold flex items-center gap-2">
-                <User className="w-4 h-4" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]">
+            <div className="flex items-center gap-2 border-b-2 border-slate-900 px-6 py-4">
+              <User className="size-4 text-primary" />
+              <h3 className="text-sm font-black tracking-tight text-slate-900">
                 Informasi Data Diri
               </h3>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-6">
               <DetailRow label="Nama Lengkap" value={name} />
               <DetailRow label="Email" value={email} />
               <DetailRow label="Nomor Handphone" value={phone} />
@@ -237,24 +283,28 @@ export default function SettingsContent() {
             </div>
           </div>
 
-          {/* Academic Detail Card */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-              <h3 className="text-blue-600 font-semibold flex items-center gap-2">
-                <GraduationCap className="w-4 h-4" />
+          <div className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]">
+            <div className="flex items-center gap-2 border-b-2 border-slate-900 px-6 py-4">
+              <GraduationCap className="size-4 text-primary" />
+              <h3 className="text-sm font-black tracking-tight text-slate-900">
                 Informasi Akademik
               </h3>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-6">
               <DetailRow label="Asal Sekolah" value={school} />
               <DetailRow label="Jenjang & Kelas" value={gradeLevel} />
-              <DetailRow label="Target Universitas (Pilihan 1)" value={targetUniversity1} />
-              <DetailRow label="Target Jurusan (Pilihan 1)" value={targetMajor1} />
-              <DetailRow label="Target Universitas (Pilihan 2)" value={targetUniversity2} />
-              <DetailRow label="Target Jurusan (Pilihan 2)" value={targetMajor2} />
+              {/* A CPNS candidate is not asked for a target campus, so it is
+                  not reported back at them either. */}
+              {kategori === "utbk" && (
+                <>
+                  <DetailRow label="Target Universitas 1" value={targetUniversity1} />
+                  <DetailRow label="Target Jurusan 1" value={targetMajor1} />
+                  <DetailRow label="Target Universitas 2" value={targetUniversity2} />
+                  <DetailRow label="Target Jurusan 2" value={targetMajor2} />
+                </>
+              )}
             </div>
           </div>
-
         </div>
       )}
 
@@ -265,10 +315,14 @@ export default function SettingsContent() {
 // Internal reusable helper for the detail layout
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b border-gray-50 last:border-0 last:pb-0">
-      <span className="text-sm text-gray-500 sm:w-1/3 shrink-0">{label}</span>
-      <span className="text-sm font-medium text-gray-900 mt-1 sm:mt-0 sm:w-2/3 sm:text-right break-all">
-        {value}
+    <div className="flex flex-col border-b border-dashed border-slate-200 py-3 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+      <span className="shrink-0 text-sm text-slate-500 sm:w-1/3">{label}</span>
+      <span
+        className={`mt-1 break-all text-sm sm:mt-0 sm:w-2/3 sm:text-right ${
+          value ? "font-semibold text-slate-900" : "italic text-slate-400"
+        }`}
+      >
+        {value || "Belum diisi"}
       </span>
     </div>
   );
