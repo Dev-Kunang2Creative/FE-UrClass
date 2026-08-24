@@ -50,7 +50,7 @@ jobs:
           probe() { # label, expected status, curl args...
             label="$1"; want="$2"; shift 2
             for i in 1 2 3 4 5; do
-              code=$(curl -s -o /tmp/body -w '%{http_code}' "$@")
+              code=$(curl -s -o /tmp/body -w '%{http_code}' "$@" || echo 000)
               [ "$code" = "$want" ] && break
               sleep 6
             done
@@ -64,7 +64,7 @@ jobs:
           }
           blocked() { # label, curl args... - passes on any 401/403/404
             label="$1"; shift
-            code=$(curl -s -o /dev/null -w '%{http_code}' "$@")
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$@" || echo 000)
             case "$code" in
               401|403|404) echo "  PASS  $label  -> $code (blocked)" ;;
               *) echo "  FAIL  $label  -> $code (expected it to be blocked)"; fail=1 ;;
