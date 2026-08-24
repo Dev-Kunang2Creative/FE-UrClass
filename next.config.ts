@@ -15,6 +15,15 @@ const cspHeader = `
   upgrade-insecure-requests;
 `.replace(/\s{2,}/g, " ").trim();
 
+// app-dev.urclass.id is publicly reachable, so it must not end up in search
+// results. Keyed on an env var rather than the hostname because next.config is
+// evaluated at build time, when the request host is not knowable.
+const isDevDeployment = process.env.NEXT_PUBLIC_DEPLOY_ENV === "development";
+
+const noIndexHeaders = isDevDeployment
+  ? [{ key: "X-Robots-Tag", value: "noindex, nofollow" }]
+  : [];
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -82,6 +91,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: cspHeader,
           },
+          ...noIndexHeaders,
         ],
       },
     ];

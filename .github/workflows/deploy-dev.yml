@@ -1,0 +1,134 @@
+name: Deploy app-dev.urclass.id
+
+# Development environment. Same server-side build pipeline as production, but
+# targeting app-dev.urclass.id with its own env (pointing at dev-api) and with
+# X-Robots-Tag noindex switched on via NEXT_PUBLIC_DEPLOY_ENV.
+
+on:
+  push:
+    branches: [development]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-app-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Upload, build on Hostinger, verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    env:
+      BASE_URL: https://app-dev.urclass.id
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The same script as production; only HOSTINGER_DOMAIN and the env secret
+      # differ, so there is one deploy path to keep working rather than two.
+      - name: Upload source and build on Hostinger
+        env:
+          HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+          HOSTINGER_USERNAME: ${{ secrets.HOSTINGER_USERNAME }}
+          HOSTINGER_DOMAIN: app-dev.urclass.id
+          FE_ENV_PRODUCTION: ${{ secrets.FE_ENV_DEVELOPMENT }}
+        run: python -u scripts/deploy-hostinger.py
+
+      - name: Verify the site
+        env:
+          FE_ENV_PRODUCTION: ${{ secrets.FE_ENV_DEVELOPMENT }}
+        run: |
+          fail=0
+          JSON='-H Accept:application/json'
+          probe() { # label, expected status, curl args...
+            label="$1"; want="$2"; shift 2
+            for i in 1 2 3 4 5; do
+              code=$(curl -s -o /tmp/body -w '%{http_code}' "$@")
+              [ "$code" = "$want" ] && break
+              sleep 6
+            done
+            if [ "$code" = "$want" ]; then
+              echo "  PASS  $label  -> $code"
+            else
+              echo "  FAIL  $label  -> $code (expected $want)"
+              head -c 300 /tmp/body; echo
+              fail=1
+            fi
+          }
+          blocked() { # label, curl args...
+            label="$1"; shift
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$@")
+            case "$code" in
+              401|403|404) echo "  PASS  $label  -> $code (blocked)" ;;
+              *) echo "  FAIL  $label  -> $code (expected it to be blocked)"; fail=1 ;;
+            esac
+          }
+
+          echo "===== verification ====="
+          probe "/                 middleware redirects guests" 307 "$BASE_URL/"
+          probe "/login            page renders"                200 "$BASE_URL/login"
+          probe "/api/auth/providers  next-auth route"          200 $JSON "$BASE_URL/api/auth/providers"
+          probe "/api/auth/csrf      server env at runtime"     200 $JSON "$BASE_URL/api/auth/csrf"
+          blocked "/.env.production  env not web-readable"    "$BASE_URL/.env.production"
+          blocked "/package.json     source not web-readable" "$BASE_URL/package.json"
+
+          echo "--- dev must not be indexable"
+          robots=$(curl -sD - -o /dev/null "$BASE_URL/login" \
+                   | grep -i '^x-robots-tag:' | tr -d '\r' || true)
+          if printf '%s' "$robots" | grep -qi noindex; then
+            echo "  PASS  $robots"
+          else
+            echo "  FAIL  no X-Robots-Tag noindex (got '${robots:-none}') - is"
+            echo "        NEXT_PUBLIC_DEPLOY_ENV=development in FE_ENV_DEVELOPMENT?"
+            fail=1
+          fi
+
+          # NEXT_PUBLIC_* are inlined at build time, so finding them in the
+          # client bundles is the only proof this build used the dev env - and
+          # in particular that it points at dev-api, not production.
+          echo "--- dev env actually inlined"
+          inlined() { # page-path, var-name
+            local page="$1" var="$2" want n
+            want=$(printf '%s' "$FE_ENV_PRODUCTION" | grep "^$var=" \
+                   | cut -d= -f2- | tr -d '"' | tr -d "\r")
+            if [ -z "$want" ]; then
+              echo "  skip  $var is empty in the secret"
+              return
+            fi
+            : > /tmp/bundle.js
+            n=0
+            for c in $(curl -sL "$BASE_URL$page" \
+                       | grep -oE '/_next/static/[^"]+\.js' | sort -u | head -60); do
+              curl -s "$BASE_URL$c" >> /tmp/bundle.js
+              n=$((n + 1))
+            done
+            if [ "$n" = 0 ]; then
+              echo "  FAIL  $var: no JS chunks found on $page"
+              fail=1
+            elif grep -qF "$want" /tmp/bundle.js; then
+              echo "  PASS  $var inlined ($page, $n chunks)"
+            else
+              echo "  FAIL  $var not in $page bundles ($n chunks) - stale build?"
+              fail=1
+            fi
+          }
+          inlined /login NEXT_PUBLIC_API_URL
+
+          # Guard against the dev build accidentally shipping the production
+          # backend URL, which would let dev write to live data.
+          if grep -qF 'prod-api.urclass.id' /tmp/bundle.js; then
+            echo "  FAIL  dev bundle references prod-api.urclass.id"
+            fail=1
+          else
+            echo "  PASS  dev bundle does not reference prod-api"
+          fi
+
+          [ "$fail" = 0 ] || { echo "::error::verification failed"; exit 1; }
+          echo "===== app-dev is live ====="
