@@ -184,9 +184,16 @@ export default function TryoutStartPage({
                 menyalin urutan dari orang lain.
               </li>
             )}
+            {/* The ticket charge applies to free tryouts only. review computes
+                isUnlocked as !is_free || discussion_unlocked, and
+                unlockDiscussion refuses outright when the tryout is not free -
+                so on a premium tryout the discussion is open the moment it is
+                finished. Stating the charge unconditionally was wrong, and
+                wrong on exactly the kind of tryout that shows this page. */}
             <li>
-              Pembahasan dan kunci jawaban dibuka dengan 1 tiket setelah tryout
-              selesai, terpisah dari tiket yang kamu pakai untuk mengerjakan.
+              {tryout?.is_free
+                ? "Pembahasan dan kunci jawaban dibuka dengan 1 tiket setelah tryout selesai, terpisah dari tiket untuk mengerjakan."
+                : "Pembahasan dan kunci jawaban langsung terbuka setelah tryout selesai - sudah termasuk dalam tiket yang kamu pakai."}
             </li>
             <li>
               Siapkan{" "}

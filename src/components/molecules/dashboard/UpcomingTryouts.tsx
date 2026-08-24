@@ -19,11 +19,17 @@ interface UpcomingTryoutsProps {
  */
 export default function UpcomingTryouts({ items, loading }: UpcomingTryoutsProps) {
   return (
+    // A constant height from lg, not one that follows the item count. Sized to
+    // its content, this card ended well above the progress column beside it and
+    // left a gap under itself, and it changed shape between tracks purely
+    // because one had more tryouts published than the other. Long lists scroll
+    // inside it instead. Left natural below lg, where a fixed height would just
+    // waste a phone screen on one entry.
     <section
       aria-label="Tryout yang bisa dikerjakan"
-      className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]"
+      className="flex flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a] lg:h-[17.5rem]"
     >
-      <div className="flex items-center justify-between gap-2 border-b-2 border-slate-900 px-5 py-3">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b-2 border-slate-900 px-5 py-3">
         <div className="flex items-center gap-2">
           <CalendarClock className="size-4 shrink-0 text-primary" />
           <h2 className="text-sm font-black uppercase tracking-wide text-slate-900">
@@ -39,13 +45,13 @@ export default function UpcomingTryouts({ items, loading }: UpcomingTryoutsProps
       </div>
 
       {loading ? (
-        <div className="flex flex-col gap-2 p-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-2 p-5">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-12 animate-pulse rounded-xl bg-slate-100" />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 px-5 py-8 text-center">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-5 py-6 text-center">
           <Mascot pose="berfikir" decorative sizes="96px" className="h-24 w-auto" />
           <p className="text-sm font-semibold text-slate-600">
             Belum ada tryout yang siap dikerjakan
@@ -61,7 +67,7 @@ export default function UpcomingTryouts({ items, loading }: UpcomingTryoutsProps
           </Link>
         </div>
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto">
           {items.map(({ tryout, daysLeft }) => {
             // Anything inside three days gets emphasis. Past deadlines are
             // filtered upstream, so this never shouts about something dead.
