@@ -12,7 +12,7 @@ const cspHeader = `
   object-src 'none';
   base-uri 'self';
   form-action 'self';
-  upgrade-insecure-requests;
+  ${process.env.NODE_ENV === "production" ? "upgrade-insecure-requests;" : ""}
 `.replace(/\s{2,}/g, " ").trim();
 
 // app-dev.urclass.id is publicly reachable, so it must not end up in search
