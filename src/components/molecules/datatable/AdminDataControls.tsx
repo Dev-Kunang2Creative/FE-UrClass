@@ -149,11 +149,32 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function formatReportTitle(title: string): string {
+  const clean = title.replace(/[-_]+/g, " ").trim();
+  if (clean.toLowerCase().startsWith("laporan") || clean.toLowerCase().startsWith("data")) {
+    return clean.toUpperCase();
+  }
+  return `LAPORAN DATA ${clean.toUpperCase()}`;
+}
+
 function buildExportRows<T>(rows: T[], columns: AdminExportColumn<T>[]) {
   return rows.map((row) =>
     columns.reduce<Record<string, string | number>>((acc, column) => {
-      const value = column.accessor(row);
-      acc[column.header] = column.format ? column.format(value, row) : String(value ?? "-");
+      const raw = column.accessor(row);
+      const val = column.format ? column.format(raw, row) : raw;
+      if (val === null || val === undefined || val === "") {
+        acc[column.header] = "-";
+      } else if (typeof val === "boolean") {
+        acc[column.header] = val ? "Ya" : "Tidak";
+      } else if ((val as unknown) instanceof Date) {
+        acc[column.header] = (val as unknown as Date).toLocaleDateString("id-ID");
+      } else if (typeof val === "string") {
+        acc[column.header] = val.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() || "-";
+      } else if (typeof val === "number") {
+        acc[column.header] = val;
+      } else {
+        acc[column.header] = String(val);
+      }
       return acc;
     }, {}),
   );
@@ -231,38 +252,133 @@ export async function exportAdminRowsToPdf<T>({
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
+  // Top Accent Bar
+  doc.setFillColor(0, 74, 171); // Brand Blue #004AAB
+  doc.rect(36, 16, pageWidth - 72, 3, "F");
+
+  // Try loading logo with bounded dimensions
   try {
     const logo = await loadImageAsDataUrl("/images/logo/urclass.png");
-    const logoWidth = 96;
-    const logoHeight = logo.height > 0 ? (logoWidth * logo.height) / logo.width : 32;
-    doc.addImage(logo.dataUrl, "PNG", pageWidth - 40 - logoWidth, 24, logoWidth, logoHeight);
+    const maxLogoW = 75;
+    const maxLogoH = 22;
+    let logoW = maxLogoW;
+    let logoH = logo.height > 0 ? (maxLogoW * logo.height) / logo.width : maxLogoH;
+    if (logoH > maxLogoH) {
+      logoH = maxLogoH;
+      logoW = logo.width > 0 ? (maxLogoH * logo.width) / logo.height : maxLogoW;
+    }
+    doc.addImage(logo.dataUrl, "PNG", pageWidth - 36 - logoW, 26, logoW, logoH);
   } catch {
-    // Logo is optional for export generation; keep the PDF downloadable if the asset fails to load.
+    // Logo is optional; proceed gracefully
   }
 
-  doc.setFontSize(14);
-  doc.text(title, 40, 40);
-  doc.setFontSize(9);
-  doc.text(`Tanggal export: ${new Date().toLocaleString("id-ID")}`, 40, 58);
+  // Header Titles
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(0, 74, 171);
+  doc.text("URCLASS", 36, 32);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text("Platform Tryout & Akademik Digital • Dokumen Ekspor Resmi", 98, 32);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(15, 23, 42);
+  doc.text(formatReportTitle(title), 36, 48);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+  doc.text(`Dicetak: ${dateStr}, ${timeStr} WIB  •  Total Baris Data: ${rows.length}`, 36, 60);
+
   if (filterSummary) {
-    doc.text(`Filter aktif: ${filterSummary}`, 40, 74, { maxWidth: 760 });
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Filter Aktif: ${filterSummary}`, 36, 70, { maxWidth: pageWidth - 72 });
   }
+
+  // Sanitized body rows
+  const formattedBody = rows.map((row) =>
+    columns.map((column) => {
+      const raw = column.accessor(row);
+      const val = column.format ? column.format(raw, row) : raw;
+      if (val === null || val === undefined || val === "") {
+        return "-";
+      }
+      if (typeof val === "boolean") {
+        return val ? "Ya" : "Tidak";
+      }
+      if ((val as unknown) instanceof Date) {
+        return (val as unknown as Date).toLocaleDateString("id-ID");
+      }
+      if (typeof val === "string") {
+        return val.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() || "-";
+      }
+      if (typeof val === "object") {
+        try {
+          return JSON.stringify(val);
+        } catch {
+          return "-";
+        }
+      }
+      return String(val);
+    }),
+  );
 
   autoTable(doc, {
-    startY: filterSummary ? 92 : 76,
+    startY: filterSummary ? 78 : 68,
     head: [columns.map((column) => column.header)],
-    body: rows.map((row) =>
-      columns.map((column) => {
-        const value = column.accessor(row);
-        return String(column.format ? column.format(value, row) : value ?? "-");
-      }),
-    ),
-    styles: { fontSize: 8, cellPadding: 4, overflow: "linebreak" },
-    headStyles: { fillColor: [0, 74, 171] },
-    margin: { left: 40, right: 40 },
+    body: formattedBody,
+    theme: "striped",
+    headStyles: {
+      fillColor: [15, 23, 42], // Slate-900
+      textColor: [255, 255, 255],
+      fontSize: 8,
+      fontStyle: "bold",
+      cellPadding: { top: 5, bottom: 5, left: 6, right: 6 },
+    },
+    bodyStyles: {
+      fontSize: 7.5,
+      textColor: [30, 41, 59], // Slate-800
+      cellPadding: { top: 4, bottom: 4, left: 6, right: 6 },
+      lineColor: [226, 232, 240],
+      lineWidth: 0.5,
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252], // Slate-50
+    },
+    styles: {
+      overflow: "linebreak",
+      valign: "middle",
+    },
+    margin: { left: 36, right: 36, bottom: 25 },
+    didDrawPage: () => {
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const currentPage = doc.getCurrentPageInfo().pageNumber;
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`UrClass Export System  •  Halaman ${currentPage}`, 36, pageHeight - 12);
+      doc.text(`Dokumen Internal & Rahasia`, pageWidth - 36, pageHeight - 12, { align: "right" });
+    },
   });
 
-  doc.save(`${safeFileName(title)}-${today()}.pdf`);
+  const pdfBlob = doc.output("blob");
+  const blobUrl = URL.createObjectURL(pdfBlob);
+  const newWindow = window.open(blobUrl, "_blank");
+  if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
 }
 
 type AdminDataToolbarProps<T> = {

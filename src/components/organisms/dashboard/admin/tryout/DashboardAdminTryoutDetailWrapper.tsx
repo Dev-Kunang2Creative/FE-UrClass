@@ -11,7 +11,7 @@ import { useGetSubtestByTryout } from "@/http/subtest/get-subtest-by-tryout";
 import { DataTable } from "@/components/molecules/datatable/DataTable";
 import { subtestTryoutColumns } from "@/components/atoms/datacolumn/DataSubtestByTryout";
 import { Button } from "@/components/ui/button";
-import { Eye, Plus, Download, Users } from "lucide-react";
+import { Eye, Plus, Download, Users, FileText } from "lucide-react";
 import { useState } from "react";
 import DialogCreateSubtestTryout from "@/components/atoms/dialog/subtest/DialogCreateSubtestTryout";
 import Image from "next/image";
@@ -38,19 +38,23 @@ export default function DashboardAdminTryoutDetailWrapper({
   const { mutate: exportPdf, isPending: isDownloadingPdf } = useExportTryoutPdf(
     {
       onSuccess: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `Tryout_${data?.data.title?.replace(/\s+/g, "_") ?? "Package"}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
-        toast.success("PDF berhasil diunduh");
+        const file = new Blob([blob], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(file);
+        const newWindow = window.open(url, "_blank");
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+        toast.success("PDF berhasil dibuka di tab baru");
       },
       onError: (error) => {
         console.error(error);
-        toast.error("Gagal mengunduh PDF");
+        toast.error("Gagal membuka PDF");
       },
     },
   );
@@ -221,14 +225,14 @@ export default function DashboardAdminTryoutDetailWrapper({
                   onClick={handleDownloadPdf}
                   disabled={isDownloadingPdf}
                 >
-                  <Download
+                  <FileText
                     className={
                       isDownloadingPdf
                         ? "animate-pulse mr-2 h-4 w-4"
                         : "mr-2 h-4 w-4"
                     }
                   />{" "}
-                  Download PDF
+                  {isDownloadingPdf ? "Memuat PDF..." : "Export / Preview PDF"}
                 </Button>
                 <Button size={"lg"} onClick={handleOpenDialog}>
                   <Plus className="mr-2 h-4 w-4" /> Tambahkan Subtes
