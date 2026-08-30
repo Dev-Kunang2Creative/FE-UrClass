@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 const subtestExportColumns: AdminExportColumn<Subtest>[] = [
   { header: "Nama Subtes", accessor: (row) => row.name },
+  { header: "Jalur", accessor: (row) => (row.exam_type === "cpns" ? "CPNS" : "UTBK") },
   { header: "Kategori", accessor: (row) => row.category },
   { header: "Maksimal Soal", accessor: (row) => (row.max_questions === 0 ? "Tidak terbatas" : row.max_questions) },
   { header: "Jumlah Soal", accessor: (row) => row.questions_count ?? 0 },
@@ -55,6 +56,19 @@ export default function DashboardAdminSubtestWrapper() {
     .map((category) => ({ label: category, value: category }));
   const subtestFilters: AdminFilterOption<Subtest>[] = [
     {
+      // Didaftar lebih dulu karena inilah pembeda yang paling menentukan:
+      // "Kategori" hanya berisi TPS/Literasi dan sama sekali tidak menyiratkan
+      // jalurnya.
+      key: "exam_type",
+      label: "Semua Jalur",
+      placeholder: "Jalur",
+      options: [
+        { label: "UTBK", value: "utbk" },
+        { label: "CPNS", value: "cpns" },
+      ],
+      getValue: (row) => row.exam_type,
+    },
+    {
       key: "category",
       label: "Semua Kategori",
       placeholder: "Kategori",
@@ -64,7 +78,12 @@ export default function DashboardAdminSubtestWrapper() {
   ];
   const controls = useAdminTableControls({
     data: subtestRows,
-    searchFields: [(row) => row.name, (row) => row.category],
+    searchFields: [
+      (row) => row.name,
+      (row) => row.category,
+      // Supaya mengetik "cpns" di kolom cari juga menemukan TWK/TIU/TKP.
+      (row) => row.exam_type,
+    ],
     filters: subtestFilters,
     sortOptions: subtestSortOptions,
     defaultSort: "newest",
@@ -123,7 +142,8 @@ export default function DashboardAdminSubtestWrapper() {
               exportTitle="laporan-subtes"
               filterSummary={`Total hasil: ${controls.rows.length}`}
             >
-              <Button size={"lg"} asChild>
+              {/* Ukuran bawaan, menyamai tombol export di sebelahnya. */}
+              <Button asChild>
                 <Link href="/dashboard/admin/subtest/create">
                   <Plus /> Tambah Subtes
                 </Link>

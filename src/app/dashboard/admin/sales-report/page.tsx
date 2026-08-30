@@ -33,23 +33,14 @@ import {
   TableFooter,
   TableRow,
 } from "@/components/ui/table";
-import {
-  CartesianGrid,
-  Cell,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
   Banknote,
   Boxes,
   CircleDollarSign,
   FileSpreadsheet,
   FileText,
-  Users,
+  ReceiptText,
 } from "lucide-react";
 import { formatPrice } from "@/utils/format-price";
 import DashboardTitle from "@/components/atoms/typography/DashboardTitle";
@@ -306,84 +297,30 @@ export default function SalesReportPage() {
     });
   }, [filteredSalesRows, salesSort, month, year]);
 
+  // Satu jenis produk saja - paket tiket tryout - sejak fitur kelas dihapus,
+  // jadi tidak ada lagi yang perlu dipisah per jenis.
   const filteredSalesSummary = useMemo(() => {
-    let totalSalesTryout = 0;
-    let totalSalesKelas = 0;
-    let totalItemSoldTryout = 0;
-    let totalItemSoldKelas = 0;
-    let orderCountTryout = 0;
-    let orderCountKelas = 0;
+    let totalSales = 0;
+    let totalItemSold = 0;
+    let orderCount = 0;
 
     filteredSalesRows.forEach((row) => {
-      const sales = Number(row.total_sales || 0);
-      const items = Number(row.total_item_sold || 0);
-      const orders = Number(row.order_count || 0);
-
-      if (row.type === "tryout") {
-        totalSalesTryout += sales;
-        totalItemSoldTryout += items;
-        orderCountTryout += orders;
-      } else if (row.type === "kelas") {
-        totalSalesKelas += sales;
-        totalItemSoldKelas += items;
-        orderCountKelas += orders;
-      } else {
-        // Fallback jika tidak ada type
-        totalSalesTryout += sales;
-        totalItemSoldTryout += items;
-        orderCountTryout += orders;
-      }
+      totalSales += Number(row.total_sales || 0);
+      totalItemSold += Number(row.total_item_sold || 0);
+      orderCount += Number(row.order_count || 0);
     });
-
-    const totalSales = totalSalesTryout + totalSalesKelas;
-    const totalItemSold = totalItemSoldTryout + totalItemSoldKelas;
-    const orderCount = orderCountTryout + orderCountKelas;
-
-    const amunisiTryoutRev = Math.round(totalSalesTryout * 0.4);
-    const devTryoutRev = Math.round(totalSalesTryout * 0.6);
-
-    const amunisiKelasRev = Math.round(totalSalesKelas * 0.8);
-    const devKelasRev = Math.round(totalSalesKelas * 0.2);
 
     return {
       total_sales: totalSales,
       total_item_sold: totalItemSold,
       order_count: orderCount,
-      total_amunisi_revenue: amunisiTryoutRev + amunisiKelasRev,
-      total_developer_revenue: devTryoutRev + devKelasRev,
-      tryout: {
-        total_sales: totalSalesTryout,
-        total_item_sold: totalItemSoldTryout,
-        order_count: orderCountTryout,
-        amunisi_revenue: amunisiTryoutRev,
-        developer_revenue: devTryoutRev,
-      },
-      kelas: {
-        total_sales: totalSalesKelas,
-        total_item_sold: totalItemSoldKelas,
-        order_count: orderCountKelas,
-        amunisi_revenue: amunisiKelasRev,
-        developer_revenue: devKelasRev,
-      },
+      average_order_value: orderCount > 0 ? Math.round(totalSales / orderCount) : 0,
     };
   }, [filteredSalesRows]);
   const salesTrend = useMemo(
     () => buildSalesTrend(filteredSalesRows),
     [filteredSalesRows],
   );
-
-  const revenueSplit = [
-    {
-      name: "UrClass",
-      value: filteredSalesSummary.total_amunisi_revenue,
-      fill: "#10b981",
-    },
-    {
-      name: "Developer",
-      value: filteredSalesSummary.total_developer_revenue,
-      fill: "oklch(0.4348 0.1683 258.97)",
-    },
-  ];
 
   const salesTotalPages = Math.max(
     1,
@@ -497,127 +434,23 @@ export default function SalesReportPage() {
               isLoading={salesQuery.isLoading}
             />
             <KpiCard
-              label="Total Pendapatan Amunisi"
-              value={formatPrice(filteredSalesSummary.total_amunisi_revenue)}
+              label="Total Pesanan"
+              value={filteredSalesSummary.order_count.toLocaleString("id-ID")}
+              icon={ReceiptText}
+              tone="bg-primary/10 text-primary"
+              isLoading={salesQuery.isLoading}
+            />
+            <KpiCard
+              label="Rata-rata per Pesanan"
+              value={formatPrice(filteredSalesSummary.average_order_value)}
               icon={CircleDollarSign}
               tone="bg-emerald-500/10 text-emerald-500"
               isLoading={salesQuery.isLoading}
             />
-            <KpiCard
-              label="Total Pendapatan Developer"
-              value={formatPrice(filteredSalesSummary.total_developer_revenue)}
-              icon={Users}
-              tone="bg-primary/10 text-primary"
-              isLoading={salesQuery.isLoading}
-            />
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <Card className="border-border/60 shadow-sm overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-base font-semibold flex items-center justify-between text-gray-800">
-                  <span>Pendapatan Tryout</span>
-                  <span className="text-[11px] font-medium text-gray-500 bg-white border border-border/50 px-2.5 py-1 rounded-full shadow-sm">
-                    Dev 60% | Amunisi 40%
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-y-6 gap-x-6 pt-6 pb-6">
-                <div className="space-y-1.5">
-                  <p className="text-sm text-gray-500 font-medium">
-                    Total Penjualan
-                  </p>
-                  <p className="text-2xl font-bold tracking-tight text-gray-900">
-                    {formatPrice(filteredSalesSummary.tryout.total_sales)}
-                  </p>
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-sm text-gray-500 font-medium">
-                    Item Terjual
-                  </p>
-                  <p className="text-2xl font-bold tracking-tight text-gray-900">
-                    {filteredSalesSummary.tryout.total_item_sold.toLocaleString(
-                      "id-ID",
-                    )}
-                  </p>
-                </div>
-                <div className="space-y-3 col-span-2 pt-4 border-t border-border/40">
-                  <div className="flex items-center justify-between bg-emerald-50/80 px-4 py-3.5 rounded-xl border border-emerald-100/60 shadow-sm">
-                    <p className="text-sm text-emerald-800 font-medium">
-                      Amunisi (40%)
-                    </p>
-                    <p className="text-lg font-bold text-emerald-700">
-                      {formatPrice(filteredSalesSummary.tryout.amunisi_revenue)}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between bg-primary/5 px-4 py-3.5 rounded-xl border border-primary/10 shadow-sm">
-                    <p className="text-sm text-primary font-medium">
-                      Developer (60%)
-                    </p>
-                    <p className="text-lg font-bold text-primary">
-                      {formatPrice(
-                        filteredSalesSummary.tryout.developer_revenue,
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/60 shadow-sm overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-base font-semibold flex items-center justify-between text-gray-800">
-                  <span>Pendapatan Kelas</span>
-                  <span className="text-[11px] font-medium text-gray-500 bg-white border border-border/50 px-2.5 py-1 rounded-full shadow-sm">
-                    Dev 20% | Amunisi 80%
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-y-6 gap-x-6 pt-6 pb-6">
-                <div className="space-y-1.5">
-                  <p className="text-sm text-gray-500 font-medium">
-                    Total Penjualan
-                  </p>
-                  <p className="text-2xl font-bold tracking-tight text-gray-900">
-                    {formatPrice(filteredSalesSummary.kelas.total_sales)}
-                  </p>
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-sm text-gray-500 font-medium">
-                    Item Terjual
-                  </p>
-                  <p className="text-2xl font-bold tracking-tight text-gray-900">
-                    {filteredSalesSummary.kelas.total_item_sold.toLocaleString(
-                      "id-ID",
-                    )}
-                  </p>
-                </div>
-                <div className="space-y-3 col-span-2 pt-4 border-t border-border/40">
-                  <div className="flex items-center justify-between bg-emerald-50/80 px-4 py-3.5 rounded-xl border border-emerald-100/60 shadow-sm">
-                    <p className="text-sm text-emerald-800 font-medium">
-                      Amunisi (80%)
-                    </p>
-                    <p className="text-lg font-bold text-emerald-700">
-                      {formatPrice(filteredSalesSummary.kelas.amunisi_revenue)}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between bg-primary/5 px-4 py-3.5 rounded-xl border border-primary/10 shadow-sm">
-                    <p className="text-sm text-primary font-medium">
-                      Developer (20%)
-                    </p>
-                    <p className="text-lg font-bold text-primary">
-                      {formatPrice(
-                        filteredSalesSummary.kelas.developer_revenue,
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-            <Card className="xl:col-span-2">
+          <div className="grid grid-cols-1 gap-6">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-base">
                   Tren Penjualan dan Item Terjual
@@ -716,61 +549,6 @@ export default function SalesReportPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  Distribusi Pendapatan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {salesQuery.isLoading ? (
-                  <StateBox message="Memuat distribusi pendapatan..." />
-                ) : filteredSalesSummary.total_sales <= 0 ? (
-                  <StateBox message="Belum ada pendapatan untuk periode ini." />
-                ) : (
-                  <ChartContainer
-                    config={{
-                      "UrClass": {
-                        label: "UrClass",
-                        color: "oklch(0.627 0.194 149.214)",
-                      },
-                      Developer: {
-                        label: "Developer",
-                        color: "oklch(0.4348 0.1683 258.97)",
-                      },
-                    }}
-                    className="h-[280px] w-full"
-                  >
-                    <PieChart>
-                      <Pie
-                        data={revenueSplit}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={65}
-                        outerRadius={95}
-                        stroke="none"
-                      >
-                        {revenueSplit.map((entry) => (
-                          <Cell key={entry.name} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip
-                        cursor={{ fill: "transparent" }}
-                        content={
-                          <ChartTooltipContent
-                            hideLabel
-                            formatter={(value) => formatPrice(Number(value))}
-                          />
-                        }
-                      />
-                      <ChartLegend content={<ChartLegendContent />} />
-                    </PieChart>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </Card>
           </div>
 
           <Card>

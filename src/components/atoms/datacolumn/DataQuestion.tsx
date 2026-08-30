@@ -57,15 +57,29 @@ export const questionColumns = (
       const isActive = row.original.is_active;
 
       return (
-        <Badge
-          className={
-            isActive
-              ? "bg-green-100 text-green-700 hover:bg-green-100 text-xs"
-              : "bg-red-100 text-red-700 hover:bg-red-100 text-xs"
-          }
-        >
-          {isActive ? "Aktif" : "Tidak Aktif"}
-        </Badge>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge
+            className={
+              isActive
+                ? "bg-green-100 text-green-700 hover:bg-green-100 text-xs"
+                : "bg-red-100 text-red-700 hover:bg-red-100 text-xs"
+            }
+          >
+            {isActive ? "Aktif" : "Tidak Aktif"}
+          </Badge>
+
+          {/* Soal berbobot yang belum punya bobot sah tetap menghasilkan angka,
+              hanya angka yang salah - jadi kondisinya harus terlihat di daftar,
+              bukan baru ketahuan dari nilai peserta. */}
+          {row.original.needs_option_weight && (
+            <Badge
+              title="Bobot opsi belum diisi 1-5. Skor TKP soal ini tidak dihitung dengan benar."
+              className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-xs"
+            >
+              Bobot belum diisi
+            </Badge>
+          )}
+        </div>
       );
     },
   },

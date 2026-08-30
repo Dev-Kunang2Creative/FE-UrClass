@@ -59,6 +59,11 @@ export interface TryoutResultData {
   score_result: {
     method: "simple" | "irt";
     is_ready: boolean;
+    /**
+     * Benar selama skor IRT belum final. Angkanya nyata - proporsi jawaban
+     * benar - tapi masih akan digantikan skor IRT setelah periode ditutup.
+     */
+    is_provisional?: boolean;
     raw_score: number;
     final_score: number;
     accuracy: number;
@@ -85,6 +90,8 @@ export interface TryoutResultData {
     total_participants_calculated: number;
     raw_score: number;
     final_score: number;
+    /** Skor sementara berbasis jawaban benar, dipakai sebelum IRT final. */
+    provisional_score?: number;
   } | null;
 }
 
@@ -115,7 +122,15 @@ export interface TryoutLeaderboardData {
   tryout_id: string;
   tryout_title: string;
   use_irt: boolean;
-  leaderboard_basis: "attempt_number_1";
+  /** Peringkat memakai percobaan dengan skor tertinggi tiap peserta. */
+  leaderboard_basis: "best_attempt";
+  /**
+   * false selama tryout IRT masih berjalan: bobot tiap soal dihitung dari
+   * peserta yang sudah selesai, jadi skor dan peringkat masih bisa bergeser
+   * sampai periodenya ditutup.
+   */
+  is_final?: boolean;
+  release_date?: string | null;
   leaderboard: LeaderboardEntry[];
 }
 

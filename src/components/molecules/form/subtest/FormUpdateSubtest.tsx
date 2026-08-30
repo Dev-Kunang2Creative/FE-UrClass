@@ -27,9 +27,11 @@ import { getErrorMessage } from "@/utils/get-error-message";
 import { useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import {
+  scoringSchemes,
   subtestSchema,
   SubtestType,
 } from "@/validators/subtest/subtest-validator";
+import SubtestScoringFields from "./SubtestScoringFields";
 import { useGetDetailSubtest } from "@/http/subtest/get-detail-subtest";
 import { useUpdateSubtest } from "@/http/subtest/update-subtest";
 
@@ -57,6 +59,10 @@ export default function FormUpdateSubtest({
       category: "",
       exam_type: "utbk",
       max_questions: 15,
+      scoring_scheme: "right_wrong",
+      score_correct: 1,
+      score_wrong: 0,
+      score_empty: 0,
     },
   });
 
@@ -68,6 +74,20 @@ export default function FormUpdateSubtest({
       category: defaultData.category ?? "",
       exam_type: defaultData.exam_type ?? "utbk",
       max_questions: defaultData.max_questions ?? 15,
+      // Dikirim MySQL sebagai string desimal ("5.00"), jadi diangkakan dulu -
+      // kalau tidak, input number-nya kosong dan menyimpan ulang subtes akan
+      // menghapus konfigurasi nilainya.
+      // Dicocokkan, bukan sekadar di-cast: baris lama bisa saja menyimpan
+      // "irt", skema yang tidak ditawarkan lagi, dan nilai di luar daftar akan
+      // membuat select-nya tampil kosong.
+      scoring_scheme: scoringSchemes.includes(
+        defaultData.scoring_scheme as (typeof scoringSchemes)[number],
+      )
+        ? (defaultData.scoring_scheme as SubtestType["scoring_scheme"])
+        : "right_wrong",
+      score_correct: Number(defaultData.score_correct ?? 1),
+      score_wrong: Number(defaultData.score_wrong ?? 0),
+      score_empty: Number(defaultData.score_empty ?? 0),
     });
   }, [defaultData, form]);
 
@@ -210,6 +230,8 @@ export default function FormUpdateSubtest({
                 </Field>
               )}
             />
+
+            <SubtestScoringFields form={form} />
           </FieldGroup>
 
           <div className="flex justify-end">

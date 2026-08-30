@@ -5,6 +5,11 @@ import { Question } from "@/types/questions/question";
 
 interface GetAllQuestionBySubtestResponse {
   data: Question[];
+  meta?: {
+    scoring_scheme: string;
+    /** Berapa soal option_weight yang bobotnya belum sah. */
+    needs_option_weight_count: number;
+  };
 }
 
 export const GetAllQuestionBySubtestHandler = async (

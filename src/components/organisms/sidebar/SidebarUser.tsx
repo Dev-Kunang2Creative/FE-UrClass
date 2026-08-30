@@ -1,6 +1,6 @@
 "use client";
 
-import { EllipsisVertical, Home, LogOut, Settings } from "lucide-react";
+import { Compass, EllipsisVertical, Home, LogOut, Settings } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -21,7 +21,9 @@ import {
 import { Session } from "next-auth";
 import { generateFallbackFromName } from "@/utils/generate-name";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { requestTour } from "@/lib/tour";
 
 interface SidebarUserProps {
   session: Session;
@@ -29,6 +31,11 @@ interface SidebarUserProps {
 
 export function SidebarUser({ session }: SidebarUserProps) {
   const { isMobile } = useSidebar();
+  const router = useRouter();
+
+  // Panduan hanya ada untuk siswa: elemen yang disorotnya adalah beranda
+  // siswa, dan admin tidak punya halaman itu.
+  const isStudent = session?.user?.role === "user";
 
   return (
     <SidebarMenu>
@@ -36,6 +43,7 @@ export function SidebarUser({ session }: SidebarUserProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
+              id="sidebar-user-profile"
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
@@ -97,6 +105,22 @@ export function SidebarUser({ session }: SidebarUserProps) {
                   <span>Pengaturan &amp; Mode Belajar</span>
                 </DropdownMenuItem>
               </Link>
+
+              {isStudent && (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => {
+                    requestTour();
+                    // Panduannya hanya terpasang di beranda. Kalau sudah di
+                    // sana, push ini tidak melakukan apa-apa dan event dari
+                    // requestTour yang membukanya.
+                    router.push("/dashboard");
+                  }}
+                >
+                  <Compass className="w-4 h-4 mr-2" />
+                  <span>Lihat Panduan Lagi</span>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />

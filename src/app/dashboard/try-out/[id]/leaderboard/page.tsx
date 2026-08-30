@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { ChevronLeft, Medal, Trophy, Users } from "lucide-react";
+import { ChevronLeft, Clock, Medal, Trophy, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useKategori } from "@/hooks/useKategori";
 import { useGetTryoutLeaderboard } from "@/http/tryout/get-tryout-leaderboard";
@@ -57,7 +57,7 @@ export default function TryoutLeaderboardPage({
               {leaderboardData?.tryout_title ?? "Tryout"}
             </h2>
             <p className="text-white/70 text-sm">
-              Peringkat dihitung dari percobaan pertama setiap peserta.
+              Peringkat memakai skor terbaik setiap peserta.
             </p>
           </div>
         </div>
@@ -87,6 +87,26 @@ export default function TryoutLeaderboardPage({
         )}
       </div>
 
+      {/* Angkanya nyata, hanya belum final. Menahan seluruh papan sampai periode
+          ditutup membuatnya kosong justru saat orang paling ingin melihatnya. */}
+      {leaderboardData?.is_final === false && (
+        <div className="mb-4 flex items-start gap-2.5 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+          <Clock className="mt-0.5 size-5 shrink-0 text-amber-700" />
+          <div className="text-sm">
+            <p className="font-bold text-amber-900">Peringkat masih sementara</p>
+            <p className="text-amber-800">
+              Skor tryout ini dihitung dengan IRT, jadi bobot tiap soal masih
+              bergeser selama peserta lain terus menyelesaikan pengerjaan.
+              Peringkat difinalkan setelah periode tryout ditutup
+              {leaderboardData?.release_date
+                ? ` pada ${formatJakartaDateTime(leaderboardData.release_date)}`
+                : ""}
+              .
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center p-10 text-slate-500">
@@ -95,7 +115,7 @@ export default function TryoutLeaderboardPage({
         ) : entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-4">
             <Users className="w-12 h-12 text-slate-300" />
-            <p>Belum ada peserta yang menyelesaikan attempt pertama.</p>
+            <p>Belum ada peserta yang menyelesaikan tryout ini.</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">

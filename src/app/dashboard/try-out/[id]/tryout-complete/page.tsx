@@ -174,14 +174,16 @@ export default function TryoutCompletePage({
 
         {/* Action Button */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {isSimpleScoreReady && (
-            <Link
-              href={`/dashboard/try-out/${tryoutId}/result`}
-              className="block w-full py-4 bg-[#3B9245] hover:bg-[#317A3A] text-white font-bold text-base rounded-xl text-center transition-colors shadow-[0_4px_0_0_#2b6a32] active:shadow-none active:translate-y-1"
-            >
-              Lihat Hasil Lengkap
-            </Link>
-          )}
+          {/* Tidak lagi digantungkan pada skor IRT yang sudah final. Halaman
+              hasil tetap berisi rincian per subtest, ringkasan benar/salah, dan
+              jalan ke pembahasan - semuanya sudah ada sejak detik ini, dan
+              menyembunyikannya membuat orang berhenti di layar ucapan selamat. */}
+          <Link
+            href={`/dashboard/try-out/${tryoutId}/result`}
+            className="block w-full py-4 bg-[#3B9245] hover:bg-[#317A3A] text-white font-bold text-base rounded-xl text-center transition-colors shadow-[0_4px_0_0_#2b6a32] active:shadow-none active:translate-y-1"
+          >
+            Lihat Hasil Tryout
+          </Link>
           <Link
             href="/dashboard"
             className="block w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold text-base rounded-xl text-center transition-colors shadow-[0_4px_0_0_#0f172a] active:shadow-none active:translate-y-1"

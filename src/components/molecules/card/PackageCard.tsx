@@ -65,9 +65,10 @@ export default function PackageCard({
 
       {/* Body */}
       <div className="flex flex-col p-4 gap-3 flex-1">
-        {/* Description */}
+        {/* Description - tiga baris, bukan dua: deskripsi paket sekarang
+            menyebut isi paketnya, dan dua baris memotongnya di tengah kalimat. */}
         {description && (
-          <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">
+          <p className="text-slate-500 text-xs line-clamp-3 leading-relaxed">
             {description}
           </p>
         )}

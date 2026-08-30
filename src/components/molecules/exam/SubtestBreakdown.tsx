@@ -31,14 +31,26 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
 
   const rows = perSubtest.map((s) => {
     const meta = findSubtestMeta(kategori, s.name);
-    const threshold = meta?.passingGrade;
+
+    // Passing Grade SKD adalah angka mutlak terhadap ujian penuh: 65 dari 150
+    // untuk TWK, 80 dari 175 untuk TIU, 166 dari 225 untuk TKP. Tryout yang
+    // soalnya belum lengkap punya skor maksimum lebih kecil, sehingga ambang
+    // itu tidak akan pernah tercapai - memvonis "tidak lulus" di sana adalah
+    // vonis atas jumlah soalnya, bukan atas peserta.
+    const fullScale =
+      meta?.maxScore === undefined || s.max_score >= meta.maxScore;
+    const threshold = fullScale ? meta?.passingGrade : undefined;
+
     // Undefined, not false, when there is no threshold: "no verdict" and
     // "failed" must never collapse into the same thing.
     const passed = threshold === undefined ? undefined : s.raw_score >= threshold;
-    return { ...s, code: meta?.code, threshold, passed };
+    return { ...s, code: meta?.code, threshold, passed, fullScale };
   });
 
   const graded = rows.filter((r) => r.passed !== undefined);
+  const shortened = rows.filter(
+    (r) => !r.fullScale && findSubtestMeta(kategori, r.name)?.passingGrade !== undefined,
+  );
   const allPassed = graded.length > 0 && graded.every((r) => r.passed);
   const failedRows = graded.filter((r) => !r.passed);
 
@@ -54,6 +66,14 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
               ? "Setiap subtest punya ambang sendiri yang wajib dilampaui."
               : "Tidak ada ambang minimum per subtest — yang dinilai skor akhir."}
           </p>
+
+          {shortened.length > 0 && (
+            <p className="mt-1 text-xs font-medium text-amber-700">
+              Tryout ini belum berisi soal selengkap SKD resmi, jadi Passing
+              Grade tidak diberlakukan pada{" "}
+              {shortened.map((r) => r.code ?? r.name).join(", ")}.
+            </p>
+          )}
         </div>
 
         {graded.length > 0 && (

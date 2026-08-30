@@ -37,7 +37,11 @@ export default function SettingsContent() {
   }
 
   const user = session.user;
-  
+
+  // An admin has no exam track: the switcher below drives a student's beranda,
+  // tryout simulation and paket list, none of which the admin console reads.
+  const isAdmin = user?.role === "admin";
+
   // Extract user info, using optional chaining and defaults
   const name = user?.name || "Sobat UrClass";
   const email = user?.email || "";
@@ -64,124 +68,132 @@ export default function SettingsContent() {
 
   // What the server actually requires. Named so the reader is told which
   // fields are missing instead of hunting for dashes down two cards.
-  const missing = [
-    !phone && "nomor HP",
-    !gender && "jenis kelamin",
-    !birthDate && "tanggal lahir",
-    !school && "asal sekolah",
-    kategori === "utbk" && !targetUniversity1 && "target universitas",
-    kategori === "utbk" && !targetMajor1 && "target jurusan",
-  ].filter((item): item is string => typeof item === "string");
+  //
+  // Kosong untuk admin: mereka tidak pernah mengikuti tryout, jadi tidak ada
+  // sertifikat maupun laporan nilai yang perlu memakai data ini, dan mendesak
+  // mereka melengkapinya berarti meminta pekerjaan yang tidak dipakai apa pun.
+  const missing = isAdmin
+    ? []
+    : [
+        !phone && "nomor HP",
+        !gender && "jenis kelamin",
+        !birthDate && "tanggal lahir",
+        !school && "asal sekolah",
+        kategori === "utbk" && !targetUniversity1 && "target universitas",
+        kategori === "utbk" && !targetMajor1 && "target jurusan",
+      ].filter((item): item is string => typeof item === "string");
 
   return (
     <div className="space-y-6">
       
-      {/* Mode Belajar Switcher Card */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-slate-900 shadow-[5px_5px_0px_0px_#0f172a] space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-primary/10 text-primary border border-track-border">
-                <Compass className="w-5 h-5 text-primary" />
+      {/* Mode Belajar Switcher Card - students only */}
+      {!isAdmin && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-slate-900 shadow-[5px_5px_0px_0px_#0f172a] space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-primary/10 text-primary border border-track-border">
+                  <Compass className="w-5 h-5 text-primary" />
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  Mode Belajar Utama (Jalur Target)
+                </h2>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600">
+                Ganti mode di sini untuk mengubah tampilan beranda, simulasi tryout, paket pembelian, dan analitik penilaian.
+              </p>
+            </div>
+            <div className="shrink-0">
+              <span className={`px-3 py-1 rounded-full text-xs font-bold border ${KATEGORI_CONFIG[kategori].theme.badge}`}>
+                Mode Aktif: {KATEGORI_CONFIG[kategori].label}
               </span>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Mode Belajar Utama (Jalur Target)
-              </h2>
             </div>
-            <p className="text-xs sm:text-sm text-slate-600">
-              Ganti mode di sini untuk mengubah tampilan beranda, simulasi tryout, paket pembelian, dan analitik penilaian.
-            </p>
           </div>
-          <div className="shrink-0">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${KATEGORI_CONFIG[kategori].theme.badge}`}>
-              Mode Aktif: {KATEGORI_CONFIG[kategori].label}
-            </span>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-          {/* UTBK Card */}
-          <button
-            type="button"
-            onClick={() => switchKategori("utbk")}
-            disabled={isSwitching}
-            className={`text-left p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
-              kategori === "utbk"
-                ? "border-blue-600 bg-blue-50/70 shadow-[4px_4px_0px_0px_#2563eb] ring-2 ring-blue-500/20"
-                : "border-slate-300 bg-white hover:border-blue-400 hover:bg-blue-50/20 shadow-[2px_2px_0px_0px_#0f172a]"
-            }`}
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-sm">
-                  <BookOpenCheck className="w-6 h-6" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            {/* UTBK Card */}
+            <button
+              type="button"
+              onClick={() => switchKategori("utbk")}
+              disabled={isSwitching}
+              className={`text-left p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                kategori === "utbk"
+                  ? "border-blue-600 bg-blue-50/70 shadow-[4px_4px_0px_0px_#2563eb] ring-2 ring-blue-500/20"
+                  : "border-slate-300 bg-white hover:border-blue-400 hover:bg-blue-50/20 shadow-[2px_2px_0px_0px_#0f172a]"
+              }`}
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-sm">
+                    <BookOpenCheck className="w-6 h-6" />
+                  </div>
+                  {kategori === "utbk" ? (
+                    <span className="flex items-center gap-1 text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full border border-blue-300">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Aktif
+                    </span>
+                  ) : (
+                    <span className="text-xs font-semibold text-slate-400">Pilih Mode</span>
+                  )}
                 </div>
-                {kategori === "utbk" ? (
-                  <span className="flex items-center gap-1 text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full border border-blue-300">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Aktif
-                  </span>
-                ) : (
-                  <span className="text-xs font-semibold text-slate-400">Pilih Mode</span>
-                )}
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Jalur UTBK - SNBT</h3>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Fokus TPS, Literasi Bahasa, Penalaran Matematika, dan prediksi kelulusan kampus impian berskala IRT.
-                </p>
-              </div>
-            </div>
-            <div className="pt-4 mt-2 border-t border-blue-200/60 flex items-center justify-between text-xs font-semibold text-blue-800">
-              <span>7 Subtes SNBT</span>
-              <span>Skala IRT (0-1000)</span>
-            </div>
-          </button>
-
-          {/* CPNS Card */}
-          <button
-            type="button"
-            onClick={() => switchKategori("cpns")}
-            disabled={isSwitching}
-            className={`text-left p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
-              kategori === "cpns"
-                ? "border-orange-600 bg-orange-50/70 shadow-[4px_4px_0px_0px_#c2410c] ring-2 ring-orange-500/20"
-                : "border-slate-300 bg-white hover:border-orange-400 hover:bg-orange-50/20 shadow-[2px_2px_0px_0px_#0f172a]"
-            }`}
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="p-2.5 rounded-xl bg-orange-700 text-white shadow-sm">
-                  <Landmark className="w-6 h-6" />
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Jalur UTBK - SNBT</h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Fokus TPS, Literasi Bahasa, Penalaran Matematika, dan prediksi kelulusan kampus impian berskala IRT.
+                  </p>
                 </div>
-                {kategori === "cpns" ? (
-                  <span className="flex items-center gap-1 text-xs font-bold text-orange-800 bg-orange-100 px-2.5 py-1 rounded-full border border-orange-300">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Aktif
-                  </span>
-                ) : (
-                  <span className="text-xs font-semibold text-slate-400">Pilih Mode</span>
-                )}
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Jalur CPNS & Kedinasan</h3>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Simulasi SKD CAT terpadu: TWK, TIU, dan TKP dengan indikator batas Passing Grade resmi KepmenPAN-RB.
-                </p>
+              <div className="pt-4 mt-2 border-t border-blue-200/60 flex items-center justify-between text-xs font-semibold text-blue-800">
+                <span>7 Subtes SNBT</span>
+                <span>Skala IRT (0-1000)</span>
               </div>
-            </div>
-            <div className="pt-4 mt-2 border-t border-orange-200/60 flex items-center justify-between text-xs font-semibold text-orange-900">
-              <span>TWK, TIU & TKP</span>
-              <span>Passing Grade CAT</span>
-            </div>
-          </button>
-        </div>
+            </button>
 
-        {isSwitching && (
-          <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Memperbarui ruang belajar dan memuat data jalur baru...</span>
+            {/* CPNS Card */}
+            <button
+              type="button"
+              onClick={() => switchKategori("cpns")}
+              disabled={isSwitching}
+              className={`text-left p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                kategori === "cpns"
+                  ? "border-orange-600 bg-orange-50/70 shadow-[4px_4px_0px_0px_#c2410c] ring-2 ring-orange-500/20"
+                  : "border-slate-300 bg-white hover:border-orange-400 hover:bg-orange-50/20 shadow-[2px_2px_0px_0px_#0f172a]"
+              }`}
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="p-2.5 rounded-xl bg-orange-700 text-white shadow-sm">
+                    <Landmark className="w-6 h-6" />
+                  </div>
+                  {kategori === "cpns" ? (
+                    <span className="flex items-center gap-1 text-xs font-bold text-orange-800 bg-orange-100 px-2.5 py-1 rounded-full border border-orange-300">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Aktif
+                    </span>
+                  ) : (
+                    <span className="text-xs font-semibold text-slate-400">Pilih Mode</span>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Jalur CPNS & Kedinasan</h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Simulasi SKD CAT terpadu: TWK, TIU, dan TKP dengan indikator batas Passing Grade resmi KepmenPAN-RB.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-4 mt-2 border-t border-orange-200/60 flex items-center justify-between text-xs font-semibold text-orange-900">
+                <span>TWK, TIU & TKP</span>
+                <span>Passing Grade CAT</span>
+              </div>
+            </button>
           </div>
-        )}
-      </div>
+
+          {isSwitching && (
+            <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Memperbarui ruang belajar dan memuat data jalur baru...</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Profile Header Card */}
       <div className="flex flex-col justify-between gap-6 rounded-3xl border-2 border-slate-900 bg-white p-6 shadow-[5px_5px_0px_0px_#0f172a] md:flex-row md:items-center">
@@ -264,7 +276,9 @@ export default function SettingsContent() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div
+          className={`grid grid-cols-1 gap-6 ${isAdmin ? "" : "lg:grid-cols-2"}`}
+        >
           <div className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]">
             <div className="flex items-center gap-2 border-b-2 border-slate-900 px-6 py-4">
               <User className="size-4 text-primary" />
@@ -275,36 +289,46 @@ export default function SettingsContent() {
             <div className="p-6">
               <DetailRow label="Nama Lengkap" value={name} />
               <DetailRow label="Email" value={email} />
-              <DetailRow label="Nomor Handphone" value={phone} />
-              <DetailRow label="Jenis Kelamin" value={gender} />
-              <DetailRow label="Tanggal Lahir" value={birthDate} />
-              <DetailRow label="Provinsi" value={province} />
-              <DetailRow label="Kabupaten / Kota" value={city} />
-            </div>
-          </div>
-
-          <div className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]">
-            <div className="flex items-center gap-2 border-b-2 border-slate-900 px-6 py-4">
-              <GraduationCap className="size-4 text-primary" />
-              <h3 className="text-sm font-black tracking-tight text-slate-900">
-                Informasi Akademik
-              </h3>
-            </div>
-            <div className="p-6">
-              <DetailRow label="Asal Sekolah" value={school} />
-              <DetailRow label="Jenjang & Kelas" value={gradeLevel} />
-              {/* A CPNS candidate is not asked for a target campus, so it is
-                  not reported back at them either. */}
-              {kategori === "utbk" && (
+              {/* Sisanya hanya berarti bagi peserta tryout. */}
+              {!isAdmin && (
                 <>
-                  <DetailRow label="Target Universitas 1" value={targetUniversity1} />
-                  <DetailRow label="Target Jurusan 1" value={targetMajor1} />
-                  <DetailRow label="Target Universitas 2" value={targetUniversity2} />
-                  <DetailRow label="Target Jurusan 2" value={targetMajor2} />
+                  <DetailRow label="Nomor Handphone" value={phone} />
+                  <DetailRow label="Jenis Kelamin" value={gender} />
+                  <DetailRow label="Tanggal Lahir" value={birthDate} />
+                  <DetailRow label="Provinsi" value={province} />
+                  <DetailRow label="Kabupaten / Kota" value={city} />
                 </>
               )}
             </div>
           </div>
+
+          {/* Data akademik hanya milik peserta tryout. Admin tidak punya asal
+              sekolah maupun target kampus, jadi kartunya tidak ada - bukan
+              kartu berisi tujuh baris "Belum diisi". */}
+          {!isAdmin && (
+            <div className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a]">
+              <div className="flex items-center gap-2 border-b-2 border-slate-900 px-6 py-4">
+                <GraduationCap className="size-4 text-primary" />
+                <h3 className="text-sm font-black tracking-tight text-slate-900">
+                  Informasi Akademik
+                </h3>
+              </div>
+              <div className="p-6">
+                <DetailRow label="Asal Sekolah" value={school} />
+                <DetailRow label="Jenjang & Kelas" value={gradeLevel} />
+                {/* A CPNS candidate is not asked for a target campus, so it is
+                    not reported back at them either. */}
+                {kategori === "utbk" && (
+                  <>
+                    <DetailRow label="Target Universitas 1" value={targetUniversity1} />
+                    <DetailRow label="Target Jurusan 1" value={targetMajor1} />
+                    <DetailRow label="Target Universitas 2" value={targetUniversity2} />
+                    <DetailRow label="Target Jurusan 2" value={targetMajor2} />
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

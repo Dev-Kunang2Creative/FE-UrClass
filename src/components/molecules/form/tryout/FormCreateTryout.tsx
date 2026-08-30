@@ -151,7 +151,8 @@ export default function FormCreateTryout() {
                   <Select
                     onValueChange={(val: "utbk" | "cpns") => {
                       field.onChange(val);
-                      form.setValue("category", val === "cpns" ? "SKD" : "UTBK");
+                      // Kategori adalah cermin jalurnya, bukan pilihan terpisah.
+                      form.setValue("category", val === "cpns" ? "CPNS" : "UTBK");
                     }}
                     value={field.value ?? "utbk"}
                   >
@@ -165,7 +166,8 @@ export default function FormCreateTryout() {
                   </Select>
 
                   <FieldDescription>
-                    Menentukan dashboard mana yang menampilkan tryout ini.
+                    Menentukan dashboard mana yang menampilkan tryout ini,
+                    sekaligus kategorinya di daftar tryout.
                   </FieldDescription>
 
                   {fieldState.error && (
@@ -173,52 +175,6 @@ export default function FormCreateTryout() {
                   )}
                 </Field>
               )}
-            />
-
-            <Controller
-              control={form.control}
-              name="category"
-              render={({ field, fieldState }) => {
-                const currentKategori = form.watch("kategori") ?? "utbk";
-                const subCategoryOptions =
-                  currentKategori === "cpns"
-                    ? [
-                        { value: "SKD", label: "SKD (Seleksi Kompetensi Dasar)" },
-                        { value: "SKB", label: "SKB (Seleksi Kompetensi Bidang)" },
-                        { value: "Kedinasan", label: "Sekolah Kedinasan" },
-                      ]
-                    : [
-                        { value: "UTBK", label: "UTBK (SNBT)" },
-                        { value: "SNBP", label: "SNBP" },
-                        { value: "UM", label: "Ujian Mandiri (UM)" },
-                      ];
-
-                return (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Sub-Kategori</FieldLabel>
-
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value ?? (currentKategori === "cpns" ? "SKD" : "UTBK")}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih sub-kategori" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subCategoryOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {fieldState.error && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                );
-              }}
             />
 
             <Controller
@@ -414,10 +370,20 @@ export default function FormCreateTryout() {
 
                     <span className="text-sm text-muted-foreground">
                       {field.value
-                        ? "IRT — skor dihitung berdasarkan tingkat kesulitan soal"
-                        : "Tanpa IRT — hanya tampilkan jumlah benar/salah"}
+                        ? "IRT — skor akhir diskalakan menurut tingkat kesulitan soal, dihitung dari hasil seluruh peserta"
+                        : "Tanpa IRT — skor akhir memakai nilai jawaban apa adanya sesuai skema tiap subtes"}
                     </span>
                   </div>
+
+                  {/* Dua keputusan yang berbeda, sering dikira satu: subtes
+                      menentukan nilai satu jawaban, saklar ini menentukan cara
+                      nilai-nilai itu dijumlahkan jadi skor akhir. */}
+                  <FieldDescription>
+                    Nilai tiap jawaban tetap mengikuti skema di masing-masing
+                    subtes. Saklar ini hanya menentukan cara skor akhirnya
+                    dihitung. Untuk SKD CPNS yang ambang kelulusannya angka
+                    mutlak, matikan saklar ini.
+                  </FieldDescription>
                 </Field>
               )}
             />

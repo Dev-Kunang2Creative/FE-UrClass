@@ -269,7 +269,9 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
           <>
             <SidebarGroup className="p-0 py-3">
               <SidebarGroupContent>
-                <SidebarMenu className="gap-1.5 px-3">
+                {/* id dipakai panduan awal (TourGuideOverlay) untuk menyorot
+                    menu ini satu per satu. */}
+                <SidebarMenu id="sidebar-nav" className="gap-1.5 px-3">
                   <SidebarMenuItem className="w-full relative">
                     <SidebarMenuButton
                       asChild
@@ -295,7 +297,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      <Link href="/dashboard/try-out" className="flex items-center w-full gap-3 font-medium text-sm">
+                      <Link id="sidebar-menu-tryout" href="/dashboard/try-out" className="flex items-center w-full gap-3 font-medium text-sm">
                         <BookOpen className="w-4.5 h-4.5 shrink-0" />
                         <span>Try Out</span>
                       </Link>
@@ -311,7 +313,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      <Link href="/dashboard/pembelian" className="flex items-center w-full gap-3 font-medium text-sm">
+                      <Link id="sidebar-menu-paket" href="/dashboard/pembelian" className="flex items-center w-full gap-3 font-medium text-sm">
                         <ShoppingCart className="w-4.5 h-4.5 shrink-0" />
                         <span>Pembelian Paket</span>
                       </Link>
@@ -327,7 +329,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      <Link href="/dashboard/tiket/riwayat" className="flex items-center w-full gap-3 font-medium text-sm">
+                      <Link id="sidebar-menu-tiket" href="/dashboard/tiket/riwayat" className="flex items-center w-full gap-3 font-medium text-sm">
                         <Ticket className="w-4.5 h-4.5 shrink-0" />
                         <span>Riwayat Tiket</span>
                         {/* The balance itself, not just a way to the ledger.
@@ -348,6 +350,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
 
                   <SidebarMenuItem className="w-full relative">
                     <SidebarMenuButton
+                      id="sidebar-menu-bantuan"
                       className="h-10.5 justify-start px-3.5 rounded-xl transition-all w-full flex items-center text-slate-600 hover:bg-slate-100 hover:text-slate-900 cursor-pointer font-medium text-sm"
                       onClick={() => setWaModalOpen(true)}
                     >

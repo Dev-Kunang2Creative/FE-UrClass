@@ -34,10 +34,13 @@ export const tryoutSchema = z.object({
 
   image: z.instanceof(File).optional().nullable(),
 
+  /**
+   * Cermin dari `kategori`, bukan pilihan tersendiri. UrClass hanya punya dua
+   * kategori - UTBK dan CPNS - jadi server yang menurunkannya dari jalur yang
+   * dipilih; sub-kategori lama (UM, SNBP, SKD, SKB, Kedinasan) sudah tidak ada.
+   */
   category: z
-    .enum(["UTBK", "UM", "SNBP", "SKD", "SKB", "Kedinasan"], {
-      message: "Sub-kategori tidak valid",
-    })
+    .enum(["UTBK", "CPNS"], { message: "Kategori tidak valid" })
     .optional()
     .nullable(),
 
