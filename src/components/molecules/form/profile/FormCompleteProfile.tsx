@@ -17,7 +17,15 @@ import { Loader2, User, GraduationCap, Target } from "lucide-react";
 import ReferenceCombobox from "@/components/atoms/combobox/ReferenceCombobox";
 import { useSearchPerguruanTinggi } from "@/http/reference/get-perguruan-tinggi";
 import { useProgramStudi } from "@/http/reference/get-program-studi";
+import {
+  useSearchSekolah,
+  cleanPropinsi,
+  cleanKabupatenKota,
+  SEKOLAH_SEARCH_MIN_LENGTH,
+  type SekolahOption,
+} from "@/http/reference/get-sekolah";
 import { useKategori } from "@/hooks/useKategori";
+import { PROVINCES, citiesOf, cityBelongsTo } from "@/lib/wilayah";
 
 interface FormCompleteProfileProps {
   onSuccess: () => void;
@@ -95,13 +103,18 @@ export default function FormCompleteProfile({
   const { kategori } = useKategori();
   const token = session?.access_token || "";
 
+  // Admin tidak pernah mengikuti tryout, jadi tidak ada sertifikat maupun
+  // laporan nilai yang memakai data dirinya. Form-nya menyusut jadi satu field
+  // yang benar-benar dipakai: namanya.
+  const isAdmin = session?.user?.role === "admin";
+
   // A CPNS candidate has no target campus, so the whole section is dropped
   // rather than shown and quietly ignored.
-  const showTargets = kategori === "utbk";
+  const showTargets = kategori === "utbk" && !isAdmin;
 
   const schema = useMemo(
-    () => makeUpdateProfileSchema(showTargets),
-    [showTargets],
+    () => makeUpdateProfileSchema(showTargets, isAdmin),
+    [showTargets, isAdmin],
   );
 
   const form = useForm<UpdateProfileType>({
@@ -129,12 +142,17 @@ export default function FormCompleteProfile({
 
   // Campus searches, and the ids needed to narrow each major list to the
   // campus it belongs to.
+  const [schoolSearch, setSchoolSearch] = useState("");
+  const [provinceSearch, setProvinceSearch] = useState("");
+  const [citySearch, setCitySearch] = useState("");
   const [uniSearch1, setUniSearch1] = useState("");
   const [uniSearch2, setUniSearch2] = useState("");
   const [majorSearch1, setMajorSearch1] = useState("");
   const [majorSearch2, setMajorSearch2] = useState("");
   const [uniId1, setUniId1] = useState<string | null>(null);
   const [uniId2, setUniId2] = useState<string | null>(null);
+
+  const schools = useSearchSekolah({ search: schoolSearch });
 
   const uni1 = useSearchPerguruanTinggi({
     search: uniSearch1,
@@ -156,6 +174,27 @@ export default function FormCompleteProfile({
     search: majorSearch2,
     token,
   });
+
+  // Daftar wilayah statis, jadi penyaringannya di sini - tidak ada permintaan
+  // jaringan yang perlu ditunggu. Dibatasi 50 baris supaya popover tidak
+  // merender 514 kabupaten sekaligus saat kolomnya masih kosong.
+  const wilayahOptions = (list: string[], search: string) => {
+    const term = search.trim().toLowerCase();
+
+    return list
+      .filter((item) => !term || item.toLowerCase().includes(term))
+      .slice(0, 50)
+      .map((item) => ({ id: item, label: item }));
+  };
+
+  // Two schools can share a name across provinces, so the town is the hint
+  // that tells them apart in the list.
+  const schoolOptions = (list?: SekolahOption[]) =>
+    (list ?? []).map((item) => ({
+      id: item.id,
+      label: item.sekolah,
+      hint: `${item.bentuk} - ${cleanKabupatenKota(item.kabupaten_kota)}, ${cleanPropinsi(item.propinsi)}`,
+    }));
 
   const campusOptions = (list?: { id: string; nama: string; program_studi_count?: number }[]) =>
     (list ?? []).map((item) => ({
@@ -238,7 +277,11 @@ export default function FormCompleteProfile({
       <Section
         icon={User}
         title="Data diri"
-        description="Dipakai untuk sertifikat dan menghubungi kamu."
+        description={
+          isAdmin
+            ? "Nama yang tampil di panel admin."
+            : "Dipakai untuk sertifikat dan menghubungi kamu."
+        }
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Controller
@@ -255,177 +298,61 @@ export default function FormCompleteProfile({
             )}
           />
 
-          <Controller
-            control={form.control}
-            name="phone_number"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="phone_number">
-                  Nomor HP <Required />
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="phone_number"
-                  inputMode="tel"
-                  placeholder="08xxxxxxxxxx"
-                />
-                {fieldState.error && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="gender"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>
-                  Jenis kelamin <Required />
-                </FieldLabel>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { label: "Laki-laki", value: "L" },
-                    { label: "Perempuan", value: "P" },
-                  ].map((option) => (
-                    <label
-                      key={option.value}
-                      className={`flex cursor-pointer items-center justify-center rounded-xl border-2 py-2 text-sm transition-colors ${
-                        field.value === option.value
-                          ? "border-slate-900 bg-track-tint font-bold text-slate-900"
-                          : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="gender"
-                        value={option.value}
-                        className="hidden"
-                        onChange={field.onChange}
-                        checked={field.value === option.value}
-                      />
-                      {/* Spelled out. "L" and "P" alone were the only labels. */}
-                      {option.label}
-                    </label>
-                  ))}
-                </div>
-                {fieldState.error && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="birth_date"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="birth_date">
-                  Tanggal lahir <Required />
-                </FieldLabel>
-                <Input {...field} type="date" id="birth_date" />
-                {fieldState.error && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="province"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="province">Provinsi</FieldLabel>
-                <Input {...field} id="province" placeholder="Mis: Jawa Timur" />
-                {fieldState.error && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="city"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="city">Kabupaten / Kota</FieldLabel>
-                <Input {...field} id="city" placeholder="Mis: Surabaya" />
-                {fieldState.error && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-        </div>
-      </Section>
-
-      <Section icon={GraduationCap} title="Pendidikan">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Controller
-            control={form.control}
-            name="grade_level"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>
-                  Jenjang <Required />
-                </FieldLabel>
-                <div className="grid grid-cols-2 gap-2">
-                  {["SMA/SMK", "Gap Year"].map((level) => (
-                    <label
-                      key={level}
-                      className={`flex cursor-pointer items-center justify-center rounded-xl border-2 py-2 text-sm transition-colors ${
-                        field.value === level
-                          ? "border-slate-900 bg-track-tint font-bold text-slate-900"
-                          : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="grade_level"
-                        value={level}
-                        className="hidden"
-                        onChange={(e) => {
-                          field.onChange(e);
-                          if (e.target.value === "Gap Year") {
-                            form.setValue("class_level", "");
-                            form.clearErrors("class_level");
-                          } else {
-                            form.setValue("class_level", "Kelas 12");
-                          }
-                        }}
-                        checked={field.value === level}
-                      />
-                      {level}
-                    </label>
-                  ))}
-                </div>
-                {fieldState.error && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          {!isGapYear && (
+          {/* Hanya berarti bagi peserta tryout: nomor HP untuk dihubungi,
+              sisanya untuk sertifikat dan laporan nilai. Admin tidak punya
+              keduanya. */}
+          {!isAdmin && (
+            <>
             <Controller
               control={form.control}
-              name="class_level"
+              name="phone_number"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="phone_number">
+                    Nomor HP <Required />
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="phone_number"
+                    inputMode="tel"
+                    placeholder="08xxxxxxxxxx"
+                  />
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="gender"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>
-                    Kelas <Required />
+                    Jenis kelamin <Required />
                   </FieldLabel>
-                  <div className="grid grid-cols-3 gap-2">
-                    {["Kelas 10", "Kelas 11", "Kelas 12"].map((kls) => (
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: "Laki-laki", value: "L" },
+                      { label: "Perempuan", value: "P" },
+                    ].map((option) => (
                       <label
-                        key={kls}
+                        key={option.value}
                         className={`flex cursor-pointer items-center justify-center rounded-xl border-2 py-2 text-sm transition-colors ${
-                          field.value === kls
+                          field.value === option.value
                             ? "border-slate-900 bg-track-tint font-bold text-slate-900"
                             : "border-slate-200 text-slate-500 hover:bg-slate-50"
                         }`}
                       >
                         <input
                           type="radio"
-                          name="class_level"
-                          value={kls}
+                          name="gender"
+                          value={option.value}
                           className="hidden"
                           onChange={field.onChange}
-                          checked={field.value === kls}
+                          checked={field.value === option.value}
                         />
-                        {kls.replace("Kelas ", "")}
+                        {/* Spelled out. "L" and "P" alone were the only labels. */}
+                        {option.label}
                       </label>
                     ))}
                   </div>
@@ -433,27 +360,214 @@ export default function FormCompleteProfile({
                 </Field>
               )}
             />
-          )}
 
-          <Controller
-            control={form.control}
-            name="school_origin"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="md:col-span-2">
-                <FieldLabel htmlFor="school_origin">
-                  Asal sekolah <Required />
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="school_origin"
-                  placeholder="Mis: SMAN 1 Surabaya"
-                />
-                {fieldState.error && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+            <Controller
+              control={form.control}
+              name="birth_date"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="birth_date">
+                    Tanggal lahir <Required />
+                  </FieldLabel>
+                  <Input {...field} type="date" id="birth_date" />
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="province"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Provinsi</FieldLabel>
+                  <ReferenceCombobox
+                    value={field.value || ""}
+                    onChange={(label) => {
+                      field.onChange(label);
+
+                      // Kabupaten yang sudah terisi bisa jadi milik provinsi
+                      // lain. Dibersihkan hanya saat provinsinya dipilih
+                      // manual - pengisian otomatis dari sekolah menyetel
+                      // keduanya sekaligus dan tidak lewat sini.
+                      const currentCity = form.getValues("city");
+                      if (currentCity && !cityBelongsTo(currentCity, label)) {
+                        form.setValue("city", "");
+                      }
+                    }}
+                    options={wilayahOptions(PROVINCES, provinceSearch)}
+                    placeholder="Pilih provinsi"
+                    searchPlaceholder="Mis: Jawa Timur"
+                    freeTextHint="Tidak ada di daftar?"
+                    emptyHint="Ketik nama provinsi untuk mencari."
+                    onSearchChange={setProvinceSearch}
+                  />
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="city"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Kabupaten / Kota</FieldLabel>
+                  <ReferenceCombobox
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    // Dipersempit ke provinsi yang dipilih; kalau belum ada,
+                    // seluruh 514 kabupaten/kota tetap bisa dicari.
+                    options={wilayahOptions(
+                      citiesOf(form.watch("province")),
+                      citySearch,
+                    )}
+                    placeholder="Pilih kabupaten / kota"
+                    searchPlaceholder="Mis: Surabaya"
+                    freeTextHint="Tidak ada di daftar?"
+                    emptyHint="Ketik nama kabupaten atau kota untuk mencari."
+                    onSearchChange={setCitySearch}
+                  />
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+            </>
+          )}
         </div>
       </Section>
+
+      {/* Admin tidak punya asal sekolah maupun jenjang. */}
+      {!isAdmin && (
+        <Section
+          icon={GraduationCap}
+          title="Pendidikan"
+          description="Pilih sekolah dari data Dapodik supaya provinsi dan kota terisi otomatis."
+        >
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Controller
+              control={form.control}
+              name="grade_level"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>
+                    Jenjang <Required />
+                  </FieldLabel>
+                  <div className="grid grid-cols-2 gap-2">
+                    {["SMA/SMK", "Gap Year"].map((level) => (
+                      <label
+                        key={level}
+                        className={`flex cursor-pointer items-center justify-center rounded-xl border-2 py-2 text-sm transition-colors ${
+                          field.value === level
+                            ? "border-slate-900 bg-track-tint font-bold text-slate-900"
+                            : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="grade_level"
+                          value={level}
+                          className="hidden"
+                          onChange={(e) => {
+                            field.onChange(e);
+                            if (e.target.value === "Gap Year") {
+                              form.setValue("class_level", "");
+                              form.clearErrors("class_level");
+                            } else {
+                              form.setValue("class_level", "Kelas 12");
+                            }
+                          }}
+                          checked={field.value === level}
+                        />
+                        {level}
+                      </label>
+                    ))}
+                  </div>
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            {!isGapYear && (
+              <Controller
+                control={form.control}
+                name="class_level"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>
+                      Kelas <Required />
+                    </FieldLabel>
+                    <div className="grid grid-cols-3 gap-2">
+                      {["Kelas 10", "Kelas 11", "Kelas 12"].map((kls) => (
+                        <label
+                          key={kls}
+                          className={`flex cursor-pointer items-center justify-center rounded-xl border-2 py-2 text-sm transition-colors ${
+                            field.value === kls
+                              ? "border-slate-900 bg-track-tint font-bold text-slate-900"
+                              : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="class_level"
+                            value={kls}
+                            className="hidden"
+                            onChange={field.onChange}
+                            checked={field.value === kls}
+                          />
+                          {kls.replace("Kelas ", "")}
+                        </label>
+                      ))}
+                    </div>
+                    {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            )}
+
+            <Controller
+              control={form.control}
+              name="school_origin"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid} className="md:col-span-2">
+                  <FieldLabel>
+                    Asal sekolah <Required />
+                  </FieldLabel>
+                  <ReferenceCombobox
+                    value={field.value || ""}
+                    onChange={(label, option) => {
+                      field.onChange(label);
+                      const picked = schools.data?.find(
+                        (item) => item.id === option?.id,
+                      );
+                      // Dapodik already knows where the school is, so picking one
+                      // fills the two location fields instead of asking again.
+                      if (picked) {
+                        form.setValue("province", cleanPropinsi(picked.propinsi), {
+                          shouldValidate: true,
+                        });
+                        form.setValue(
+                          "city",
+                          cleanKabupatenKota(picked.kabupaten_kota),
+                          { shouldValidate: true },
+                        );
+                      }
+                    }}
+                    options={schoolOptions(schools.data)}
+                    loading={schools.isFetching}
+                    placeholder="Cari nama sekolahmu"
+                    searchPlaceholder="Mis: SMAN 1 Surabaya"
+                    freeTextHint="Sekolahmu belum terdaftar?"
+                    emptyHint={`Ketik minimal ${SEKOLAH_SEARCH_MIN_LENGTH} huruf nama sekolah.`}
+                    onSearchChange={setSchoolSearch}
+                  />
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          </div>
+        </Section>
+      )}
 
       {showTargets && (
         <Section

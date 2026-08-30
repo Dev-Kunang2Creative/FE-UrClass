@@ -147,7 +147,8 @@ export default function DashboardAdminTryoutWrapper() {
               exportTitle="laporan-tryout"
               filterSummary={`Total hasil: ${controls.rows.length}`}
             >
-              <Button size={"lg"} asChild>
+              {/* Ukuran bawaan, menyamai tombol export di sebelahnya. */}
+              <Button asChild>
                 <Link href="/dashboard/admin/try-out/create">
                   <Plus /> Tambah Tryout
                 </Link>

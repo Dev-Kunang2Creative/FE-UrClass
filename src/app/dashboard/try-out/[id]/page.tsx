@@ -15,6 +15,7 @@ import {
   wrongTrackFrom,
 } from "@/http/tryout/get-user-tryout-detail";
 import { useGetHistoryTryout } from "@/http/tryout/get-history-tryout";
+import { useGetInstagramAccounts } from "@/http/instagram/get-instagram-accounts";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/get-error-message";
 import { getTryoutButtonState, TRYOUT_BUTTON_CLASS } from "@/utils/tryout-button-state";
@@ -55,6 +56,12 @@ export default function TryoutDetailPage({
 
   // Fetch enrolled tryouts as a fallback for user-specific status.
   const { data: historyData, isLoading: historyLoading } = useGetHistoryTryout({ token });
+
+  // Satu bukti untuk satu akun. Server memvalidasi dengan angka yang sama, jadi
+  // tombol daftar tidak boleh aktif sebelum jumlahnya terpenuhi.
+  const { data: instagramData } = useGetInstagramAccounts({ token });
+  const instagramAccounts = instagramData?.data ?? [];
+  const requiredProofCount = instagramAccounts.length;
   const tryout = tryoutDetail?.data;
   const schedule = useSchedule(
     tryout?.start_date ? String(tryout.start_date) : null,
@@ -75,6 +82,7 @@ export default function TryoutDetailPage({
     isEnrolled,
     hasAttempted,
     sessionStatus: tryout?.user_session_status,
+    isFree: tryout?.is_free,
   });
   // One shadow for both variants. The old pair hardcoded yellow-700 and a
   // green, matching variant names that no longer exist and neither track.
@@ -130,8 +138,10 @@ export default function TryoutDetailPage({
 
   const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
   const MAX_FILE_SIZE_MB = 2;
-  const MIN_PROOF_IMAGES = 2;
-  const MAX_PROOF_IMAGES = 5;
+  // Minimalnya mengikuti jumlah akun yang wajib di-follow - aturan yang sama
+  // dipakai server - sementara maksimalnya tidak boleh lebih kecil dari itu.
+  const MIN_PROOF_IMAGES = Math.max(1, requiredProofCount);
+  const MAX_PROOF_IMAGES = Math.max(MIN_PROOF_IMAGES, 5);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -571,31 +581,30 @@ export default function TryoutDetailPage({
               <>
                 <div>
                   <label className="font-semibold text-gray-800 text-sm mb-2 block">Bukti Follow Instagram</label>
+                  {/* Daftar dan jumlahnya dibaca dari server, bukan ditulis di
+                      sini: server memakai jumlah akun yang sama untuk menentukan
+                      berapa bukti yang wajib diunggah, jadi angka yang ditulis
+                      tangan pasti akan menyimpang begitu akunnya ditambah. */}
                   <p className="text-xs text-gray-500 mb-3">
-                    Follow kedua akun Instagram berikut, lalu upload minimal 2 foto bukti follow.
+                    {requiredProofCount > 0
+                      ? `Follow ${requiredProofCount} akun Instagram berikut, lalu upload minimal ${requiredProofCount} foto bukti follow.`
+                      : "Memuat daftar akun Instagram..."}
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-                    <a
-                      href="https://www.instagram.com/fdlyshdq/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 rounded-xl border border-pink-200 bg-pink-50 px-3 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-100 transition-colors"
-                    >
-                      <Instagram className="w-4 h-4" />
-                      @fdlyshdq
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                    <a
-                      href="https://www.instagram.com/basykailakh/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 rounded-xl border border-pink-200 bg-pink-50 px-3 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-100 transition-colors"
-                    >
-                      <Instagram className="w-4 h-4" />
-                      @basykailakh
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                    {instagramAccounts.map((account) => (
+                      <a
+                        key={account.id}
+                        href={account.profile_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 rounded-xl border border-pink-200 bg-pink-50 px-3 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-100 transition-colors"
+                      >
+                        <Instagram className="w-4 h-4 shrink-0" />
+                        <span className="truncate">@{account.username}</span>
+                        <ExternalLink className="w-3 h-3 shrink-0" />
+                      </a>
+                    ))}
                   </div>
                   {proofPreviews.length > 0 && (
                     <div className="grid grid-cols-2 gap-3 mb-3">
@@ -619,7 +628,7 @@ export default function TryoutDetailPage({
                       <Upload className="w-8 h-8 text-gray-400 mb-2" />
                       <span className="text-sm text-gray-500 font-medium">Klik untuk upload bukti follow</span>
                       <span className="text-xs text-gray-400 mt-1 text-center px-4">
-                        Minimal 2 foto bukti follow, maksimal {MAX_PROOF_IMAGES} foto
+                        Minimal {MIN_PROOF_IMAGES} foto bukti follow, maksimal {MAX_PROOF_IMAGES} foto
                       </span>
                       <span className="text-xs text-gray-400 mt-1">JPG, PNG, WebP, maks 2MB per foto</span>
                       <input

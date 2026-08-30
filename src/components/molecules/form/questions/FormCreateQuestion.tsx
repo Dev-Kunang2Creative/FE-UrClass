@@ -17,20 +17,24 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Scale, Trash2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/get-error-message";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import { stripHtmlToPreviewText } from "@/utils/rich-text";
 import {
-  questionSchema,
+  makeQuestionSchema,
+  OPTION_WEIGHT_MAX,
   QuestionType,
 } from "@/validators/questions/question-validator";
 import { useCreateQuestion } from "@/http/questions/create-question";
+import { useGetDetailSubtest } from "@/http/subtest/get-detail-subtest";
+import { OPTION_WEIGHT_SCHEME, OptionWeightHint, OptionWeightSelect } from "./OptionWeight";
 
 interface FormCreateQuestionProps {
   id: string;
@@ -44,8 +48,29 @@ export default function FormCreateQuestion({ id }: FormCreateQuestionProps) {
     null,
   );
 
+  const { data: session } = useSession();
+
+  // Aturan soal berbeda per skema penilaian subtesnya, jadi form ini perlu tahu
+  // subtes mana yang sedang diisi - bukan sekadar id-nya.
+  const { data: subtest } = useGetDetailSubtest({
+    id,
+    token: session?.access_token as string,
+  });
+
+  const weighted = subtest?.data?.scoring_scheme === OPTION_WEIGHT_SCHEME;
+
+  // Skema baru diketahui setelah subtes termuat, sementara resolver dibaca
+  // sekali saat form dibuat. Ref-nya dibaca ulang tiap validasi.
+  const weightedRef = useRef(weighted);
+  weightedRef.current = weighted;
+
   const form = useForm<QuestionType>({
-    resolver: zodResolver(questionSchema),
+    resolver: (values, context, options) =>
+      zodResolver(makeQuestionSchema(weightedRef.current))(
+        values,
+        context,
+        options,
+      ),
     mode: "onChange",
     defaultValues: {
       order_no: 1,
@@ -66,6 +91,22 @@ export default function FormCreateQuestion({ id }: FormCreateQuestionProps) {
     control: form.control,
     name: "options",
   });
+
+  // Soal TKP selalu lima opsi berbobot 1-5, jadi barisnya disiapkan sekaligus
+  // ketimbang meminta admin menekan "Tambah" tiga kali untuk setiap soal.
+  useEffect(() => {
+    if (!weighted) return;
+
+    const options = form.getValues("options");
+    const untouched = options.every((option) => !option.option_text);
+
+    if (options.length < optionKeys.length && untouched) {
+      form.setValue(
+        "options",
+        optionKeys.map((key) => ({ option_key: key, option_text: "" })),
+      );
+    }
+  }, [weighted, form]);
 
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -232,6 +273,7 @@ export default function FormCreateQuestion({ id }: FormCreateQuestionProps) {
                         append({
                           option_key: optionKeys[fields.length],
                           option_text: "",
+                          score: null,
                         })
                       }
                       disabled={fields.length >= 5}
@@ -241,8 +283,21 @@ export default function FormCreateQuestion({ id }: FormCreateQuestionProps) {
                     </Button>
                   </div>
 
+                  {weighted && <OptionWeightHint />}
+
                   {fields.map((item, index) => (
-                    <div key={item.id} className="grid grid-cols-[1fr_auto] gap-3">
+                    <div
+                      key={item.id}
+                      // 10rem, bukan 7rem: label bobot terpanjang
+                      // ("5 - paling ideal") tidak muat di 7rem. minmax(0,1fr)
+                      // supaya kolom teks opsi boleh menyusut, bukan mendesak
+                      // kolom di sebelahnya.
+                      className={`grid gap-3 ${
+                        weighted
+                          ? "grid-cols-[minmax(0,1fr)_10rem_auto]"
+                          : "grid-cols-[minmax(0,1fr)_auto]"
+                      }`}
+                    >
                       <Controller
                         control={form.control}
                         name={`options.${index}.option_text`}
@@ -253,6 +308,19 @@ export default function FormCreateQuestion({ id }: FormCreateQuestionProps) {
                           />
                         )}
                       />
+
+                      {weighted && (
+                        <Controller
+                          control={form.control}
+                          name={`options.${index}.score`}
+                          render={({ field }) => (
+                            <OptionWeightSelect
+                              value={field.value ?? null}
+                              onChange={field.onChange}
+                            />
+                          )}
+                        />
+                      )}
 
                       <Button
                         type="button"
@@ -265,8 +333,27 @@ export default function FormCreateQuestion({ id }: FormCreateQuestionProps) {
                       </Button>
                     </div>
                   ))}
+
+                  {form.formState.errors.options?.message && (
+                    <p className="text-sm text-destructive">
+                      {form.formState.errors.options.message}
+                    </p>
+                  )}
                 </div>
 
+                {weighted ? (
+                  <Field>
+                    <FieldLabel>Jawaban Benar</FieldLabel>
+                    <p className="flex items-start gap-2 rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
+                      <Scale className="mt-0.5 size-4 shrink-0" />
+                      <span>
+                        Tidak ada kunci jawaban pada skema ini. Opsi berbobot{" "}
+                        {OPTION_WEIGHT_MAX} yang dicatat sebagai jawaban paling
+                        ideal.
+                      </span>
+                    </p>
+                  </Field>
+                ) : (
                 <Controller
                   control={form.control}
                   name="correct_answer"
@@ -296,6 +383,7 @@ export default function FormCreateQuestion({ id }: FormCreateQuestionProps) {
                     </Field>
                   )}
                 />
+                )}
               </>
             )}
 

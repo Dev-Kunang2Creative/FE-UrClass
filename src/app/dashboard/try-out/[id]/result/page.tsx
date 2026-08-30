@@ -69,6 +69,13 @@ export default function ResultPage({
   }
 
   const { summary, irt_result, use_irt, score_result, per_subtest } = result;
+
+  // Dipakai kartu "Skor Sementara" selama IRT belum final. irt_result lebih
+  // dulu karena di sanalah server menaruhnya; score_result jadi cadangan untuk
+  // respons lama yang belum membawa field ini.
+  const provisionalScore = Math.round(
+    irt_result?.provisional_score ?? score_result?.final_score ?? 0,
+  );
   const accuracy = Math.round(score_result?.accuracy ?? 0);
 
   const heroCardClass = isCpns
@@ -177,10 +184,23 @@ export default function ResultPage({
           <div className="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-slate-900 bg-amber-400 text-slate-900 shadow-[2px_2px_0px_0px_#0f172a]">
             <Clock className="h-7 w-7" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900">Hasil IRT Sedang Diproses</h2>
-          <p className="mx-auto mt-2 max-w-xl text-xs sm:text-sm font-medium text-slate-700 leading-relaxed">
-            Skor masih bisa berubah sampai skor IRT tersedia setelah tryout berakhir dan cukup peserta menyelesaikan ujian.
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900">Skor Sementara</h2>
+
+          {/* Angkanya nyata sejak detik ini - proporsi jawaban benar terhadap
+              skor maksimum - jadi tidak ada alasan menahan layar hasil dalam
+              keadaan kosong. Yang belum final hanyalah pembobotan IRT-nya. */}
+          <p className="mt-3 text-4xl sm:text-5xl font-black tracking-tight text-slate-900">
+            {provisionalScore.toLocaleString("id-ID")}
+            <span className="ml-1 text-lg font-bold text-slate-500">/ 1000</span>
           </p>
+
+          <p className="mx-auto mt-2 max-w-xl text-xs sm:text-sm font-medium text-slate-700 leading-relaxed">
+            Ini skor dari proporsi jawaban benarmu. Skor IRT menimbang tiap soal
+            menurut tingkat kesulitannya, dan baru final setelah tryout berakhir
+            serta cukup peserta menyelesaikan ujian - jadi angka di atas masih
+            bisa berubah.
+          </p>
+
           <div className="mt-4 inline-flex items-center gap-2 rounded-xl border-2 border-slate-900 bg-white px-4 py-2 text-xs sm:text-sm font-bold text-slate-900 shadow-[2px_2px_0px_0px_#0f172a]">
             <Calendar className="w-4 h-4 text-primary" />
             <span>Perkiraan rilis:</span>

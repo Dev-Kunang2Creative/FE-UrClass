@@ -1,3 +1,4 @@
+import { cache } from "react";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getAuthApiHandler } from "@/http/auth/get-user";
@@ -26,6 +27,25 @@ declare module "next-auth/jwt" {
     userOverrides?: Partial<Auth>;
   }
 }
+
+/**
+ * Profil pengguna untuk satu permintaan server.
+ *
+ * Callback session di bawah memanggil backend setiap kali session dibaca, dan
+ * satu navigasi dashboard membacanya lebih dari sekali: layout dashboard
+ * memanggil getServerSession, lalu layout admin memanggilnya lagi, lalu
+ * halamannya sendiri. Tanpa dedupe ini, membuka satu halaman admin berarti dua
+ * sampai tiga panggilan /auth/me berurutan yang harus selesai sebelum apa pun
+ * tergambar. cache() dari React membatasi cakupannya per permintaan, jadi
+ * pengguna berbeda tidak mungkin saling memakai hasil yang sama.
+ *
+ * Timeoutnya jauh lebih pendek dari 30 detik bawaan axios: kalau backend tidak
+ * menjawab, lebih baik session terdegradasi dalam 8 detik daripada halamannya
+ * menggantung setengah menit.
+ */
+const fetchAuthUser = cache((accessToken: string) =>
+  getAuthApiHandler(accessToken, 8000),
+);
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.AUTH_SECRET,
@@ -96,7 +116,7 @@ export const authOptions: NextAuthOptions = {
       const access_token = token.access_token as string;
 
       try {
-        const auth = await getAuthApiHandler(access_token);
+        const auth = await fetchAuthUser(access_token);
 
         // The backend is the only source. Dropping province and city from the
         // overrides was not enough: the same shadowing applied to every other

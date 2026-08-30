@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type React from "react";
-import { Download, FileSpreadsheet, FileText, Search, X } from "lucide-react";
+import { FileSpreadsheet, FileText, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -330,9 +330,19 @@ export function AdminDataToolbar<T>({
   };
 
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    // items-end: kelompok tombol dirapatkan ke baris terbawah kelompok kiri.
+    //
+    // Dengan items-center ia mengambang di tengah tinggi kelompok kiri, dan
+    // dengan items-start ia sejajar dengan kolom cari di baris pertama. Yang
+    // dicari adalah sebaris dengan filter - dan filter selalu berada di baris
+    // terakhir kelompok kiri - jadi yang disamakan adalah tepi bawahnya.
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      {/* Kontrolnya dibuat cukup ringkas supaya muat satu baris: sebelumnya
+          kolom cari dipatok minimal 15rem dan tiap select 12rem, sehingga di
+          layar biasa satu select terdorong turun sendirian dan menyisakan
+          separuh baris kosong di sebelahnya. */}
       <div className="flex flex-1 flex-wrap items-center gap-2">
-        <div className="relative min-w-60 flex-1 lg:max-w-xs">
+        <div className="relative min-w-40 flex-1 lg:max-w-64">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             value={search}
@@ -342,39 +352,59 @@ export function AdminDataToolbar<T>({
           />
         </div>
 
-        {filters.map((filter) => (
-          <Select
-            key={filter.key}
-            value={filterValues[filter.key] || ALL_VALUE}
-            onValueChange={(value) => onFilterChange(filter.key, value)}
-          >
-            <SelectTrigger className="w-full bg-white sm:w-44">
-              <SelectValue placeholder={filter.placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_VALUE}>{filter.label}</SelectItem>
-              {filter.options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ))}
+        {/*
+          Filter dikurung dalam satu baris yang tidak boleh membungkus, dan
+          isinya boleh menyusut.
 
-        {sortOptions.length > 0 && (
-          <Select value={sortKey} onValueChange={onSortChange}>
-            <SelectTrigger className="w-full bg-white sm:w-56">
-              <SelectValue placeholder="Urutkan" />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => (
-                <SelectItem key={option.key} value={option.key}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          Sebelumnya tiap filter adalah item lepas berlebar tetap di dalam
+          flex-wrap, jadi begitu ruangnya kurang sedikit saja, filter terakhir
+          turun sendirian dan menyisakan baris kedua yang nyaris kosong. Dengan
+          min-w-0 dan lebar maksimum, ketiganya mengecil bersama-sama lebih dulu
+          - teksnya terpotong rapi karena trigger-nya memang memotong isinya.
+          Penyusutannya berhenti di 8rem supaya labelnya tetap terbaca; di bawah
+          itu kelompok kanan yang turun utuh ke baris kedua, bukan satu filter
+          yang tercecer.
+        */}
+        {(filters.length > 0 || sortOptions.length > 0) && (
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-1 sm:flex-nowrap">
+            {filters.map((filter) => (
+              <Select
+                key={filter.key}
+                value={filterValues[filter.key] || ALL_VALUE}
+                onValueChange={(value) => onFilterChange(filter.key, value)}
+              >
+                <SelectTrigger className="w-full min-w-32 bg-white sm:max-w-40">
+                  <SelectValue placeholder={filter.placeholder} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_VALUE}>{filter.label}</SelectItem>
+                  {filter.options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ))}
+
+            {/* Urutan berdiri sejajar dengan filter, bukan di kelompok tombol:
+                sama-sama menyaring atau menata apa yang tampil di tabel, dan
+                ikut menyusut bersama mereka. */}
+            {sortOptions.length > 0 && (
+              <Select value={sortKey} onValueChange={onSortChange}>
+                <SelectTrigger className="w-full min-w-32 bg-white sm:max-w-40">
+                  <SelectValue placeholder="Urutkan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map((option) => (
+                    <SelectItem key={option.key} value={option.key}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
         )}
 
         {hasActiveControls && (
@@ -384,7 +414,12 @@ export function AdminDataToolbar<T>({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      {/* Kelompok kanan hanya berisi tindakan: mengunduh data yang sedang
+          tampil, lalu aksi milik halamannya, dipisah garis tipis. Kalau tidak
+          muat, seluruh kelompok ini yang turun utuh dan tetap rata kanan -
+          bukan satu kontrol yang tercecer sendirian. */}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+
         <Button
           type="button"
           variant="outline"
@@ -393,7 +428,7 @@ export function AdminDataToolbar<T>({
           className="border-green-200 text-green-700 hover:bg-green-50"
         >
           <FileSpreadsheet className="h-4 w-4" />
-          Excel
+          Export Excel
         </Button>
         <Button
           type="button"
@@ -403,12 +438,15 @@ export function AdminDataToolbar<T>({
           className="border-blue-200 text-blue-700 hover:bg-blue-50"
         >
           <FileText className="h-4 w-4" />
-          PDF
+          Export PDF
         </Button>
-        {children}
-        <span className="sr-only">
-          <Download className="h-4 w-4" />
-        </span>
+
+        {children && (
+          <>
+            <span className="hidden h-6 w-px shrink-0 bg-slate-200 sm:block" />
+            {children}
+          </>
+        )}
       </div>
     </div>
   );

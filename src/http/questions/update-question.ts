@@ -54,6 +54,12 @@ export const updateQuestionHandler = async (
     body.options.forEach((option, index) => {
       formData.append(`options[${index}][option_key]`, option.option_key);
       formData.append(`options[${index}][option_text]`, option.option_text);
+
+      // Bobot per opsi (TKP SKD). Subtes benar/salah tidak mengirimnya sama
+      // sekali, dan di sana backend tetap memakai kredit benar/salah.
+      if (option.score != null) {
+        formData.append(`options[${index}][score]`, String(option.score));
+      }
     });
   }
 

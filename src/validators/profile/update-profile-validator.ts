@@ -11,24 +11,40 @@ import { z } from "zod";
  *
  * requireTarget follows the reader track: a CPNS candidate has no target
  * campus, so demanding one would leave them unable to save at all.
+ *
+ * isAdmin melonggarkan semuanya kecuali nama. Admin tidak pernah mengikuti
+ * tryout, jadi tidak ada sertifikat atau laporan nilai yang perlu memakai data
+ * dirinya - meminta nomor HP dan asal sekolah kepada admin hanyalah pekerjaan
+ * yang tidak dipakai siapa pun.
  */
-export function makeUpdateProfileSchema(requireTarget: boolean) {
-  const target = requireTarget
-    ? z.string().min(1, "Target ini harus diisi")
-    : z.string().optional();
+export function makeUpdateProfileSchema(
+  requireTarget: boolean,
+  isAdmin = false,
+) {
+  const target =
+    requireTarget && !isAdmin
+      ? z.string().min(1, "Target ini harus diisi")
+      : z.string().optional();
+
+  const requiredForStudent = (schema: z.ZodString, message: string) =>
+    isAdmin ? z.string().optional() : schema.min(1, message);
 
   return z
     .object({
       name: z.string().min(1, "Nama lengkap harus diisi"),
-      phone_number: z
-        .string()
-        .min(10, "Nomor HP minimal 10 angka")
-        .regex(/^[0-9+\-\s]+$/, "Nomor HP hanya boleh angka, +, - dan spasi"),
-      grade_level: z.string().min(1, "Jenjang harus dipilih"),
+      phone_number: isAdmin
+        ? z.string().optional()
+        : z
+            .string()
+            .min(10, "Nomor HP minimal 10 angka")
+            .regex(/^[0-9+\-\s]+$/, "Nomor HP hanya boleh angka, +, - dan spasi"),
+      grade_level: requiredForStudent(z.string(), "Jenjang harus dipilih"),
       class_level: z.string().optional(),
-      school_origin: z.string().min(1, "Asal sekolah harus diisi"),
-      gender: z.enum(["L", "P"], { message: "Jenis kelamin harus dipilih" }),
-      birth_date: z.string().min(1, "Tanggal lahir harus diisi"),
+      school_origin: requiredForStudent(z.string(), "Asal sekolah harus diisi"),
+      gender: isAdmin
+        ? z.enum(["L", "P"]).optional()
+        : z.enum(["L", "P"], { message: "Jenis kelamin harus dipilih" }),
+      birth_date: requiredForStudent(z.string(), "Tanggal lahir harus diisi"),
       province: z.string().optional(),
       city: z.string().optional(),
       target_university_1: target,
@@ -37,7 +53,7 @@ export function makeUpdateProfileSchema(requireTarget: boolean) {
       target_major_2: z.string().optional(),
     })
     .refine(
-      (data) => data.grade_level === "Gap Year" || !!data.class_level,
+      (data) => isAdmin || data.grade_level === "Gap Year" || !!data.class_level,
       { message: "Kelas harus dipilih", path: ["class_level"] },
     );
 }

@@ -12,30 +12,51 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import { useKategori } from "@/hooks/useKategori";
-import { KATEGORI_CONFIG, type Kategori } from "@/lib/kategori";
+import { KATEGORI_CONFIG } from "@/lib/kategori";
 
-const INFO_CARDS: Record<Kategori, { src: string; alt: string; href: string }[]> = {
-  utbk: [
-    { src: "/images/tryout/tryout-01.webp", alt: "Tryout 01", href: "/dashboard/try-out" },
-    { src: "/images/tryout/tryout-02.webp", alt: "Tryout 02", href: "/dashboard/try-out" },
-    { src: "/images/tryout/tryout-03.webp", alt: "Tryout 03", href: "/dashboard/try-out" },
-    { src: "/images/ticket/starter.webp", alt: "Info UTBK Starter", href: "/dashboard/pembelian" },
-    { src: "/images/ticket/ambis.webp", alt: "Info UTBK Ambis", href: "/dashboard/pembelian" },
-    { src: "/images/ticket/booster.webp", alt: "Info UTBK Booster", href: "/dashboard/pembelian" },
-    { src: "/images/ticket/ultimate.webp", alt: "Info UTBK Ultimate", href: "/dashboard/pembelian" },
-  ],
-  // No CPNS-specific artwork exists yet, so reuse the neutral tryout/ticket art.
-  cpns: [
-    { src: "/images/tryout/tryout-01.webp", alt: "Tryout SKD", href: "/dashboard/try-out" },
-    { src: "/images/tryout/tryout-02.webp", alt: "Simulasi CAT BKN", href: "/dashboard/try-out" },
-    { src: "/images/ticket/starter.webp", alt: "Paket SKD Starter", href: "/dashboard/pembelian" },
-    { src: "/images/ticket/booster.webp", alt: "Paket SKD Intensif", href: "/dashboard/pembelian" },
-  ],
-};
-
+/**
+ * Enam banner promosi, tampil berurutan sesuai nomor asetnya.
+ *
+ * Sebelumnya daftarnya dipisah per jalur dan sisi CPNS hanya memakai ulang
+ * gambar UTBK karena belum ada karyanya. Aset sekarang sudah mencakup keduanya
+ * - biru untuk UTBK, oranye untuk CPNS dan promo - jadi keduanya memakai satu
+ * urutan yang sama.
+ */
+const INFO_CARDS: { src: string; alt: string; href: string }[] = [
+  {
+    src: "/images/carousel/slide-1.webp",
+    alt: "Tryout UTBK - saatnya buktikan persiapanmu",
+    href: "/dashboard/try-out",
+  },
+  {
+    src: "/images/carousel/slide-2.webp",
+    alt: "Buruan, promonya terbatas",
+    href: "/dashboard/pembelian",
+  },
+  {
+    src: "/images/carousel/slide-3.webp",
+    alt: "Ingat tryout, ingat UrClass - daftar sekarang",
+    href: "/dashboard/try-out",
+  },
+  {
+    src: "/images/carousel/slide-4.webp",
+    alt: "Tryout CPNS - siap sekarang, lolos sekarang",
+    href: "/dashboard/try-out",
+  },
+  {
+    src: "/images/carousel/slide-5.webp",
+    alt: "Tryout hemat dan murah, hanya di urclass.id",
+    href: "/dashboard/pembelian",
+  },
+  {
+    src: "/images/carousel/slide-6.webp",
+    alt: "Soal dan pembahasan lengkap",
+    href: "/dashboard/try-out",
+  },
+];
 export default function InfoCardCarousel() {
   const { kategori } = useKategori();
-  const cards = INFO_CARDS[kategori];
+  const cards = INFO_CARDS;
   const [api, setApi] = useState<CarouselApi>();
   const [activeIndex, setActiveIndex] = useState(0);
   const [snapCount, setSnapCount] = useState(0);
@@ -79,7 +100,7 @@ export default function InfoCardCarousel() {
         }}
         plugins={[
           Autoplay({
-            delay: 4000,
+            delay: 2800,
             stopOnInteraction: false,
             stopOnMouseEnter: true,
           }),
@@ -96,13 +117,16 @@ export default function InfoCardCarousel() {
                 href={card.href}
                 className="block group relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-slate-900 shadow-[3px_3px_0px_0px_#0f172a] hover:shadow-[5px_5px_0px_0px_#0f172a] hover:-translate-y-0.5 transition-all duration-300 bg-slate-100"
               >
+                {/* Tanpa unoptimized, Next memotong ukurannya sesuai sizes dan
+                    menyajikan format modern - kartu selebar 24vw tidak lagi
+                    mengunduh gambar 1400px utuh. Yang pertama diberi priority
+                    karena berada di paruh atas beranda. */}
                 <Image
                   src={card.src}
                   alt={card.alt}
                   fill
                   sizes="(max-width: 640px) 82vw, (max-width: 1024px) 38vw, 24vw"
-                  quality={100}
-                  unoptimized
+                  priority={index === 0}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

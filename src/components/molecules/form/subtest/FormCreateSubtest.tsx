@@ -23,6 +23,7 @@ import {
   SubtestType,
 } from "@/validators/subtest/subtest-validator";
 import { useCreateSubtest } from "@/http/subtest/create-subtest";
+import SubtestScoringFields from "./SubtestScoringFields";
 
 import {
   Field,
@@ -43,6 +44,10 @@ export default function FormCreateSubtest() {
       category: "",
       exam_type: "utbk",
       max_questions: 15,
+      scoring_scheme: "right_wrong",
+      score_correct: 1,
+      score_wrong: 0,
+      score_empty: 0,
     },
     mode: "onChange",
   });
@@ -197,6 +202,8 @@ export default function FormCreateSubtest() {
                 </Field>
               )}
             />
+
+            <SubtestScoringFields form={form} />
           </FieldGroup>
 
           <div className="flex justify-end gap-3">

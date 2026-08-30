@@ -570,9 +570,7 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
       {leaderboardBasis && (
         <p className="text-xs text-muted-foreground bg-muted inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full">
           <BarChart2 className="w-3 h-3" />
-          {leaderboardBasis === "attempt_number_1"
-            ? "Peringkat berdasarkan percobaan ke-1"
-            : "Peringkat berdasarkan skor terbaik"}
+          Peringkat berdasarkan skor terbaik tiap peserta
         </p>
       )}
 
