@@ -34,6 +34,7 @@ import {
 import SubtestScoringFields from "./SubtestScoringFields";
 import { useGetDetailSubtest } from "@/http/subtest/get-detail-subtest";
 import { useUpdateSubtest } from "@/http/subtest/update-subtest";
+import { useGetSubtestCategories } from "@/http/subtest-category/get-subtest-categories";
 
 interface FormUpdateSubtestProps {
   subtestId: string;
@@ -65,6 +66,12 @@ export default function FormUpdateSubtest({
       score_empty: 0,
     },
   });
+
+  const selectedExamType = form.watch("exam_type");
+  const { data: categoryData, isPending: isLoadingCategories } = useGetSubtestCategories({
+    examType: selectedExamType,
+  });
+  const categories = categoryData?.data ?? [];
 
   useEffect(() => {
     if (!defaultData) return;
@@ -154,23 +161,26 @@ export default function FormUpdateSubtest({
 
             <Controller
               control={form.control}
-              name="category"
+              name="exam_type"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>
-                    Kategori <span className="text-red-500">*</span>
+                    Jenis Ujian <span className="text-red-500">*</span>
                   </FieldLabel>
                   <Select
                     key={field.value}
                     value={field.value}
-                    onValueChange={field.onChange}
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                      form.setValue("category", "", { shouldValidate: true });
+                    }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
+                      <SelectValue placeholder="Pilih jenis ujian" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="TPS">TPS</SelectItem>
-                      <SelectItem value="Literasi">Literasi</SelectItem>
+                      <SelectItem value="utbk">UTBK</SelectItem>
+                      <SelectItem value="cpns">CPNS</SelectItem>
                     </SelectContent>
                   </Select>
                   {fieldState.error && (
@@ -182,23 +192,34 @@ export default function FormUpdateSubtest({
 
             <Controller
               control={form.control}
-              name="exam_type"
+              name="category"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>
-                    Jenis Ujian <span className="text-red-500">*</span>
+                    Kategori <span className="text-red-500">*</span>
                   </FieldLabel>
                   <Select
                     key={field.value}
-                    value={field.value}
+                    value={field.value || undefined}
                     onValueChange={field.onChange}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih jenis ujian" />
+                      <SelectValue
+                        placeholder={
+                          isLoadingCategories
+                            ? "Memuat kategori..."
+                            : categories.length === 0
+                              ? "Belum ada kategori"
+                              : "Pilih kategori"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="utbk">UTBK</SelectItem>
-                      <SelectItem value="cpns">CPNS</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.code}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {fieldState.error && (

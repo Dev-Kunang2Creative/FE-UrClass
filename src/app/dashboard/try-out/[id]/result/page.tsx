@@ -113,7 +113,15 @@ export default function ResultPage({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
             <div className="bg-white/10 border-2 border-white/15 rounded-2xl p-4 text-center backdrop-blur-xs">
               <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">Skor</p>
-              <p className="text-2xl sm:text-3xl font-black text-white">{score_result.final_score}</p>
+              <p className="text-2xl sm:text-3xl font-black text-white">
+                {score_result.final_score}
+                {score_result.max_score ? (
+                  <span className="text-sm sm:text-base font-semibold text-white/70">
+                    {" "}
+                    / {score_result.max_score}
+                  </span>
+                ) : null}
+              </p>
             </div>
             <div className="bg-white/10 border-2 border-white/15 rounded-2xl p-4 text-center backdrop-blur-xs">
               <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">Akurasi</p>
