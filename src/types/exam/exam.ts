@@ -66,6 +66,7 @@ export interface TryoutResultData {
     is_provisional?: boolean;
     raw_score: number;
     final_score: number;
+    max_score?: number;
     accuracy: number;
   };
   /**

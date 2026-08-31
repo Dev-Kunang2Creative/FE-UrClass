@@ -43,6 +43,7 @@ import {
   LifeBuoy,
   Ticket,
   Images,
+  Layers,
   Settings,
 } from "lucide-react";
 import { SidebarUser } from "./SidebarUser";
@@ -148,6 +149,17 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       <Link href="/dashboard/admin/subtest">
                         <Book />
                         <span>Subtes</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className={buttonClass("/dashboard/admin/subtest-category")}
+                    >
+                      <Link href="/dashboard/admin/subtest-category">
+                        <Layers />
+                        <span>Kategori Subtes</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

@@ -23,7 +23,9 @@ import {
   SubtestType,
 } from "@/validators/subtest/subtest-validator";
 import { useCreateSubtest } from "@/http/subtest/create-subtest";
+import { useGetSubtestCategories } from "@/http/subtest-category/get-subtest-categories";
 import SubtestScoringFields from "./SubtestScoringFields";
+import { useEffect } from "react";
 
 import {
   Field,
@@ -51,6 +53,22 @@ export default function FormCreateSubtest() {
     },
     mode: "onChange",
   });
+
+  const selectedExamType = form.watch("exam_type");
+  const { data: categoryData, isPending: isLoadingCategories } = useGetSubtestCategories({
+    examType: selectedExamType,
+  });
+  const categories = categoryData?.data ?? [];
+
+  useEffect(() => {
+    const currentCategory = form.getValues("category");
+    if (categories.length > 0 && currentCategory) {
+      const isValid = categories.some((cat) => cat.code === currentCategory);
+      if (!isValid) {
+        form.setValue("category", "", { shouldValidate: true });
+      }
+    }
+  }, [selectedExamType, categories, form]);
 
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -120,24 +138,27 @@ export default function FormCreateSubtest() {
 
             <Controller
               control={form.control}
-              name="category"
+              name="exam_type"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>
-                    Kategori <span className="text-red-500">*</span>
+                    Jenis Ujian <span className="text-red-500">*</span>
                   </FieldLabel>
 
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                      form.setValue("category", "", { shouldValidate: true });
+                    }}
+                    value={field.value}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
+                      <SelectValue placeholder="Pilih jenis ujian" />
                     </SelectTrigger>
 
                     <SelectContent>
-                      <SelectItem value="TPS">TPS</SelectItem>
-                      <SelectItem value="Literasi">Literasi</SelectItem>
+                      <SelectItem value="utbk">UTBK</SelectItem>
+                      <SelectItem value="cpns">CPNS</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -150,24 +171,35 @@ export default function FormCreateSubtest() {
 
             <Controller
               control={form.control}
-              name="exam_type"
+              name="category"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>
-                    Jenis Ujian <span className="text-red-500">*</span>
+                    Kategori <span className="text-red-500">*</span>
                   </FieldLabel>
 
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value || undefined}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih jenis ujian" />
+                      <SelectValue
+                        placeholder={
+                          isLoadingCategories
+                            ? "Memuat kategori..."
+                            : categories.length === 0
+                              ? "Belum ada kategori"
+                              : "Pilih kategori"
+                        }
+                      />
                     </SelectTrigger>
 
                     <SelectContent>
-                      <SelectItem value="utbk">UTBK</SelectItem>
-                      <SelectItem value="cpns">CPNS</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.code}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
 

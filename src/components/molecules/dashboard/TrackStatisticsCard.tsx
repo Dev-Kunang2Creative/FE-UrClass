@@ -39,10 +39,10 @@ export default function TrackStatisticsCard({
 
   if (kategori === "cpns") {
     // CPNS Specific Calculations
-    // Passing grades: TWK 65 (max 150), TIU 80 (max 175), TKP 166 (max 225)
-    const estimatedTWK = Math.min(150, Math.round(avgScore * 0.26));
-    const estimatedTIU = Math.min(175, Math.round(avgScore * 0.32));
-    const estimatedTKP = Math.min(225, Math.round(avgScore * 0.42));
+    // Passing grades: TWK 65 (max 150), TIU 80 (max 175), TKP 166 (max 225) - Total Max: 550
+    const estimatedTWK = Math.min(150, Math.round(avgScore * (150 / 550)));
+    const estimatedTIU = Math.min(175, Math.round(avgScore * (175 / 550)));
+    const estimatedTKP = Math.min(225, Math.round(avgScore * (225 / 550)));
 
     const cpnsSubtests = [
       {

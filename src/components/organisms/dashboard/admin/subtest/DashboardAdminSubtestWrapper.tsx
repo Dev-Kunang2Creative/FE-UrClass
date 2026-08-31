@@ -142,7 +142,11 @@ export default function DashboardAdminSubtestWrapper() {
               exportTitle="laporan-subtes"
               filterSummary={`Total hasil: ${controls.rows.length}`}
             >
-              {/* Ukuran bawaan, menyamai tombol export di sebelahnya. */}
+              <Button asChild variant="outline">
+                <Link href="/dashboard/admin/subtest-category">
+                  Kelola Kategori
+                </Link>
+              </Button>
               <Button asChild>
                 <Link href="/dashboard/admin/subtest/create">
                   <Plus /> Tambah Subtes
