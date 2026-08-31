@@ -841,10 +841,10 @@ export default function FormCompleteProfile({
                         onChange={field.onChange}
                         options={formasiOptions(row.formasi.data)}
                         loading={row.formasi.isFetching}
-                        placeholder="Pilih atau ketik formasi"
-                        searchPlaceholder="Mis: Analis Anggaran"
-                        freeTextHint="Tidak ada di daftar?"
-                        emptyHint="Ketik nama formasi atau jabatan untuk mencari."
+                        placeholder="Ketik jabatan yang kamu tuju"
+                        searchPlaceholder="Mis: Analis Kebijakan Ahli Pertama"
+                        freeTextHint="Pakai jabatan yang kamu tulis"
+                        emptyHint="Tulis nama jabatan sesuai pengumuman formasi instansinya."
                         onSearchChange={row.setFormasiSearch}
                       />
                       {fieldState.error && <FieldError errors={[fieldState.error]} />}
