@@ -112,16 +112,29 @@ export default function DashboardAdminTryoutProofWrapper() {
               </span>
             </div>
 
-            {(selectedProof?.proof_image_urls ?? []).length > 0 ? (
+            {(selectedProof?.proof_items ?? []).length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(selectedProof?.proof_image_urls ?? []).map((url, index) => (
+                {(selectedProof?.proof_items ?? []).map((item, index) => (
                   <div
                     key={index}
                     className="overflow-hidden rounded-lg border bg-muted flex flex-col justify-between"
                   >
+                    {/* Judul syaratnya, supaya kelihatan bukti ini menjawab yang
+                        mana. Pendaftaran lama tidak menyimpannya, dan di situ
+                        penomoran biasa lebih jujur daripada judul karangan. */}
+                    <div className="border-b bg-background px-3 py-2">
+                      <p className="text-sm font-semibold">
+                        {item.title ?? `Bukti ${index + 1}`}
+                      </p>
+                      {!item.title && (
+                        <p className="text-xs text-muted-foreground">
+                          Diunggah sebelum syarat punya judul
+                        </p>
+                      )}
+                    </div>
                     <img
-                      src={url}
-                      alt={`Bukti follow ${index + 1}`}
+                      src={item.url}
+                      alt={item.title ?? `Bukti ${index + 1}`}
                       className="h-[60vh] w-full object-contain"
                     />
                     <div className="border-t bg-background px-2 py-1.5 mt-auto">
@@ -131,9 +144,9 @@ export default function DashboardAdminTryoutProofWrapper() {
                         className="h-7 w-full text-xs"
                         asChild
                       >
-                        <a href={url} target="_blank" rel="noopener noreferrer">
+                        <a href={item.url} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="w-3 h-3 mr-1" />
-                          Buka bukti {index + 1}
+                          Buka gambar
                         </a>
                       </Button>
                     </div>

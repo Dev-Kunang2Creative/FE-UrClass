@@ -27,24 +27,25 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard,
-  Users,
   Book,
-  ShoppingCart,
   BookCopy,
-  BookOpen,
   BookKey,
+  BookOpen,
   FileClock,
-  Home,
-  Shield,
-  GraduationCap,
-  TrendingUp,
   Gift,
-  LifeBuoy,
-  Ticket,
+  GraduationCap,
+  Home,
   Images,
+  Landmark,
   Layers,
+  LayoutDashboard,
+  LifeBuoy,
   Settings,
+  Shield,
+  ShoppingCart,
+  Ticket,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import { SidebarUser } from "./SidebarUser";
 import { DASHBOARD_MENU } from "@/constants/dashboard-menu";
@@ -181,7 +182,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     >
                       <Link href="/dashboard/admin/bukti-follow">
                         <Images />
-                        <span>Bukti Follow</span>
+                        <span>Syarat & Bukti</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -234,6 +235,17 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       <Link href="/dashboard/admin/redeem-code">
                         <Gift />
                         <span>Kode Redeem</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className={buttonClass("/dashboard/admin/instansi")}
+                    >
+                      <Link href="/dashboard/admin/instansi">
+                        <Landmark />
+                        <span>Instansi & Formasi</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
