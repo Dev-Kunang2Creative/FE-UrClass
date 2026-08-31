@@ -23,13 +23,20 @@ export const useSearchPerguruanTinggi = ({
   search,
   token,
   enabled = true,
+  jenis,
 }: {
   search: string;
   token: string;
   enabled?: boolean;
+  /**
+   * Sekolah kedinasan berada di tabel yang sama dengan PTN, dibedakan kolom
+   * ini. Tanpa filter keduanya terbawa, dan peserta UTBK tidak seharusnya
+   * menemukan IPDN di daftar target kampusnya.
+   */
+  jenis?: "ptn" | "kedinasan";
 }) =>
   useQuery({
-    queryKey: ["perguruan-tinggi", search],
+    queryKey: ["perguruan-tinggi", jenis ?? "semua", search],
     enabled: enabled && !!token,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
@@ -37,7 +44,7 @@ export const useSearchPerguruanTinggi = ({
         "/perguruan-tinggi",
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { search: search || undefined, per_page: 30 },
+          params: { search: search || undefined, per_page: 30, jenis },
         },
       );
       return data.data;

@@ -17,9 +17,21 @@ import { z } from "zod";
  * dirinya - meminta nomor HP dan asal sekolah kepada admin hanyalah pekerjaan
  * yang tidak dipakai siapa pun.
  */
+export const cpnsTargetTypes = ["kedinasan", "umum"] as const;
+export type CpnsTargetType = (typeof cpnsTargetTypes)[number];
+
+/**
+ * @param requireTarget target kampus wajib - jalur UTBK.
+ * @param isAdmin melonggarkan semuanya kecuali nama.
+ * @param cpnsTarget sub-jalur CPNS yang dipilih, atau null kalau bukan CPNS.
+ *   Menentukan pasangan field mana yang wajib: sekolah kedinasan mengisi
+ *   sekolah dan program studi, CPNS umum mengisi instansi dan formasi. Meminta
+ *   keduanya berarti meminta salah satu diisi asal-asalan.
+ */
 export function makeUpdateProfileSchema(
   requireTarget: boolean,
   isAdmin = false,
+  cpnsTarget: CpnsTargetType | null = null,
 ) {
   const target =
     requireTarget && !isAdmin
@@ -28,6 +40,14 @@ export function makeUpdateProfileSchema(
 
   const requiredForStudent = (schema: z.ZodString, message: string) =>
     isAdmin ? z.string().optional() : schema.min(1, message);
+
+  const requiredWhen = (condition: boolean, message: string) =>
+    condition && !isAdmin
+      ? z.string().min(1, message)
+      : z.string().optional();
+
+  const kedinasan = cpnsTarget === "kedinasan";
+  const umum = cpnsTarget === "umum";
 
   return z
     .object({
@@ -47,10 +67,22 @@ export function makeUpdateProfileSchema(
       birth_date: requiredForStudent(z.string(), "Tanggal lahir harus diisi"),
       province: z.string().optional(),
       city: z.string().optional(),
-      target_university_1: target,
-      target_major_1: target,
+      // Kolom yang sama menampung target PTN dan sekolah kedinasan: keduanya
+      // berbentuk sekolah plus program studi.
+      target_university_1: kedinasan
+        ? requiredWhen(true, "Sekolah kedinasan tujuan harus diisi")
+        : target,
+      target_major_1: kedinasan
+        ? requiredWhen(true, "Program studi tujuan harus diisi")
+        : target,
       target_university_2: z.string().optional(),
       target_major_2: z.string().optional(),
+
+      cpns_target_type: z.enum(cpnsTargetTypes).optional().nullable(),
+      target_instansi_1: requiredWhen(umum, "Instansi tujuan harus diisi"),
+      target_formasi_1: requiredWhen(umum, "Formasi tujuan harus diisi"),
+      target_instansi_2: z.string().optional(),
+      target_formasi_2: z.string().optional(),
     })
     .refine(
       (data) => isAdmin || data.grade_level === "Gap Year" || !!data.class_level,
