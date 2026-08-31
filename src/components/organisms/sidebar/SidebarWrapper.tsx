@@ -182,7 +182,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     >
                       <Link href="/dashboard/admin/bukti-follow">
                         <Images />
-                        <span>Bukti Follow</span>
+                        <span>Syarat & Bukti</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

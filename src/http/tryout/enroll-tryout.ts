@@ -8,25 +8,33 @@ interface EnrollResponse {
   participants_count?: number;
 }
 
+/**
+ * Bukti dikirim per syarat, dikunci pada id syaratnya.
+ *
+ * Bentuk sebelumnya mengirim proof_images[] - tumpukan gambar tanpa keterangan -
+ * sehingga saat ditinjau tidak ada cara tahu tangkapan layar mana yang menjawab
+ * syarat mana. Begitu syaratnya lebih dari satu macam (follow, tag, bagikan),
+ * itu justru pertanyaan pertama admin.
+ */
+export type ProofFiles = Record<string, File>;
+
 export const EnrollTryoutHandler = async (
   tryoutId: string,
   token: string,
-  proofImages?: File[]
+  proofs?: ProofFiles,
 ): Promise<EnrollResponse> => {
-  if (proofImages?.length) {
+  const entries = Object.entries(proofs ?? {});
+
+  if (entries.length > 0) {
     const formData = new FormData();
-    proofImages.forEach((proofImage) => {
-      formData.append("proof_images[]", proofImage);
+    entries.forEach(([requirementId, file]) => {
+      formData.append(`proofs[${requirementId}]`, file);
     });
 
     const { data } = await api.post<EnrollResponse>(
       `/tryouts/${tryoutId}/enroll`,
       formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+      { headers: { Authorization: `Bearer ${token}` } },
     );
     return data;
   }
@@ -34,7 +42,7 @@ export const EnrollTryoutHandler = async (
   const { data } = await api.post<EnrollResponse>(
     `/tryouts/${tryoutId}/enroll`,
     {},
-    { headers: { Authorization: `Bearer ${token}` } }
+    { headers: { Authorization: `Bearer ${token}` } },
   );
   return data;
 };
@@ -44,11 +52,17 @@ export const useEnrollTryout = ({
   options,
 }: {
   token: string;
-  options?: Partial<UseMutationOptions<EnrollResponse, AxiosError, { tryoutId: string; proofImages?: File[] }>>;
+  options?: Partial<
+    UseMutationOptions<
+      EnrollResponse,
+      AxiosError,
+      { tryoutId: string; proofs?: ProofFiles }
+    >
+  >;
 }) => {
   return useMutation({
-    mutationFn: ({ tryoutId, proofImages }: { tryoutId: string; proofImages?: File[] }) =>
-      EnrollTryoutHandler(tryoutId, token, proofImages),
+    mutationFn: ({ tryoutId, proofs }: { tryoutId: string; proofs?: ProofFiles }) =>
+      EnrollTryoutHandler(tryoutId, token, proofs),
     ...options,
   });
 };
