@@ -31,9 +31,7 @@ export const updateProfileApiHandler = async (
     target_major_1: body.target_major_1 || null,
     target_university_2: body.target_university_2 || null,
     target_major_2: body.target_major_2 || null,
-    // Target jalur CPNS. Sekolah kedinasan memakai target_university_* dan
-    // target_major_* di atas, karena bentuknya sama dengan target PTN.
-    cpns_target_type: body.cpns_target_type || null,
+    // Target jalur CPNS: instansi dan formasi yang dituju pelamar.
     target_instansi_1: body.target_instansi_1 || null,
     target_formasi_1: body.target_formasi_1 || null,
     target_instansi_2: body.target_instansi_2 || null,

@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   makeUpdateProfileSchema,
   UpdateProfileType,
-  type CpnsTargetType,
 } from "@/validators/profile/update-profile-validator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -117,32 +116,14 @@ export default function FormCompleteProfile({
 
   const isCpns = kategori === "cpns";
 
-  /**
-   * Sub-jalur peserta CPNS, dipilih di form ini.
-   *
-   * Jalur CPNS melayani dua audiens dengan target berbeda bentuk: pelamar
-   * sekolah kedinasan menuju sekolah dan program studi, pelamar CPNS umum
-   * menuju instansi dan formasi. Meminta keduanya berarti meminta salah satu
-   * diisi asal-asalan, jadi yang muncul hanya yang dipilih.
-   */
-  const [cpnsTarget, setCpnsTarget] = useState<CpnsTargetType>(
-    session?.user?.cpns_target_type === "umum" ? "umum" : "kedinasan",
-  );
-
-  // Target berbentuk sekolah + program studi: UTBK memakai PTN, CPNS jalur
-  // kedinasan memakai sekolah kedinasan. Bentuknya sama, jadi bagian form dan
-  // kolom penyimpanannya juga sama - yang berbeda hanya sumber daftarnya.
-  const showTargets =
-    !isAdmin && (kategori === "utbk" || (isCpns && cpnsTarget === "kedinasan"));
-  const showFormasiTargets = !isAdmin && isCpns && cpnsTarget === "umum";
+  // Target kampus milik jalur UTBK, target instansi milik jalur CPNS. Tidak ada
+  // peserta yang mengisi keduanya, jadi bagian yang tampil mengikuti jalurnya.
+  const showTargets = !isAdmin && kategori === "utbk";
+  const showFormasiTargets = !isAdmin && isCpns;
 
   const schema = useMemo(
-    () => makeUpdateProfileSchema(
-      kategori === "utbk" && !isAdmin,
-      isAdmin,
-      isCpns ? cpnsTarget : null,
-    ),
-    [kategori, isAdmin, isCpns, cpnsTarget],
+    () => makeUpdateProfileSchema(showTargets, isAdmin, showFormasiTargets),
+    [showTargets, isAdmin, showFormasiTargets],
   );
 
   const form = useForm<UpdateProfileType>({
@@ -164,7 +145,6 @@ export default function FormCompleteProfile({
       target_major_1: session?.user?.target_major_1 || "",
       target_university_2: session?.user?.target_university_2 || "",
       target_major_2: session?.user?.target_major_2 || "",
-      cpns_target_type: session?.user?.cpns_target_type ?? undefined,
       target_instansi_1: session?.user?.target_instansi_1 || "",
       target_formasi_1: session?.user?.target_formasi_1 || "",
       target_instansi_2: session?.user?.target_instansi_2 || "",
@@ -222,13 +202,11 @@ export default function FormCompleteProfile({
     search: uniSearch1,
     token,
     enabled: showTargets,
-    jenis: isCpns ? "kedinasan" : "ptn",
   });
   const uni2 = useSearchPerguruanTinggi({
     search: uniSearch2,
     token,
     enabled: showTargets,
-    jenis: isCpns ? "kedinasan" : "ptn",
   });
   const major1 = useProgramStudi({
     perguruanTinggiId: uniId1,
@@ -656,74 +634,11 @@ export default function FormCompleteProfile({
         </Section>
       )}
 
-      {/* Jalur CPNS melayani dua audiens dengan target berbeda bentuk, jadi
-          sub-jalurnya ditanyakan lebih dulu - baru field targetnya menyesuaikan.
-          Tanpa ini, salah satu pasangan field pasti terisi asal-asalan. */}
-      {isCpns && !isAdmin && (
-        <Section
-          icon={Target}
-          title="Tujuanmu"
-          description="Pilih dulu, supaya kolom target di bawah menyesuaikan."
-        >
-          <Controller
-            control={form.control}
-            name="cpns_target_type"
-            render={({ field }) => (
-              <Field>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {(
-                    [
-                      ["kedinasan", "Sekolah Kedinasan", "PKN STAN, IPDN, STIS, dan sejenisnya"],
-                      ["umum", "CPNS Umum", "Melamar ke instansi dan formasi"],
-                    ] as const
-                  ).map(([value, label, hint]) => (
-                    <label
-                      key={value}
-                      className={`flex cursor-pointer flex-col gap-0.5 rounded-xl border-2 px-4 py-3 text-left transition-colors ${
-                        cpnsTarget === value
-                          ? "border-slate-900 bg-track-tint"
-                          : "border-slate-200 hover:bg-slate-50"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="cpns_target_type"
-                        value={value}
-                        className="hidden"
-                        checked={cpnsTarget === value}
-                        onChange={() => {
-                          setCpnsTarget(value);
-                          field.onChange(value);
-                        }}
-                      />
-                      <span
-                        className={`text-sm ${
-                          cpnsTarget === value
-                            ? "font-bold text-slate-900"
-                            : "text-slate-600"
-                        }`}
-                      >
-                        {label}
-                      </span>
-                      <span className="text-xs text-slate-500">{hint}</span>
-                    </label>
-                  ))}
-                </div>
-              </Field>
-            )}
-          />
-        </Section>
-      )}
-
       {showTargets && (
         <Section
           icon={Target}
-          title={isCpns ? "Target sekolah kedinasan" : "Target kampus"}
-          description={
-            isCpns
-              ? "Pilih dari daftar sekolah kedinasan, atau ketik sendiri kalau sekolahmu belum ada di daftar."
-              : "Pilih dari daftar PTN, atau ketik sendiri kalau kampusmu belum ada di daftar."
-          }
+          title="Target kampus"
+          description="Pilih dari daftar PTN, atau ketik sendiri kalau kampusmu belum ada di daftar."
         >
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -733,8 +648,7 @@ export default function FormCompleteProfile({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      {isCpns ? "Sekolah kedinasan pilihan 1" : "Universitas pilihan 1"}{" "}
-                      <Required />
+                      Universitas pilihan 1 <Required />
                     </FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}
@@ -764,8 +678,7 @@ export default function FormCompleteProfile({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      {isCpns ? "Program studi pilihan 1" : "Jurusan pilihan 1"}{" "}
-                      <Required />
+                      Jurusan pilihan 1 <Required />
                     </FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}
@@ -822,9 +735,7 @@ export default function FormCompleteProfile({
                 name="target_major_2"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>
-                      {isCpns ? "Program studi pilihan 2" : "Jurusan pilihan 2"}
-                    </FieldLabel>
+                    <FieldLabel>Jurusan pilihan 2</FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}
                       onChange={(label) => field.onChange(label)}

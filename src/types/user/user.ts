@@ -17,12 +17,7 @@ export interface User {
   target_university_2?: string;
   target_major_1?: string;
   target_major_2?: string;
-  /**
-   * Sub-jalur target peserta CPNS. Menentukan pasangan field mana yang berlaku:
-   * "kedinasan" memakai target_university_* dan target_major_* di atas karena
-   * bentuknya sama dengan target PTN, "umum" memakai instansi dan formasi.
-   */
-  cpns_target_type?: "kedinasan" | "umum" | null;
+  /** Target jalur CPNS: instansi dan formasi yang dituju pelamar. */
   target_instansi_1?: string;
   target_formasi_1?: string;
   target_instansi_2?: string;
