@@ -20,7 +20,18 @@ export interface AdminFormasi {
   instansi_id: string;
   nama: string;
   jenjang: string | null;
+  periode: number | null;
   is_active: boolean;
+}
+
+export interface FormasiImportResult {
+  imported: number;
+  updated: number;
+  skipped: number;
+  instansi_created: number;
+  /** Dipotong 50 baris pertama oleh server; error_total jumlah utuhnya. */
+  errors: string[];
+  error_total: number;
 }
 
 interface Paginated<T> {
@@ -120,6 +131,48 @@ export const useDeleteFormasi = ({ token }: { token: string }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-formasi", variables.instansiId] });
       queryClient.invalidateQueries({ queryKey: ["admin-instansi"] });
       queryClient.invalidateQueries({ queryKey: ["formasi"] });
+    },
+  });
+};
+
+/**
+ * Impor rekap formasi dari berkas Excel.
+ *
+ * Satu periode seleksi bisa memuat ribuan formasi, jadi mengisinya lewat form
+ * per baris bukan pilihan yang masuk akal. Ini jalan masuk borongannya.
+ *
+ * Setelah berhasil, status formasi ikut dibatalkan cache-nya: unggahan pertama
+ * mengubah keadaan dari "belum dibuka" menjadi terbuka, dan form profil peserta
+ * membaca status itu untuk memutuskan menampilkan picker atau pemberitahuan.
+ */
+export const useImportFormasi = ({ token }: { token: string }) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { message: string; data: FormasiImportResult },
+    AxiosError<{ message?: string; data?: FormasiImportResult }>,
+    { file: File; createMissingInstansi: boolean }
+  >({
+    mutationFn: async ({ file, createMissingInstansi }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (createMissingInstansi) {
+        formData.append("create_missing_instansi", "1");
+      }
+
+      const { data } = await api.post("/admin/formasi/import", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-instansi"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-formasi"] });
+      queryClient.invalidateQueries({ queryKey: ["formasi"] });
+      queryClient.invalidateQueries({ queryKey: ["formasi-status"] });
     },
   });
 };

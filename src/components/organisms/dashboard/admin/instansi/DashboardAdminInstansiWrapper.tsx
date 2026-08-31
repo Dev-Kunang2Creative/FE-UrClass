@@ -3,7 +3,16 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Eye,
+  FileSpreadsheet,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +24,8 @@ import {
   useCreateFormasi,
   useDeleteFormasi,
 } from "@/http/instansi/admin-instansi";
+import { useFormasiStatus } from "@/http/reference/get-instansi";
+import DialogImportFormasi from "@/components/molecules/dialog/DialogImportFormasi";
 
 /**
  * Pengelolaan formasi per instansi.
@@ -32,6 +43,12 @@ export default function DashboardAdminInstansiWrapper() {
   const [search, setSearch] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [draft, setDraft] = useState({ nama: "", jenjang: "" });
+  const [importOpen, setImportOpen] = useState(false);
+
+  // Keadaan yang sedang dilihat peserta. Ditampilkan di sini supaya admin tahu
+  // akibat langsung dari unggahannya: selama belum ada satu formasi pun, form
+  // profil peserta menampilkan pemberitahuan alih-alih pilihan formasi.
+  const formasiStatus = useFormasiStatus({ token });
 
   const { data, isPending } = useAdminInstansi({ token, search });
   const rows = data?.data ?? [];
@@ -79,14 +96,68 @@ export default function DashboardAdminInstansiWrapper() {
             </p>
           </div>
 
-          <div className="relative max-w-sm">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Cari instansi..."
-              className="pl-9"
-            />
+          {formasiStatus.data && (
+            <div
+              className={`flex items-start gap-3 rounded-xl border-2 px-4 py-3 ${
+                formasiStatus.data.is_open
+                  ? "border-emerald-200 bg-emerald-50"
+                  : "border-amber-200 bg-amber-50"
+              }`}
+            >
+              {formasiStatus.data.is_open ? (
+                <Eye className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+              ) : (
+                <Clock className="mt-0.5 size-5 shrink-0 text-amber-600" />
+              )}
+              <div className="space-y-1">
+                <p
+                  className={`text-sm font-bold ${
+                    formasiStatus.data.is_open
+                      ? "text-emerald-900"
+                      : "text-amber-900"
+                  }`}
+                >
+                  {formasiStatus.data.is_open
+                    ? `Peserta melihat ${formasiStatus.data.total} pilihan formasi`
+                    : `Peserta melihat "Formasi CPNS ${formasiStatus.data.periode} belum dibuka"`}
+                </p>
+                <p
+                  className={`text-xs leading-relaxed ${
+                    formasiStatus.data.is_open
+                      ? "text-emerald-800"
+                      : "text-amber-800"
+                  }`}
+                >
+                  {formasiStatus.data.is_open
+                    ? "Kolom formasi di form profil peserta sudah aktif. Menghapus seluruh formasi akan mengembalikan pemberitahuan itu."
+                    : "Begitu satu formasi masuk - lewat impor Excel atau ditambah manual di bawah - kolom formasi di form profil peserta langsung aktif, tanpa perlu deploy."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-sm">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Cari instansi..."
+                className="pl-9"
+              />
+            </div>
+
+            {/* Satu periode seleksi bisa memuat ribuan formasi, jadi jalur
+                borongan bukan pelengkap - itu jalur utamanya. Menambah manual
+                di bawah untuk koreksi satu-dua baris. */}
+            <Button
+              type="button"
+              onClick={() => setImportOpen(true)}
+              className="w-full border-2 border-slate-900 font-bold sm:w-auto"
+            >
+              <FileSpreadsheet className="mr-2 size-4" />
+              Import Formasi (Excel)
+            </Button>
           </div>
 
           {isPending ? (
@@ -239,6 +310,7 @@ export default function DashboardAdminInstansiWrapper() {
           )}
         </CardContent>
       </Card>
+      <DialogImportFormasi open={importOpen} onOpenChange={setImportOpen} />
     </section>
   );
 }

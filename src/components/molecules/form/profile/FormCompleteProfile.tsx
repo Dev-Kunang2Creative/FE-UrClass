@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   makeUpdateProfileSchema,
   UpdateProfileType,
+  type CpnsTargetType,
 } from "@/validators/profile/update-profile-validator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,12 +14,13 @@ import { updateProfileApiHandler } from "@/http/profile/update-profile";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Loader2, User, GraduationCap, Target } from "lucide-react";
+import { Loader2, User, GraduationCap, Target, Clock } from "lucide-react";
 import ReferenceCombobox from "@/components/atoms/combobox/ReferenceCombobox";
 import { useSearchPerguruanTinggi } from "@/http/reference/get-perguruan-tinggi";
 import { useProgramStudi } from "@/http/reference/get-program-studi";
 import {
   useFormasi,
+  useFormasiStatus,
   useSearchInstansi,
   type FormasiOption,
   type InstansiOption,
@@ -116,14 +118,53 @@ export default function FormCompleteProfile({
 
   const isCpns = kategori === "cpns";
 
-  // Target kampus milik jalur UTBK, target instansi milik jalur CPNS. Tidak ada
-  // peserta yang mengisi keduanya, jadi bagian yang tampil mengikuti jalurnya.
-  const showTargets = !isAdmin && kategori === "utbk";
-  const showFormasiTargets = !isAdmin && isCpns;
+  /**
+   * Sub-jalur peserta CPNS, dipilih di form ini.
+   *
+   * Jalur CPNS melayani dua audiens dengan target berbeda bentuk: pelamar
+   * sekolah kedinasan menuju sekolah dan program studi, pelamar CPNS umum
+   * menuju instansi dan formasi. Meminta keduanya berarti meminta salah satu
+   * diisi asal-asalan, jadi yang muncul hanya yang dipilih.
+   */
+  const [cpnsTarget, setCpnsTarget] = useState<CpnsTargetType>(
+    session?.user?.cpns_target_type === "umum" ? "umum" : "kedinasan",
+  );
+
+  // Target berbentuk sekolah + program studi: UTBK memakai PTN, CPNS jalur
+  // kedinasan memakai sekolah kedinasan. Bentuknya sama, jadi bagian form dan
+  // kolom penyimpanannya juga sama - yang berbeda hanya sumber daftarnya.
+  const showTargets =
+    !isAdmin && (kategori === "utbk" || (isCpns && cpnsTarget === "kedinasan"));
+  const showFormasiTargets = !isAdmin && isCpns && cpnsTarget === "umum";
+
+  /**
+   * Rekap formasi diterbitkan SSCASN per periode seleksi, jadi ada masa di mana
+   * instansinya sudah diketahui tetapi formasinya belum diumumkan sama sekali.
+   * Selama masa itu, menampilkan picker formasi yang kosong tidak bisa
+   * dibedakan dari kerusakan - jadi kolomnya diganti pemberitahuan, dan tidak
+   * diwajibkan.
+   *
+   * Statusnya datang dari server dan diturunkan dari datanya sendiri, sehingga
+   * begitu admin mengunggah rekapnya kolomnya hidup tanpa perlu deploy.
+   */
+  const formasiStatus = useFormasiStatus({
+    token,
+    enabled: showFormasiTargets,
+  });
+
+  // Selama statusnya belum diketahui, formasi dianggap belum dibuka. Menganggap
+  // sebaliknya berarti picker sempat muncul lalu hilang begitu jawabannya tiba.
+  const formasiOpen = formasiStatus.data?.is_open ?? false;
+  const periodeFormasi = formasiStatus.data?.periode ?? new Date().getFullYear();
 
   const schema = useMemo(
-    () => makeUpdateProfileSchema(showTargets, isAdmin, showFormasiTargets),
-    [showTargets, isAdmin, showFormasiTargets],
+    () => makeUpdateProfileSchema(
+      kategori === "utbk" && !isAdmin,
+      isAdmin,
+      isCpns ? cpnsTarget : null,
+      formasiOpen,
+    ),
+    [kategori, isAdmin, isCpns, cpnsTarget, formasiOpen],
   );
 
   const form = useForm<UpdateProfileType>({
@@ -145,6 +186,7 @@ export default function FormCompleteProfile({
       target_major_1: session?.user?.target_major_1 || "",
       target_university_2: session?.user?.target_university_2 || "",
       target_major_2: session?.user?.target_major_2 || "",
+      cpns_target_type: session?.user?.cpns_target_type ?? undefined,
       target_instansi_1: session?.user?.target_instansi_1 || "",
       target_formasi_1: session?.user?.target_formasi_1 || "",
       target_instansi_2: session?.user?.target_instansi_2 || "",
@@ -189,24 +231,26 @@ export default function FormCompleteProfile({
     instansiId: instansiId1,
     search: formasiSearch1,
     token,
-    enabled: showFormasiTargets,
+    enabled: showFormasiTargets && formasiOpen,
   });
   const formasi2 = useFormasi({
     instansiId: instansiId2,
     search: formasiSearch2,
     token,
-    enabled: showFormasiTargets,
+    enabled: showFormasiTargets && formasiOpen,
   });
 
   const uni1 = useSearchPerguruanTinggi({
     search: uniSearch1,
     token,
     enabled: showTargets,
+    jenis: isCpns ? "kedinasan" : "ptn",
   });
   const uni2 = useSearchPerguruanTinggi({
     search: uniSearch2,
     token,
     enabled: showTargets,
+    jenis: isCpns ? "kedinasan" : "ptn",
   });
   const major1 = useProgramStudi({
     perguruanTinggiId: uniId1,
@@ -634,11 +678,74 @@ export default function FormCompleteProfile({
         </Section>
       )}
 
+      {/* Jalur CPNS melayani dua audiens dengan target berbeda bentuk, jadi
+          sub-jalurnya ditanyakan lebih dulu - baru field targetnya menyesuaikan.
+          Tanpa ini, salah satu pasangan field pasti terisi asal-asalan. */}
+      {isCpns && !isAdmin && (
+        <Section
+          icon={Target}
+          title="Tujuanmu"
+          description="Pilih dulu, supaya kolom target di bawah menyesuaikan."
+        >
+          <Controller
+            control={form.control}
+            name="cpns_target_type"
+            render={({ field }) => (
+              <Field>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {(
+                    [
+                      ["kedinasan", "Sekolah Kedinasan", "PKN STAN, IPDN, STIS, dan sejenisnya"],
+                      ["umum", "CPNS Umum", "Melamar ke instansi dan formasi"],
+                    ] as const
+                  ).map(([value, label, hint]) => (
+                    <label
+                      key={value}
+                      className={`flex cursor-pointer flex-col gap-0.5 rounded-xl border-2 px-4 py-3 text-left transition-colors ${
+                        cpnsTarget === value
+                          ? "border-slate-900 bg-track-tint"
+                          : "border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="cpns_target_type"
+                        value={value}
+                        className="hidden"
+                        checked={cpnsTarget === value}
+                        onChange={() => {
+                          setCpnsTarget(value);
+                          field.onChange(value);
+                        }}
+                      />
+                      <span
+                        className={`text-sm ${
+                          cpnsTarget === value
+                            ? "font-bold text-slate-900"
+                            : "text-slate-600"
+                        }`}
+                      >
+                        {label}
+                      </span>
+                      <span className="text-xs text-slate-500">{hint}</span>
+                    </label>
+                  ))}
+                </div>
+              </Field>
+            )}
+          />
+        </Section>
+      )}
+
       {showTargets && (
         <Section
           icon={Target}
-          title="Target kampus"
-          description="Pilih dari daftar PTN, atau ketik sendiri kalau kampusmu belum ada di daftar."
+          title={isCpns ? "Target sekolah kedinasan" : "Target kampus"}
+          description={
+            isCpns
+              ? "Pilih dari daftar sekolah kedinasan, atau ketik sendiri kalau sekolahmu belum ada di daftar."
+              : "Pilih dari daftar PTN, atau ketik sendiri kalau kampusmu belum ada di daftar."
+          }
         >
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -648,7 +755,8 @@ export default function FormCompleteProfile({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      Universitas pilihan 1 <Required />
+                      {isCpns ? "Sekolah kedinasan pilihan 1" : "Universitas pilihan 1"}{" "}
+                      <Required />
                     </FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}
@@ -678,7 +786,8 @@ export default function FormCompleteProfile({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      Jurusan pilihan 1 <Required />
+                      {isCpns ? "Program studi pilihan 1" : "Jurusan pilihan 1"}{" "}
+                      <Required />
                     </FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}
@@ -735,7 +844,9 @@ export default function FormCompleteProfile({
                 name="target_major_2"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Jurusan pilihan 2</FieldLabel>
+                    <FieldLabel>
+                      {isCpns ? "Program studi pilihan 2" : "Jurusan pilihan 2"}
+                    </FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}
                       onChange={(label) => field.onChange(label)}
@@ -767,9 +878,32 @@ export default function FormCompleteProfile({
         <Section
           icon={Target}
           title="Target instansi & formasi"
-          description="Pilih dari daftar, atau ketik sendiri kalau instansi dan formasimu belum ada."
+          description={
+            formasiOpen
+              ? "Pilih dari daftar, atau ketik sendiri kalau instansi dan formasimu belum ada."
+              : "Pilih instansi tujuanmu dulu. Formasinya bisa diisi nanti."
+          }
         >
           <div className="space-y-4">
+            {/* Instansinya sudah bisa dipilih, formasinya belum ada. Peserta
+                perlu diberi tahu supaya tidak menganggap kolomnya rusak atau
+                menunda mengisi profilnya sampai formasi terbit. */}
+            {!formasiOpen && (
+              <div className="flex items-start gap-3 rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-3">
+                <Clock className="mt-0.5 size-5 shrink-0 text-amber-600" />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-amber-900">
+                    Formasi CPNS {periodeFormasi} belum dibuka
+                  </p>
+                  <p className="text-xs leading-relaxed text-amber-800">
+                    Rincian formasi diumumkan resmi per periode seleksi dan
+                    belum terbit. Pilih instansi tujuanmu sekarang — begitu
+                    formasinya keluar, kolom formasi muncul di sini dan kamu
+                    bisa melengkapinya. Stay tune ya!
+                  </p>
+                </div>
+              </div>
+            )}
             {(
               [
                 {
@@ -796,7 +930,14 @@ export default function FormCompleteProfile({
                 },
               ]
             ).map((row) => (
-              <div key={row.slot} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div
+                key={row.slot}
+                className={
+                  formasiOpen
+                    ? "grid grid-cols-1 gap-4 md:grid-cols-2"
+                    : "grid grid-cols-1 gap-4"
+                }
+              >
                 <Controller
                   control={form.control}
                   name={row.instansiName}
@@ -828,6 +969,11 @@ export default function FormCompleteProfile({
                   )}
                 />
 
+                {/* Selama rekapnya belum terbit, kolom ini tidak dirender
+                    sama sekali. Menampilkannya dalam keadaan nonaktif hanya
+                    menyisakan kolom yang tidak bisa diapa-apakan, dan
+                    pemberitahuan di atas sudah menjelaskan sebabnya. */}
+                {formasiOpen && (
                 <Controller
                   control={form.control}
                   name={row.formasiName}
@@ -851,6 +997,7 @@ export default function FormCompleteProfile({
                     </Field>
                   )}
                 />
+                )}
               </div>
             ))}
           </div>

@@ -17,17 +17,27 @@ import { z } from "zod";
  * dirinya - meminta nomor HP dan asal sekolah kepada admin hanyalah pekerjaan
  * yang tidak dipakai siapa pun.
  */
+export const cpnsTargetTypes = ["kedinasan", "umum"] as const;
+export type CpnsTargetType = (typeof cpnsTargetTypes)[number];
+
 /**
  * @param requireTarget target kampus wajib - jalur UTBK.
  * @param isAdmin melonggarkan semuanya kecuali nama.
- * @param requireInstansi target instansi dan formasi wajib - jalur CPNS.
- *   Tidak ada peserta yang mengisi keduanya, jadi masing-masing hanya
- *   diwajibkan pada jalurnya sendiri.
+ * @param cpnsTarget sub-jalur CPNS yang dipilih, atau null kalau bukan CPNS.
+ *   Menentukan pasangan field mana yang wajib: sekolah kedinasan mengisi
+ *   sekolah dan program studi, CPNS umum mengisi instansi dan formasi. Meminta
+ *   keduanya berarti meminta salah satu diisi asal-asalan.
+ * @param formasiOpen rekap formasi periode ini sudah terbit. Selama belum,
+ *   formasi tidak bisa diwajibkan - kalau diwajibkan, tidak ada pelamar CPNS
+ *   umum yang bisa menyimpan profilnya sampai daftarnya diumumkan. Sengaja
+ *   dibuat sejajar dengan ProfileController, yang melonggarkan aturan yang sama
+ *   di server.
  */
 export function makeUpdateProfileSchema(
   requireTarget: boolean,
   isAdmin = false,
-  requireInstansi = false,
+  cpnsTarget: CpnsTargetType | null = null,
+  formasiOpen = true,
 ) {
   const target =
     requireTarget && !isAdmin
@@ -41,6 +51,9 @@ export function makeUpdateProfileSchema(
     condition && !isAdmin
       ? z.string().min(1, message)
       : z.string().optional();
+
+  const kedinasan = cpnsTarget === "kedinasan";
+  const umum = cpnsTarget === "umum";
 
   return z
     .object({
@@ -60,13 +73,23 @@ export function makeUpdateProfileSchema(
       birth_date: requiredForStudent(z.string(), "Tanggal lahir harus diisi"),
       province: z.string().optional(),
       city: z.string().optional(),
-      target_university_1: target,
-      target_major_1: target,
+      // Kolom yang sama menampung target PTN dan sekolah kedinasan: keduanya
+      // berbentuk sekolah plus program studi.
+      target_university_1: kedinasan
+        ? requiredWhen(true, "Sekolah kedinasan tujuan harus diisi")
+        : target,
+      target_major_1: kedinasan
+        ? requiredWhen(true, "Program studi tujuan harus diisi")
+        : target,
       target_university_2: z.string().optional(),
       target_major_2: z.string().optional(),
 
-      target_instansi_1: requiredWhen(requireInstansi, "Instansi tujuan harus diisi"),
-      target_formasi_1: requiredWhen(requireInstansi, "Formasi tujuan harus diisi"),
+      cpns_target_type: z.enum(cpnsTargetTypes).optional().nullable(),
+      target_instansi_1: requiredWhen(umum, "Instansi tujuan harus diisi"),
+      target_formasi_1: requiredWhen(
+        umum && formasiOpen,
+        "Formasi tujuan harus diisi",
+      ),
       target_instansi_2: z.string().optional(),
       target_formasi_2: z.string().optional(),
     })

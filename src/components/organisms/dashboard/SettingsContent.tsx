@@ -21,11 +21,29 @@ import FormCompleteProfile from "@/components/molecules/form/profile/FormComplet
 import { useKategori } from "@/hooks/useKategori";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
 import { formatJakartaDate } from "@/utils/date-time";
+import { useFormasiStatus } from "@/http/reference/get-instansi";
 
 export default function SettingsContent() {
   const { data: session } = useSession();
   const [isEdit, setIsEdit] = useState(false);
   const { kategori, switchKategori, isSwitching } = useKategori();
+
+  /**
+   * Formasi baru terbit per periode seleksi, jadi ada masa di mana peserta
+   * memang belum bisa mengisinya. Tanpa pengecekan ini, kartu "N data belum
+   * diisi" menagih peserta atas kolom yang tidak mungkin ia lengkapi - dan
+   * tagihan yang tidak bisa dipenuhi hanya membuat kartu itu diabaikan
+   * seluruhnya, termasuk untuk kolom yang benar-benar kurang.
+   *
+   * Dipanggil di sini, di atas early return di bawah, karena hook tidak boleh
+   * dilewati pada sebagian render. Penyaringan ke pelamar CPNS umum dilakukan
+   * lewat `enabled`, bukan dengan tidak memanggilnya.
+   */
+  const formasiStatus = useFormasiStatus({
+    token: session?.access_token ?? "",
+    enabled: session?.user?.cpns_target_type === "umum",
+  });
+  const formasiOpen = formasiStatus.data?.is_open ?? false;
 
   // Handle loading state gracefully
   if (!session) {
@@ -66,7 +84,13 @@ export default function SettingsContent() {
   const targetUniversity2 = user?.target_university_2 || "";
   const targetMajor2 = user?.target_major_2 || "";
 
-  // Target jalur CPNS: instansi dan formasi yang dituju pelamar.
+  // Peserta CPNS punya dua bentuk target. Sekolah kedinasan memakai kolom
+  // universitas/jurusan di atas karena bentuknya sama dengan target PTN;
+  // pelamar CPNS umum memakai instansi dan formasi.
+  const cpnsTargetType = user?.cpns_target_type ?? null;
+  const isKedinasan = cpnsTargetType === "kedinasan";
+  const isUmum = cpnsTargetType === "umum";
+
   const targetInstansi1 = user?.target_instansi_1 || "";
   const targetFormasi1 = user?.target_formasi_1 || "";
   const targetInstansi2 = user?.target_instansi_2 || "";
@@ -87,8 +111,11 @@ export default function SettingsContent() {
         !school && "asal sekolah",
         kategori === "utbk" && !targetUniversity1 && "target universitas",
         kategori === "utbk" && !targetMajor1 && "target jurusan",
-        kategori === "cpns" && !targetInstansi1 && "target instansi",
-        kategori === "cpns" && !targetFormasi1 && "target formasi",
+        kategori === "cpns" && !cpnsTargetType && "tujuan (kedinasan atau CPNS umum)",
+        isKedinasan && !targetUniversity1 && "target sekolah kedinasan",
+        isKedinasan && !targetMajor1 && "target program studi",
+        isUmum && !targetInstansi1 && "target instansi",
+        isUmum && formasiOpen && !targetFormasi1 && "target formasi",
       ].filter((item): item is string => typeof item === "string");
 
   return (
@@ -335,14 +362,37 @@ export default function SettingsContent() {
                   </>
                 )}
 
-                {/* Target instansi hanya milik jalur CPNS, seperti target
-                    kampus hanya milik jalur UTBK di atas. */}
+                {/* Yang ditampilkan hanya pasangan yang berlaku bagi peserta
+                    itu - menampilkan keduanya berarti setengahnya selalu
+                    "Belum diisi" tanpa pernah perlu diisi. */}
                 {kategori === "cpns" && (
                   <>
-                    <DetailRow label="Instansi Tujuan 1" value={targetInstansi1} />
-                    <DetailRow label="Formasi Tujuan 1" value={targetFormasi1} />
-                    <DetailRow label="Instansi Tujuan 2" value={targetInstansi2} />
-                    <DetailRow label="Formasi Tujuan 2" value={targetFormasi2} />
+                    <DetailRow
+                      label="Tujuan"
+                      value={
+                        isKedinasan
+                          ? "Sekolah Kedinasan"
+                          : isUmum
+                            ? "CPNS Umum"
+                            : ""
+                      }
+                    />
+                    {isKedinasan && (
+                      <>
+                        <DetailRow label="Sekolah Kedinasan 1" value={targetUniversity1} />
+                        <DetailRow label="Program Studi 1" value={targetMajor1} />
+                        <DetailRow label="Sekolah Kedinasan 2" value={targetUniversity2} />
+                        <DetailRow label="Program Studi 2" value={targetMajor2} />
+                      </>
+                    )}
+                    {isUmum && (
+                      <>
+                        <DetailRow label="Instansi 1" value={targetInstansi1} />
+                        <DetailRow label="Formasi 1" value={targetFormasi1} />
+                        <DetailRow label="Instansi 2" value={targetInstansi2} />
+                        <DetailRow label="Formasi 2" value={targetFormasi2} />
+                      </>
+                    )}
                   </>
                 )}
               </div>
