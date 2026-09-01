@@ -41,6 +41,15 @@ export const participantsColumns: (
       ),
     },
     {
+      id: "participant_type",
+      header: "Tipe",
+      cell: ({ row }) => (
+        <Badge variant={row.original.user?.is_dummy ? "secondary" : "outline"}>
+          {row.original.user?.is_dummy ? "[DUMMY]" : "[ASLI]"}
+        </Badge>
+      ),
+    },
+    {
       id: "tiket_balances",
       header: "Tiket",
       cell: ({ row }) => (

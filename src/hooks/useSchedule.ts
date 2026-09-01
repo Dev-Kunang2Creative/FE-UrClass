@@ -1,41 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  describeSchedule,
-  sameSchedule,
-  type Schedule,
-} from "@/lib/tryout-schedule";
+import { useEffect, useMemo, useState } from "react";
+import { describeSchedule, type Schedule } from "@/lib/tryout-schedule";
 
 /**
- * A live view of where a tryout sits relative to now, or null until the first
- * tick after mount.
- *
- * A second keeps a phase change prompt; sameSchedule bails out when nothing
- * rendered would differ, so a grid of cards is not re-rendered once a second
- * for a label that only changes by the minute.
+ * A live view of where a tryout sits relative to now. The clock advances once
+ * a second while both schedule boundaries are available.
  */
 export function useSchedule(
   startDate?: string | null,
   endDate?: string | null,
 ): Schedule | null {
-  const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   useEffect(() => {
-    if (!startDate || !endDate) {
-      setSchedule(null);
-      return;
-    }
+    if (!startDate || !endDate) return;
 
-    const tick = () =>
-      setSchedule((prev) =>
-        sameSchedule(prev, describeSchedule(startDate, endDate, Date.now())),
-      );
-
-    tick();
-    const id = setInterval(tick, 1000);
+    const id = setInterval(() => setCurrentTime(Date.now()), 1000);
     return () => clearInterval(id);
   }, [startDate, endDate]);
 
-  return schedule;
+  return useMemo(
+    () =>
+      startDate && endDate
+        ? describeSchedule(startDate, endDate, currentTime)
+        : null,
+    [currentTime, endDate, startDate],
+  );
 }

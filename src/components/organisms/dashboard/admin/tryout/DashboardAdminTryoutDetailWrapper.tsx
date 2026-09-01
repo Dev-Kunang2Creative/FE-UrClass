@@ -11,7 +11,7 @@ import { useGetSubtestByTryout } from "@/http/subtest/get-subtest-by-tryout";
 import { DataTable } from "@/components/molecules/datatable/DataTable";
 import { subtestTryoutColumns } from "@/components/atoms/datacolumn/DataSubtestByTryout";
 import { Button } from "@/components/ui/button";
-import { Eye, Plus, Download, Users, FileText } from "lucide-react";
+import { Eye, Plus, Users, FileText } from "lucide-react";
 import { useState } from "react";
 import DialogCreateSubtestTryout from "@/components/atoms/dialog/subtest/DialogCreateSubtestTryout";
 import Image from "next/image";
@@ -196,12 +196,17 @@ export default function DashboardAdminTryoutDetailWrapper({
             </div>
             <div className="flex flex-col gap-1">
               <h3 className="text-muted-foreground">Thumbnail</h3>
-              <Image
-                src={data?.data.image_url ?? ""}
-                alt="Thumbnail"
-                width={200}
-                height={100}
-              />
+              {data?.data.image_url ? (
+                <Image
+                  src={data.data.image_url}
+                  alt="Thumbnail"
+                  width={200}
+                  height={100}
+                  className="rounded-lg object-cover border"
+                />
+              ) : (
+                <span className="font-medium text-slate-400">-</span>
+              )}
             </div>
           </div>
 

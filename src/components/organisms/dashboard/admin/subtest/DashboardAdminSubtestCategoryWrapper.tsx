@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
-import Link from "next/link";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -305,31 +304,7 @@ export default function DashboardAdminSubtestCategoryWrapper() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Button asChild variant="outline" size="sm" className="h-9">
-            <Link href="/dashboard/admin/subtest">
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Kembali ke Daftar Subtes
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-xl font-black text-slate-900">
-              Master Kategori Subtes
-            </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Kelola kategori subtes untuk jalur UTBK dan CPNS secara dinamis.
-            </p>
-          </div>
-        </div>
-
-        <Button onClick={handleOpenCreate} className="h-9 font-bold">
-          <Plus className="w-4 h-4 mr-1.5" />
-          Tambah Kategori
-        </Button>
-      </div>
-
+    <section>
       <Card>
         <CardContent className="pt-6">
           <div className="space-y-6">
@@ -349,7 +324,11 @@ export default function DashboardAdminSubtestCategoryWrapper() {
               exportColumns={categoryExportColumns}
               exportTitle="master-kategori-subtes"
               filterSummary={`Total kategori: ${controls.rows.length}`}
-            />
+            >
+              <Button onClick={handleOpenCreate}>
+                <Plus /> Tambah Kategori
+              </Button>
+            </AdminDataToolbar>
 
             <DataTable
               columns={columns}
@@ -484,6 +463,6 @@ export default function DashboardAdminSubtestCategoryWrapper() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </section>
   );
 }

@@ -7,13 +7,11 @@ import { KATEGORI_CONFIG } from "@/lib/kategori";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
-  Compass,
   Settings,
   Sparkles,
   Award,
@@ -23,7 +21,6 @@ import {
   BookOpenCheck,
   Landmark,
 } from "lucide-react";
-import Image from "next/image";
 
 interface DialogOnboardingTourProps {
   open?: boolean;
@@ -37,32 +34,30 @@ export default function DialogOnboardingTour({
   const { data: session } = useSession();
   const { kategori } = useKategori();
   const config = KATEGORI_CONFIG[kategori];
-  const userId = session?.user?.id || "guest";
-
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const isControlled = externalOpen !== undefined;
+  const isOpen = externalOpen ?? internalOpen;
 
   useEffect(() => {
-    if (externalOpen !== undefined) {
-      setIsOpen(externalOpen);
-      return;
-    }
-
-    if (session?.user?.id) {
+    if (!isControlled && session?.user?.id) {
       const storageKey = `urclass_tour_seen_${session.user.id}`;
       const seen = localStorage.getItem(storageKey);
       if (!seen) {
-        setIsOpen(true);
+        const frame = requestAnimationFrame(() => setInternalOpen(true));
+        return () => cancelAnimationFrame(frame);
       }
     }
-  }, [session?.user?.id, externalOpen]);
+  }, [session?.user?.id, isControlled]);
 
   const handleClose = () => {
     if (session?.user?.id) {
       const storageKey = `urclass_tour_seen_${session.user.id}`;
       localStorage.setItem(storageKey, "true");
     }
-    setIsOpen(false);
+    if (!isControlled) {
+      setInternalOpen(false);
+    }
     externalOnOpenChange?.(false);
   };
 
