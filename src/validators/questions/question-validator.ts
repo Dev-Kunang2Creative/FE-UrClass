@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalQuestionImageSchema } from "./image-validator";
 
 const optionKeys = ["A", "B", "C", "D", "E"] as const;
 
@@ -30,12 +31,12 @@ export const makeQuestionSchema = (weighted: boolean) =>
       question_type: z.enum(["multiple_choice", "essay"]),
       question_text: z.string().min(1, "Soal wajib diisi"),
 
-      question_image: z.instanceof(File).optional().nullable(),
+      question_image: optionalQuestionImageSchema,
       delete_question_image: z.boolean().optional(),
 
       discussion: z.string().optional(),
 
-      discussion_image: z.instanceof(File).optional().nullable(),
+      discussion_image: optionalQuestionImageSchema,
       delete_discussion_image: z.boolean().optional(),
 
       correct_answer: z.enum(optionKeys).optional().nullable(),

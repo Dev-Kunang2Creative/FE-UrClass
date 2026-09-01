@@ -442,11 +442,11 @@ export default function FormEditQuestion({
                 name="discussion"
                 render={({ field }) => (
                   <Field>
-                    <FieldLabel>Pembahasan</FieldLabel>
+                    <FieldLabel>Kunci Jawaban &amp; Pembahasan</FieldLabel>
                     <RichTextEditor
                       value={field.value}
                       onChange={field.onChange}
-                      placeholder="Tulis pembahasan..."
+                      placeholder="Tulis penjelasan kunci jawaban..."
                     />
                   </Field>
                 )}
@@ -458,10 +458,14 @@ export default function FormEditQuestion({
               name="discussion_image"
               render={({ field }) => (
                 <Field>
-                  <FieldLabel>Gambar Pembahasan</FieldLabel>
+                  <FieldLabel>Gambar Kunci Jawaban / Pembahasan</FieldLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Unggah rumus, diagram, atau penjelasan visual. Format JPG,
+                    PNG, atau WebP, maksimal 2 MB.
+                  </p>
                   <Input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp"
                     onChange={(e) => {
                       const file = e.target.files?.[0] ?? null;
                       field.onChange(file);

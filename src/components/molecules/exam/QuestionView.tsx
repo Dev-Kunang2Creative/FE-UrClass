@@ -222,18 +222,18 @@ export default function QuestionView({
                 isCpns ? "text-orange-800" : "text-blue-600"
               }`}
             >
-              Pembahasan
+              Kunci Jawaban &amp; Pembahasan
             </h3>
             {question.discussion ? (
               <RichTextRenderer
                 html={question.discussion}
                 className="text-gray-700"
               />
-            ) : (
+            ) : !question.discussion_image_url ? (
               <p className="text-sm leading-relaxed text-gray-600">
                 Pembahasan belum tersedia untuk soal ini.
               </p>
-            )}
+            ) : null}
             {question.discussion_image_url && (
               <img
                 src={question.discussion_image_url}
