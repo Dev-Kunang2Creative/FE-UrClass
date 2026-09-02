@@ -7,3 +7,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# Aturan repo ini
+
+Baca `rules.md` sebelum menyentuh kode di repo ini. Isinya aturan yang lahir dari
+kejadian nyata — build yang gagal di hosting, kerentanan dependensi, permintaan
+yang diblokir CSP tanpa pesan apa pun — beserta sebab masing-masing.
+
+Blok di atas ini ditulis dan dipasang ulang oleh `next dev` di antara penandanya
+sendiri. Bagian ini di luar penanda itu, jadi aman.
