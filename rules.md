@@ -52,15 +52,15 @@ npx eslint           # lihat aturan di bawah
 `tsc --noEmit` bisa bersih sementara `next build` gagal — build punya langkah
 type-check sendiri dengan lingkup berbeda. Pernah terjadi persis begitu.
 
-### Dua error eslint yang sudah ada sebelumnya
+### `npx eslint` harus 0 error
 
-`src/hooks/useSchedule.ts:26` dan
-`src/components/molecules/dialog/DialogOnboardingTour.tsx:47`, dua-duanya
-`react-hooks/set-state-in-effect`.
+Pernah ada dua error `react-hooks/set-state-in-effect` yang sudah lama menetap
+di `development` (`useSchedule.ts` dan `DialogOnboardingTour.tsx`). **Keduanya
+sudah diperbaiki.** Basis sekarang bersih, jadi error apa pun yang muncul
+berasal dari perubahanmu sendiri.
 
-Keduanya **sudah ada di `development`** sebelum pekerjaan mana pun di sesi-sesi
-terakhir. Jangan mengaku memperbaikinya dan jangan panik mengira baru
-merusaknya. Cara memastikan: `git stash && npx eslint && git stash pop`.
+Kalau ragu apakah sebuah error sudah ada sebelumnya:
+`git stash -u && npx eslint && git stash pop`.
 
 ### Hook tidak boleh dipanggil setelah early return
 
@@ -70,6 +70,17 @@ tengah, dan hook baru sempat dipasang di bawahnya. eslint
 
 Panggil hook di atas semua early return, lalu saring lewat opsi `enabled`-nya —
 bukan dengan tidak memanggilnya.
+
+### Jangan menyemai state form dari `useEffect`
+
+Aturan yang sama (`react-hooks/set-state-in-effect`) juga kena pola "ambil data,
+lalu `setState` di effect untuk mengisi form". Selain ditolak eslint, pola itu
+menimpa suntingan pengguna setiap kali query menyegarkan diri.
+
+Yang dipakai di repo ini: pisahkan formnya jadi komponen sendiri dan
+**remount lewat `key`**, sehingga state-nya lahir sudah membawa nilai yang benar.
+Contohnya di
+`src/components/organisms/dashboard/admin/ai/DashboardAdminAiSettingsWrapper.tsx`.
 
 ---
 
@@ -159,6 +170,27 @@ kosong. Aturan yang sama diberlakukan di `ProfileController` sisi server.
 Kartu "N data belum diisi" di pengaturan akun juga memeriksa status itu. Tagihan
 yang tidak mungkin dipenuhi hanya membuat kartu itu diabaikan seluruhnya,
 termasuk untuk kolom yang benar-benar kurang.
+
+---
+
+## 4b. Kredensial pihak ketiga
+
+**Kunci API tidak boleh pernah sampai ke browser.** Kunci yang pernah dikirim ke
+klien harus dianggap bocor — ia ada di riwayat tab jaringan, di cache, dan di
+setiap ekstensi yang bisa membaca respons.
+
+Asisten AI mengikuti aturan itu: frontend hanya mengenal `POST /api/chat`.
+Provider, endpoint, kunci, dan persona seluruhnya tinggal di backend, sehingga
+mengganti provider tidak menyentuh frontend sama sekali.
+
+Kalau menambah integrasi pihak ketiga berkunci, ikuti pola yang sama —
+**proksikan lewat backend**, jangan panggil dari browser dengan kunci yang
+disematkan. `NEXT_PUBLIC_*` tidak pernah boleh memuat rahasia; awalan itu
+berarti nilainya di-inline ke bundel.
+
+Halaman admin pun hanya menerima bentuk tersamar (`sk-or-…4f2a`). Karena itu
+kolom kunci di form selalu mulai kosong, dan **kosong berarti "jangan ubah"** —
+bukan "hapus".
 
 ---
 
