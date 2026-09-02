@@ -33,14 +33,12 @@ import {
   BookOpen,
   FileClock,
   Gift,
-  GraduationCap,
   Home,
   Images,
   Landmark,
   Layers,
   LayoutDashboard,
   LifeBuoy,
-  Settings,
   Shield,
   ShoppingCart,
   Ticket,
@@ -53,6 +51,7 @@ import { DASHBOARD_MENU } from "@/constants/dashboard-menu";
 import { useKategori } from "@/hooks/useKategori";
 import { useTickets } from "@/hooks/useTickets";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
+import { isRouteActive } from "@/lib/navigation";
 
 interface SidebarWrapperProps {
   session: Session;
@@ -78,7 +77,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
 
   const buttonClass = (href: string) =>
     `hover:bg-primary/10 hover:text-primary dark:hover:bg-slate-900 ${
-      pathname.startsWith(href)
+      isRouteActive(pathname, href)
         ? "bg-primary/10 text-primary dark:bg-slate-800"
         : ""
     }`;
@@ -316,7 +315,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     <SidebarMenuButton
                       asChild
                       className={`h-10.5 justify-start px-3.5 rounded-xl transition-all w-full flex items-center ${
-                        pathname.startsWith("/dashboard/try-out")
+                        isRouteActive(pathname, "/dashboard/try-out")
                           ? activeMenuClass
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
@@ -332,7 +331,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     <SidebarMenuButton
                       asChild
                       className={`h-10.5 justify-start px-3.5 rounded-xl transition-all w-full flex items-center ${
-                        pathname.startsWith("/dashboard/pembelian")
+                        isRouteActive(pathname, "/dashboard/pembelian")
                           ? activeMenuClass
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
@@ -348,7 +347,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     <SidebarMenuButton
                       asChild
                       className={`h-10.5 justify-start px-3.5 rounded-xl transition-all w-full flex items-center ${
-                        pathname.startsWith("/dashboard/tiket")
+                        isRouteActive(pathname, "/dashboard/tiket")
                           ? activeMenuClass
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
