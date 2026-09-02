@@ -62,11 +62,25 @@ jobs:
               fail=1
             fi
           }
-          blocked() { # label, curl args...
+          blocked() { # label, curl args... - passes on any 401/403/404
             label="$1"; shift
-            code=$(curl -s -o /dev/null -w '%{http_code}' "$@" || echo 000)
+            # Mencoba ulang seperti probe(). Tanpa ini pemeriksaan berjalan
+            # sekali saja, tepat setelah deploy, ketika Passenger masih restart -
+            # dan gerbang menjawab 520 "unknown error" dari origin. Itu bukan
+            # bukti berkasnya terblokir maupun terbuka, tapi tanpa percobaan
+            # ulang hasilnya jadi kegagalan. Pemeriksaan keamanan yang gagal
+            # secara acak lebih buruk daripada tidak ada: ia mengajari orang
+            # mengabaikannya.
+            for i in 1 2 3 4 5; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' "$@" || echo 000)
+              case "$code" in 401|403|404) break ;; esac
+              sleep 6
+            done
             case "$code" in
               401|403|404) echo "  PASS  $label  -> $code (blocked)" ;;
+              # Kode lain tetap gagal, termasuk 5xx. Galat origin bukan bukti
+              # bahwa berkasnya tidak bisa dibaca - dan untuk berkas env,
+              # "mungkin aman" tidak cukup.
               *) echo "  FAIL  $label  -> $code (expected it to be blocked)"; fail=1 ;;
             esac
           }
