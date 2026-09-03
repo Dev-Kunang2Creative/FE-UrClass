@@ -13,6 +13,8 @@ import {
   Clock,
   BarChart3,
   Calendar,
+  LoaderCircle,
+  RotateCcw,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useKategori } from "@/hooks/useKategori";
@@ -33,7 +35,7 @@ export default function ResultPage({
   const { kategori } = useKategori();
   const isCpns = kategori === "cpns";
 
-  const { data: beResult, isLoading } = useGetTryoutResult({
+  const { data: beResult, isLoading, isError, refetch } = useGetTryoutResult({
     tryoutId,
     token,
     attempt,
@@ -45,11 +47,30 @@ export default function ResultPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div
-          className={`animate-spin rounded-full h-10 w-10 border-b-2 ${
-            isCpns ? "border-orange-700" : "border-blue-600"
-          }`}
+        <LoaderCircle
+          aria-label="Memuat hasil tryout"
+          className={`size-10 animate-spin ${isCpns ? "text-orange-700" : "text-blue-600"}`}
         />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mx-auto flex min-h-[50vh] w-full max-w-xl flex-col items-center justify-center px-4 text-center">
+        <XCircle className="mb-3 size-10 text-rose-700" />
+        <h1 className="text-xl font-black text-slate-900">Hasil gagal dimuat</h1>
+        <p className="mt-1 text-sm font-medium text-slate-600">
+          Periksa koneksi Anda, lalu coba ambil kembali hasil tryout.
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl border-2 border-slate-900 bg-white px-4 font-bold text-slate-900 shadow-[2px_2px_0px_0px_#0f172a] transition active:translate-y-0.5 active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+        >
+          <RotateCcw className="size-4" />
+          Coba Lagi
+        </button>
       </div>
     );
   }
@@ -68,7 +89,17 @@ export default function ResultPage({
     );
   }
 
-  const { summary, irt_result, use_irt, score_result, per_subtest } = result;
+  const {
+    summary,
+    irt_result,
+    use_irt,
+    score_result,
+    per_subtest,
+    is_full_skd,
+    is_passed_skd,
+    skd_scores,
+    skd_passing_grades,
+  } = result;
 
   // Dipakai kartu "Skor Sementara" selama IRT belum final. irt_result lebih
   // dulu karena di sanalah server menaruhnya; score_result jadi cadangan untuk
@@ -88,7 +119,8 @@ export default function ResultPage({
       <div className="flex items-center gap-2">
         <Link
           href={`/dashboard/try-out/${tryoutId}`}
-          className="p-1 hover:bg-slate-100 rounded-full transition-colors cursor-pointer text-slate-800"
+          aria-label="Kembali ke detail tryout"
+          className="flex size-11 items-center justify-center rounded-full text-slate-800 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
         >
           <ChevronLeft className="w-6 h-6" />
         </Link>
@@ -96,6 +128,62 @@ export default function ResultPage({
           Hasil Tryout
         </h1>
       </div>
+
+      {is_full_skd && (
+        <section
+          role="status"
+          aria-live="polite"
+          className={`rounded-3xl border-2 border-slate-950 p-5 text-white sm:p-7 ${
+            is_passed_skd ? "bg-emerald-800" : "bg-rose-800"
+          }`}
+        >
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3.5">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border-2 border-white/50 bg-white/10">
+                {is_passed_skd ? (
+                  <CheckCircle2 className="size-7" />
+                ) : (
+                  <XCircle className="size-7" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-xl font-black leading-tight text-balance sm:text-2xl">
+                  {is_passed_skd
+                    ? "SELAMAT! ANDA LULUS PASSING GRADE SKD"
+                    : "BELUM LULUS PASSING GRADE SKD"}
+                </h2>
+                <p className={`mt-1.5 text-sm font-medium ${is_passed_skd ? "text-emerald-50" : "text-rose-50"}`}>
+                  {is_passed_skd
+                    ? "Nilai TWK, TIU, dan TKP Anda memenuhi seluruh ambang batas."
+                    : "Satu atau lebih nilai subtest Anda masih berada di bawah ambang batas."}
+                </p>
+              </div>
+            </div>
+
+            {skd_scores && skd_passing_grades && (
+              <div className="grid shrink-0 grid-cols-3 gap-2" aria-label="Rincian nilai passing grade SKD">
+                {(["twk", "tiu", "tkp"] as const).map((code) => {
+                  const passed = skd_scores[code] >= skd_passing_grades[code];
+
+                  return (
+                    <div
+                      key={code}
+                      className="min-w-20 rounded-xl border border-white/40 bg-slate-950/20 px-3 py-2 text-center"
+                    >
+                      <p className="text-xs font-bold uppercase text-white/80">{code}</p>
+                      <p className="text-lg font-black leading-tight">
+                        {skd_scores[code]}
+                        <span className="text-xs font-semibold text-white/70"> / {skd_passing_grades[code]}</span>
+                      </p>
+                      <span className="sr-only">{passed ? "Lulus" : "Tidak lulus"}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Score Card — IRT atau Non-IRT */}
       {!use_irt ? (
@@ -189,7 +277,7 @@ export default function ResultPage({
         </div>
       ) : (
         <div className="rounded-3xl border-2 border-slate-900 bg-amber-50/90 p-6 sm:p-8 text-center shadow-[5px_5px_0px_0px_#0f172a]">
-          <div className="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-slate-900 bg-amber-400 text-slate-900 shadow-[2px_2px_0px_0px_#0f172a]">
+          <div className="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-amber-950 bg-amber-400 text-amber-950 shadow-[2px_2px_0px_0px_#451a03]">
             <Clock className="h-7 w-7" />
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900">Skor Sementara</h2>

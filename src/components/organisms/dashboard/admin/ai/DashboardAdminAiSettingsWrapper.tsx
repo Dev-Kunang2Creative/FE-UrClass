@@ -79,7 +79,10 @@ const CONTOH: Record<
   },
 };
 
-type Draft = Omit<AiSettingsPayload, "api_key"> & { api_key: string };
+type Draft = Omit<AiSettingsPayload, "api_key" | "endpoint"> & {
+  api_key: string;
+  endpoint: string;
+};
 
 export default function DashboardAdminAiSettingsWrapper() {
   const { data: session } = useSession();
@@ -128,9 +131,9 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
 
   const [draft, setDraft] = useState<Draft>({
     provider: setting.provider,
-    endpoint: setting.endpoint ?? "",
-    // Selalu kosong: kunci aslinya tidak pernah sampai ke sini, dan kosong
-    // berarti "jangan ubah".
+    // Selalu kosong: endpoint dan kunci aslinya tidak pernah sampai ke sini,
+    // dan kosong berarti "jangan ubah".
+    endpoint: "",
     api_key: "",
     model: setting.model ?? "",
     system_prompt: setting.system_prompt ?? "",
@@ -153,8 +156,8 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
   /** Kredensial yang sedang di layar, untuk uji koneksi dan daftar model. */
   const probe = () => ({
     provider: draft.provider,
-    endpoint: draft.endpoint,
-    api_key: draft.api_key,
+    endpoint: draft.endpoint.trim() || undefined,
+    api_key: draft.api_key.trim() || undefined,
     model: draft.model,
   });
 
@@ -187,7 +190,7 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
       {
         onSuccess: (result) => {
           toast.success(pesanSukses ?? result.message);
-          setDraft((prev) => ({ ...prev, ...override, api_key: "" }));
+          setDraft((prev) => ({ ...prev, ...override, api_key: "", endpoint: "" }));
           setPersonaOpen(false);
         },
         onError: (error) => tampilkanGalat("Gagal menyimpan", error),
@@ -196,8 +199,9 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
   };
 
   const contoh = CONTOH[draft.provider];
-  const adaKunci = setting.has_api_key || draft.api_key.trim().length > 0;
-  const siap = Boolean(draft.endpoint && draft.model && adaKunci);
+  const adaEndpoint = Boolean(setting.has_endpoint || draft.endpoint.trim().length > 0);
+  const adaKunci = Boolean(setting.has_api_key || draft.api_key.trim().length > 0);
+  const siap = Boolean(adaEndpoint && draft.model && adaKunci);
 
   return (
     <div className="space-y-4">
@@ -277,18 +281,38 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
             </select>
           </Field>
 
-          <Field label="Endpoint" hint={contoh.catatan}>
+          <Field
+            label="Endpoint"
+            hint={
+              setting.has_endpoint
+                ? `Terpasang: ${setting.endpoint_masked} · biarkan kosong kalau tidak ingin menggantinya`
+                : contoh.catatan
+            }
+          >
             <Input
               value={draft.endpoint}
               onChange={(event) => {
                 setModels(null);
                 set("endpoint", event.target.value);
               }}
-              placeholder={contoh.endpoint}
+              placeholder={
+                setting.has_endpoint && setting.endpoint_masked
+                  ? `${setting.endpoint_masked}  (tidak diubah)`
+                  : contoh.endpoint
+              }
             />
             <p className="mt-1 text-xs text-slate-500">
-              Wajib https, dan tidak boleh menunjuk alamat internal — server yang
-              memanggilnya, jadi endpoint ke jaringan dalam ditolak.
+              {setting.has_endpoint ? (
+                <>
+                  Endpoint tersimpan aman (terenkripsi):{" "}
+                  <code className="rounded bg-slate-200/70 px-1 py-0.5 font-mono text-[11px] text-slate-800">
+                    {setting.endpoint_masked}
+                  </code>
+                  . Biarkan kosong jika tidak ingin mengubah.
+                </>
+              ) : (
+                "Wajib https, dan tidak boleh menunjuk alamat internal — server yang memanggilnya."
+              )}
             </p>
           </Field>
 
@@ -297,11 +321,10 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
               <ShieldCheck className="mt-0.5 size-4 shrink-0 text-slate-600" />
               <p className="text-xs leading-relaxed text-slate-600">
                 <span className="font-bold text-slate-800">
-                  API key tidak bisa dibaca lagi setelah disimpan.
+                  Endpoint dan API key disimpan terenkripsi.
                 </span>{" "}
-                Kuncinya disimpan terenkripsi dan tidak pernah dikirim balik ke
-                halaman ini — bahkan untukmu. Simpan salinanmu sendiri di tempat
-                yang aman.
+                Kredensial disimpan terenkripsi di server dan tidak pernah dikirim balik secara mentah ke
+                halaman ini. Simpan salinan URL dan kunci Anda di tempat yang aman.
               </p>
             </div>
 
