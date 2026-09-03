@@ -4,6 +4,19 @@ import { api } from "@/lib/axios";
 
 export type AiProvider = "openai_compatible" | "anthropic";
 
+export interface AiModel {
+  id: string;
+  name: string | null;
+}
+
+/** Kredensial yang dikirim untuk sekali pakai - menguji, bukan menyimpan. */
+export interface ProbePayload {
+  provider?: AiProvider;
+  endpoint?: string;
+  api_key?: string;
+  model?: string;
+}
+
 export interface AiSettings {
   provider: AiProvider;
   endpoint: string | null;
@@ -11,6 +24,9 @@ export interface AiSettings {
   system_prompt: string;
   max_tokens: number;
   temperature_x100: number;
+  price_input_per_mtok: number;
+  price_output_per_mtok: number;
+  price_cached_per_mtok: number;
   daily_message_limit: number;
   history_limit: number;
   is_active: boolean;
@@ -31,6 +47,9 @@ export interface AiSettingsPayload {
   system_prompt: string;
   max_tokens: number;
   temperature_x100: number;
+  price_input_per_mtok: number;
+  price_output_per_mtok: number;
+  price_cached_per_mtok: number;
   daily_message_limit: number;
   history_limit: number;
   is_active: boolean;
@@ -39,6 +58,13 @@ export interface AiSettingsPayload {
 interface TestResult {
   message: string;
   data: { reply: string; model: string; usage: { input_tokens: number; output_tokens: number } };
+}
+
+/** Galat provider untuk admin: status plus potongan badan galat, kunci disensor. */
+interface ProviderError {
+  message?: string;
+  detail?: string | null;
+  errors?: Record<string, string[]>;
 }
 
 const auth = (token: string) => ({ headers: { Authorization: `Bearer ${token}` } });
@@ -77,13 +103,39 @@ export const useSaveAiSettings = ({ token }: { token: string }) => {
 /**
  * Uji koneksi ke provider dengan satu pesan pendek.
  *
- * Ada supaya admin tidak perlu menebak apakah kredensialnya benar dengan
- * membuka jendela chat sebagai peserta.
+ * Mengirim isi form, bukan mengandalkan yang tersimpan. Sebelumnya ia menguji
+ * baris tersimpan, sehingga admin yang mengetik kunci lalu langsung menekan uji
+ * justru menguji kunci lama - dan menerima 401 yang tampak seperti kunci
+ * barunya salah. Yang dikirim tidak disimpan; ia hanya dipakai untuk satu
+ * permintaan keluar.
  */
 export const useTestAiConnection = ({ token }: { token: string }) =>
-  useMutation<TestResult, AxiosError<{ message?: string }>, void>({
-    mutationFn: async () => {
-      const { data } = await api.post<TestResult>("/admin/ai-settings/test", {}, auth(token));
+  useMutation<TestResult, AxiosError<ProviderError>, ProbePayload | void>({
+    mutationFn: async (probe) => {
+      const { data } = await api.post<TestResult>(
+        "/admin/ai-settings/test",
+        probe ?? {},
+        auth(token),
+      );
+      return data;
+    },
+  });
+
+/**
+ * Daftar model yang tersedia di endpoint yang sedang diisi.
+ *
+ * Supaya admin memilih dari daftar alih-alih menghafal id model. Memakai isi
+ * form dengan alasan yang sama seperti uji koneksi: daftarnya dibutuhkan justru
+ * saat kredensialnya baru diketik dan belum disimpan.
+ */
+export const useLoadAiModels = ({ token }: { token: string }) =>
+  useMutation<
+    { message: string; data: AiModel[] },
+    AxiosError<ProviderError>,
+    ProbePayload | void
+  >({
+    mutationFn: async (probe) => {
+      const { data } = await api.post("/admin/ai-settings/models", probe ?? {}, auth(token));
       return data;
     },
   });

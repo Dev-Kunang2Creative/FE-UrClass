@@ -38,6 +38,28 @@ Menghilangkannya berarti menambahkan `"type": "module"` ke `package.json`, yang
 mengubah resolusi modul seluruh aplikasi Next demi catatan performa pada dua
 berkas test.
 
+### Jangan pernah menamai variabel `window` di komponen
+
+Membayangi global `window` — misalnya `const [window, setWindow] = useState(...)`
+di dalam komponen klien — membuat **Next 16 gagal mendeteksi router `app/` sama
+sekali**.
+
+**Kejadiannya, dan sebabnya berbahaya:** build tetap melaporkan
+`✓ Compiled successfully`, `tsc --noEmit` bersih, dan `eslint` nol error. Yang
+berubah hanya keluaran akhirnya: `Route (pages)` dengan satu baris `/404`
+alih-alih `Route (app)` dengan seluruh rute. Servernya menyala, lalu **setiap
+halaman 404** — termasuk `/login`.
+
+Petunjuk paling cepat: waktu build. Yang sehat sekitar 6 detik, yang rusak 1,6
+detik karena tidak ada rute yang dibangun.
+
+Cara memastikan sebuah build benar-benar utuh:
+
+```bash
+npm run build | grep "Route ("      # harus memuat "Route (app)"
+ls .next/server/app/dashboard        # harus ada
+```
+
 ### `next build` adalah gerbangnya, bukan `tsc` saja
 
 Urutan verifikasi sebelum commit:
@@ -51,6 +73,12 @@ npx eslint           # lihat aturan di bawah
 
 `tsc --noEmit` bisa bersih sementara `next build` gagal — build punya langkah
 type-check sendiri dengan lingkup berbeda. Pernah terjadi persis begitu.
+
+**Baca keluaran build sampai habis, jangan mem-grep sebagiannya.**
+`✓ Compiled successfully` muncul di tahap awal; setelahnya masih ada
+type-check, pengumpulan data halaman, dan pembuatan rute. Menyatakan build
+sukses karena melihat baris itu pernah meloloskan build yang tidak menghasilkan
+satu pun rute.
 
 ### `npx eslint` harus 0 error
 

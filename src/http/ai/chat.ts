@@ -14,11 +14,19 @@ export interface ChatStatus {
   max_message_length: number;
 }
 
+export interface ChatUsage {
+  input_tokens: number;
+  output_tokens: number;
+  cached_tokens: number;
+}
+
 interface SendResult {
   data: {
     reply: string;
     used_today: number;
     daily_limit: number;
+    /** Angka dari provider, bukan perkiraan frontend. */
+    usage: ChatUsage;
   };
 }
 
