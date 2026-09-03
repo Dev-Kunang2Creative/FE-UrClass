@@ -36,6 +36,7 @@ import {
   Home,
   Images,
   Landmark,
+  Bot,
   Layers,
   LayoutDashboard,
   LifeBuoy,
@@ -245,6 +246,17 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       <Link href="/dashboard/admin/instansi">
                         <Landmark />
                         <span>Instansi & Formasi</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className={buttonClass("/dashboard/admin/ai")}
+                    >
+                      <Link href="/dashboard/admin/ai">
+                        <Bot />
+                        <span>Asisten AI</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

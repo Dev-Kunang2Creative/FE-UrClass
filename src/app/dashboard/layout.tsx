@@ -7,6 +7,7 @@ import BreadcrumbNav from "@/components/atoms/breadcrumb/BreadcrumbNav";
 import TicketChangeModal from "@/components/molecules/dialog/TicketChangeModal";
 import { isKategori } from "@/lib/kategori";
 import { TrackShell } from "@/components/providers/TrackProvider";
+import ChatWidget from "@/components/organisms/chat/ChatWidget";
 
 export default async function DashboardLayout({
   children,
@@ -35,6 +36,11 @@ export default async function DashboardLayout({
           {children}
         </main>
         <TicketChangeModal />
+        {/* Dipasang di layout, bukan per halaman: percakapan tetap hidup saat
+            peserta berpindah halaman, dan tombolnya tidak berkedip hilang di
+            setiap navigasi. Ia tidak merender apa pun kalau asistennya belum
+            dikonfigurasi atau yang login adalah admin. */}
+        <ChatWidget />
       </SidebarInset>
     </TrackShell>
   );
