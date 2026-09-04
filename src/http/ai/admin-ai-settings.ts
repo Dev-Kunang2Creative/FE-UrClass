@@ -19,7 +19,7 @@ export interface ProbePayload {
 
 export interface AiSettings {
   provider: AiProvider;
-  endpoint: string | null;
+  endpoint?: string | null;
   model: string | null;
   system_prompt: string;
   max_tokens: number;
@@ -30,6 +30,10 @@ export interface AiSettings {
   daily_message_limit: number;
   history_limit: number;
   is_active: boolean;
+  /** Apakah sudah ada endpoint terpasang. Endpoint aslinya tidak pernah dikirim. */
+  has_endpoint?: boolean;
+  /** Bentuk tersamar, mis. "https://api.ban…/v1". */
+  endpoint_masked?: string | null;
   /** Apakah sudah ada kunci terpasang. Kuncinya sendiri tidak pernah dikirim. */
   has_api_key: boolean;
   /** Bentuk tersamar, mis. "sk-or-…4f2a". Tidak bisa dipakai. */
@@ -40,7 +44,8 @@ export interface AiSettings {
 
 export interface AiSettingsPayload {
   provider: AiProvider;
-  endpoint: string;
+  /** Dikosongkan berarti "jangan ubah endpoint yang sudah ada". */
+  endpoint?: string;
   /** Dikosongkan berarti "jangan ubah kunci yang sudah ada". */
   api_key: string;
   model: string;
