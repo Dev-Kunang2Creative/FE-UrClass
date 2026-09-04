@@ -24,7 +24,7 @@ interface DialogBulkImportQuestionProps {
 }
 
 const BASE_COLUMNS = [
-  ["Kolom A", "Gambar (embed gambar ke cell)"],
+  ["Kolom A", "Gambar Soal (opsional)"],
   ["Kolom B", "Soal"],
   ["Kolom C", "Opsi A"],
   ["Kolom D", "Opsi B"],
@@ -37,13 +37,15 @@ const RIGHT_WRONG_COLUMNS = [
   ...BASE_COLUMNS,
   ["Kolom H", "Kunci Jawaban (A/B/C/D/E)"],
   ["Kolom I", "Pembahasan"],
+  ["Kolom J", "Gambar Pembahasan (opsional)"],
 ];
 
 const OPTION_WEIGHT_COLUMNS = [
   ...BASE_COLUMNS,
   ["Kolom H", "Kunci Jawaban (diabaikan)"],
   ["Kolom I", "Pembahasan"],
-  ["Kolom J–N", "Skor A–E (wajib 1–5)"],
+  ["Kolom J", "Gambar Pembahasan (opsional)"],
+  ["Kolom K–O", "Skor A–E (wajib 1–5)"],
 ];
 
 export default function DialogBulkImportQuestion({
@@ -167,7 +169,7 @@ export default function DialogBulkImportQuestion({
             Import Soal
           </DialogTitle>
           <DialogDescription>
-            Upload file Excel (.xlsx atau .xls). Gambar soal bisa diembed langsung ke cell.
+            Upload file Excel (.xlsx atau .xls). Gambar soal dan pembahasan bisa diembed langsung ke cell.
           </DialogDescription>
         </DialogHeader>
 
@@ -188,8 +190,7 @@ export default function DialogBulkImportQuestion({
               ))}
             </div>
             <p className="mt-2 text-blue-600 italic">
-              Embed gambar: Insert → Pictures → Place in Cell di kolom A.
-              Format didukung: jpg, png, webp.
+              Embed gambar: Insert → Pictures → Place in Cell (Kolom A untuk soal, Kolom J untuk pembahasan). Format didukung: JPG, PNG, WebP.
             </p>
           </div>
 
@@ -199,7 +200,7 @@ export default function DialogBulkImportQuestion({
                 Subtes ini dinilai per bobot opsi (TKP SKD).
               </p>
               <p>
-                Kolom J–N (Skor A–E) wajib diisi bilangan bulat 1–5, satu angka
+                Kolom K–O (Skor A–E) wajib diisi bilangan bulat 1–5, satu angka
                 hanya sekali, dan harus ada opsi bernilai 5 sebagai respons
                 paling ideal. Baris yang tidak memenuhi akan dilewati beserta
                 alasannya.
