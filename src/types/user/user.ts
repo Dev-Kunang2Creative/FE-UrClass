@@ -31,6 +31,15 @@ export interface User {
   province?: string;
   city?: string;
   ticket_balance?: number;
+  /**
+   * Total token asisten AI yang terpakai akun ini, sesudah pengali model.
+   *
+   * Dihitung database sebagai subkueri pada kueri daftarnya, jadi ia selalu ada
+   * di baris daftar pengguna - bernilai nol, bukan tidak ada, untuk yang belum
+   * pernah memakai.
+   */
+  ai_total_tokens?: number;
+  ai_requests?: number;
   created_at: Date;
   updated_at: Date;
 }
