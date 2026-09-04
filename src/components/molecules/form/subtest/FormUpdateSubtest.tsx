@@ -69,6 +69,7 @@ export default function FormUpdateSubtest({
 
   const selectedExamType = form.watch("exam_type");
   const { data: categoryData, isPending: isLoadingCategories } = useGetSubtestCategories({
+    token: session?.access_token as string,
     examType: selectedExamType,
   });
   const categories = categoryData?.data ?? [];
@@ -199,7 +200,7 @@ export default function FormUpdateSubtest({
                     Kategori <span className="text-red-500">*</span>
                   </FieldLabel>
                   <Select
-                    key={field.value}
+                    key={`${field.value}-${categories.length}`}
                     value={field.value || undefined}
                     onValueChange={field.onChange}
                   >

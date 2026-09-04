@@ -30,6 +30,7 @@ const noIndexHeaders = isDevDeployment
 
 const nextConfig: NextConfig = {
   images: {
+    dangerouslyAllowLocalIP: true,
     remotePatterns: [
       {
         // Production backend. Without this entry next/image refuses every

@@ -39,7 +39,7 @@ export const BulkImportQuestionsHandler = async ({
 export const useBulkImportQuestions = (
   options?: UseMutationOptions<
     BulkImportResponse,
-    AxiosError<{ message: string }>,
+    AxiosError<BulkImportResponse>,
     BulkImportPayload
   >
 ) => {

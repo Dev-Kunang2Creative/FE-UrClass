@@ -82,8 +82,16 @@ export default function DialogBulkImportQuestion({
       }
     },
     onError: (error) => {
+      const errorData = error.response?.data;
+      if (errorData && Array.isArray(errorData.errors)) {
+        setResult({
+          imported: errorData.imported ?? 0,
+          skipped: errorData.skipped ?? 0,
+          errors: errorData.errors,
+        });
+      }
       toast.error("Import gagal!", {
-        description: error.response?.data?.message || "Terjadi kesalahan.",
+        description: errorData?.message || "Terjadi kesalahan.",
       });
     },
   });
@@ -138,7 +146,7 @@ export default function DialogBulkImportQuestion({
         response.headers
           .get("content-disposition")
           ?.match(/filename="?([^"]+)"?/i)?.[1] ??
-        `template-soal-${weighted ? "bobot-opsi" : "benar-salah"}.xlsx`;
+        `template-soal-${weighted ? "bobot-opsi-tkp" : "pilihan-ganda"}.xlsx`;
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -179,7 +187,7 @@ export default function DialogBulkImportQuestion({
           <div className="bg-blue-50 rounded-xl p-4 text-xs text-blue-800 space-y-1">
             <p className="font-semibold mb-2">
               Format Kolom Excel
-              {weighted ? " (bobot per opsi):" : " (benar/salah):"}
+              {weighted ? " — Bobot per Opsi (TKP):" : " — Pilihan Ganda (A–E):"}
             </p>
             <div className="grid grid-cols-2 gap-1">
               {(weighted ? OPTION_WEIGHT_COLUMNS : RIGHT_WRONG_COLUMNS).map(([col, label]) => (
@@ -189,6 +197,11 @@ export default function DialogBulkImportQuestion({
                 </div>
               ))}
             </div>
+            {!weighted && (
+              <p className="mt-2 text-blue-900 font-medium bg-blue-100/60 p-2 rounded-lg">
+                Penting: Untuk soal Pilihan Ganda, Opsi A, B, C, D, dan E wajib terisi semua (5 pilihan). Kunci Jawaban diisi salah satu (A/B/C/D/E). Untuk soal esai, kosongkan kunci dan opsi.
+              </p>
+            )}
             <p className="mt-2 text-blue-600 italic">
               Embed gambar: Insert → Pictures → Place in Cell (Kolom A untuk soal, Kolom J untuk pembahasan). Format didukung: JPG, PNG, WebP.
             </p>
@@ -216,13 +229,13 @@ export default function DialogBulkImportQuestion({
           <Button
             variant="outline"
             size="sm"
-            className="w-full border-green-200 text-green-700 hover:bg-green-50"
+            className="w-full border-green-200 text-green-700 hover:bg-green-50 font-medium"
             onClick={handleDownloadTemplate}
           >
             <Download className="w-4 h-4 mr-2" />
             {weighted
-              ? "Unduh Template (Bobot per Opsi)"
-              : "Unduh Template (Benar/Salah)"}
+              ? "Unduh Template Bobot Opsi (TKP)"
+              : "Unduh Template Pilihan Ganda (A–E)"}
           </Button>
 
           {/* Drop Zone */}

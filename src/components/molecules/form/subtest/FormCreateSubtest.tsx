@@ -26,6 +26,7 @@ import { useCreateSubtest } from "@/http/subtest/create-subtest";
 import { useGetSubtestCategories } from "@/http/subtest-category/get-subtest-categories";
 import SubtestScoringFields from "./SubtestScoringFields";
 import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 import {
   Field,
@@ -35,6 +36,7 @@ import {
 } from "@/components/ui/field";
 
 export default function FormCreateSubtest() {
+  const { data: session } = useSession();
   const [actionType, setActionType] = useState<
     "default" | "add-again" | "add-question"
   >("default");
@@ -56,6 +58,7 @@ export default function FormCreateSubtest() {
 
   const selectedExamType = form.watch("exam_type");
   const { data: categoryData, isPending: isLoadingCategories } = useGetSubtestCategories({
+    token: session?.access_token as string,
     examType: selectedExamType,
   });
   const categories = categoryData?.data ?? [];
@@ -179,6 +182,7 @@ export default function FormCreateSubtest() {
                   </FieldLabel>
 
                   <Select
+                    key={`${field.value}-${categories.length}`}
                     onValueChange={field.onChange}
                     value={field.value || undefined}
                   >
