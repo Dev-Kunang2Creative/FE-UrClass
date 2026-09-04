@@ -9,6 +9,15 @@ export interface ChatTurn {
 
 export interface ChatStatus {
   is_available: boolean;
+  /**
+   * Sedang mengerjakan tryout.
+   *
+   * Dipisah dari is_available karena sebabnya berbeda dan pemulihannya berbeda:
+   * yang ini hilang sendiri begitu tryout selesai, jadi pesannya tidak boleh
+   * berbunyi "belum tersedia".
+   */
+  is_blocked_by_exam: boolean;
+  exam: { title: string; ends_at: string } | null;
   daily_limit: number;
   used_today: number;
   max_message_length: number;
@@ -43,7 +52,12 @@ export const useChatStatus = ({ token }: { token: string }) =>
   useQuery({
     queryKey: ["chat-status"],
     enabled: !!token,
-    staleTime: 5 * 60 * 1000,
+    // Pendek, karena keadaannya bisa berubah di tengah sesi: memulai tryout
+    // harus menutup asisten, dan menyelesaikannya harus membukanya lagi. Lima
+    // menit - nilai sebelumnya - berarti maskotnya bertahan di layar beberapa
+    // menit pertama ujian.
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true,
     retry: false,
     queryFn: async () => {
       const { data } = await api.get<{ data: ChatStatus }>("/chat/status", auth(token));

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import {
@@ -12,9 +14,10 @@ import {
   Loader2,
   Pencil,
   Plug,
+  RefreshCw,
   RotateCcw,
   ShieldCheck,
-  X,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +33,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getErrorMessage } from "@/utils/get-error-message";
 import AiUsageMonitor from "@/components/organisms/dashboard/admin/ai/AiUsageMonitor";
+import ModelPicker from "@/components/organisms/dashboard/admin/ai/ModelPicker";
 import {
   useAiSettings,
   useLoadAiModels,
@@ -68,14 +72,18 @@ const CONTOH: Record<
     model: "openai/gpt-oss-120b",
     catatan:
       "Server memanggil {endpoint}/chat/completions. Jalan di OpenRouter, Groq, Together, DeepSeek, Azure OpenAI, dan OpenAI.",
-    harga: [0.15, 0.6, 0.0375],
+    // Rupiah per satu juta token. Angka bawaan ini hanya titik awal - harga
+    // provider terbit dalam USD, jadi admin perlu mengonversinya sendiri sesuai
+    // kurs yang ia pakai. Tidak ada kurs yang disimpan aplikasi, supaya tidak
+    // ada angka yang diam-diam basi.
+    harga: [2400, 9600, 600],
   },
   anthropic: {
     endpoint: "https://api.anthropic.com",
     model: "claude-opus-5",
     catatan:
       "Server memanggil {endpoint}/v1/messages dengan header x-api-key. Isi alamat dasarnya saja, tanpa /v1.",
-    harga: [5, 25, 0.5],
+    harga: [80000, 400000, 8000],
   },
 };
 
@@ -84,11 +92,42 @@ type Draft = Omit<AiSettingsPayload, "api_key" | "endpoint"> & {
   endpoint: string;
 };
 
+/**
+ * Tab yang sedang terbuka disimpan di URL.
+ *
+ * Sebelumnya ia hanya state komponen, jadi setiap muat ulang halaman kembali ke
+ * Pengaturan - dan halaman ini dibuka berulang kali justru untuk memantau, yang
+ * berarti satu klik tambahan setiap kali. Di URL, tabnya bertahan melewati muat
+ * ulang, dan tautannya bisa dikirim ke orang lain langsung ke tab yang dimaksud.
+ *
+ * Ditulis dengan window.history.replaceState, bukan router.replace: yang kedua
+ * menjalankan navigasi app-router penuh setiap kali tab diklik. replaceState
+ * didukung Next dan tetap tersinkron dengan useSearchParams - lihat
+ * node_modules/next/dist/docs/01-app/01-getting-started/04-linking-and-navigating.md.
+ *
+ * replace, bukan push: tombol kembali tidak perlu menyusuri riwayat pergantian
+ * tab. Yang dibutuhkan adalah tidak kehilangan tempat saat muat ulang, bukan
+ * riwayat tab.
+ */
+const TABS = ["pengaturan", "pemantauan"] as const;
+
+type Tab = (typeof TABS)[number];
+
 export default function DashboardAdminAiSettingsWrapper() {
   const { data: session } = useSession();
   const token = (session?.access_token as string) ?? "";
 
   const { data: setting, isPending } = useAiSettings({ token });
+
+  const searchParams = useSearchParams();
+  const diminta = searchParams.get("tab");
+  const tab: Tab = TABS.includes(diminta as Tab) ? (diminta as Tab) : "pengaturan";
+
+  const gantiTab = (nilai: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", nilai);
+    window.history.replaceState(null, "", `?${params.toString()}`);
+  };
 
   if (isPending || !setting) {
     return (
@@ -100,11 +139,15 @@ export default function DashboardAdminAiSettingsWrapper() {
   }
 
   return (
-    <Tabs defaultValue="pengaturan" className="space-y-4">
-      <TabsList>
-        <TabsTrigger value="pengaturan">Pengaturan</TabsTrigger>
-        <TabsTrigger value="pemantauan">Pemantauan</TabsTrigger>
-      </TabsList>
+    <Tabs value={tab} onValueChange={gantiTab} className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <TabsList>
+          <TabsTrigger value="pengaturan">Pengaturan</TabsTrigger>
+          <TabsTrigger value="pemantauan">Monitoring</TabsTrigger>
+        </TabsList>
+
+        {tab === "pemantauan" && <TombolSegarkan />}
+      </div>
 
       <TabsContent value="pengaturan">
         {/*
@@ -120,6 +163,7 @@ export default function DashboardAdminAiSettingsWrapper() {
       <TabsContent value="pemantauan">
         <AiUsageMonitor />
       </TabsContent>
+
     </Tabs>
   );
 }
@@ -145,6 +189,11 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
     daily_message_limit: setting.daily_message_limit,
     history_limit: setting.history_limit,
     is_active: setting.is_active,
+    // Tidak ada kontrolnya di layar - pengali disetel langsung di basis data,
+    // karena ia kebijakan penagihan gateway dan bukan sesuatu yang disetel
+    // sehari-hari. Tetap ikut dikirim: PUT menimpa seluruh objek, jadi peta yang
+    // tidak disertakan akan terhapus setiap kali admin menyimpan hal lain.
+    model_multipliers: setting.model_multipliers ?? {},
   });
 
   const [personaOpen, setPersonaOpen] = useState(false);
@@ -203,138 +252,110 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
   const adaKunci = Boolean(setting.has_api_key || draft.api_key.trim().length > 0);
   const siap = Boolean(adaEndpoint && draft.model && adaKunci);
 
+  /**
+   * Apakah ada yang belum disimpan.
+   *
+   * Tanpa ini tombol simpan selalu menyala dan tidak memberi tahu apa pun -
+   * admin harus mengingat sendiri apakah suntingannya sudah masuk. Kolom
+   * endpoint dan API key dikecualikan ketika kosong, karena kosong di situ
+   * berarti "jangan ubah", bukan sebuah perubahan.
+   */
+  const berubah =
+    (draft.endpoint.trim() !== "" ) ||
+    (draft.api_key.trim() !== "") ||
+    draft.provider !== setting.provider ||
+    draft.model !== (setting.model ?? "") ||
+    draft.system_prompt !== (setting.system_prompt ?? "") ||
+    draft.max_tokens !== setting.max_tokens ||
+    draft.temperature_x100 !== setting.temperature_x100 ||
+    draft.price_input_per_mtok !== setting.price_input_per_mtok ||
+    draft.price_output_per_mtok !== setting.price_output_per_mtok ||
+    draft.price_cached_per_mtok !== setting.price_cached_per_mtok ||
+    draft.daily_message_limit !== setting.daily_message_limit ||
+    draft.history_limit !== setting.history_limit ||
+    draft.is_active !== setting.is_active;
+
   return (
     <div className="space-y-4">
-      {/* Keadaan yang sedang berlaku, di paling atas: itu pertanyaan pertama
-          siapa pun yang membuka halaman ini. */}
+      {/* Keadaan yang sedang berlaku, satu baris di paling atas: itu pertanyaan
+          pertama siapa pun yang membuka halaman ini, dan satu baris cukup untuk
+          menjawabnya. */}
       <div
-        className={`flex items-start gap-3 rounded-xl border-2 px-4 py-3 ${
+        className={`flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border px-4 py-2.5 text-sm ${
           setting.is_active
-            ? "border-emerald-200 bg-emerald-50"
-            : "border-amber-200 bg-amber-50"
+            ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+            : "border-amber-200 bg-amber-50 text-amber-900"
         }`}
       >
         {setting.is_active ? (
-          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+          <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
         ) : (
-          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" />
+          <AlertTriangle className="size-4 shrink-0 text-amber-600" />
         )}
-        <div className="min-w-0 flex-1">
-          <p
-            className={`text-sm font-bold ${
-              setting.is_active ? "text-emerald-900" : "text-amber-900"
-            }`}
-          >
-            {setting.is_active
-              ? "Asisten aktif — tombolnya muncul di dashboard peserta"
-              : "Asisten nonaktif — tombolnya tidak dirender sama sekali"}
-          </p>
-          <p
-            className={`text-xs leading-relaxed ${
-              setting.is_active ? "text-emerald-800" : "text-amber-800"
-            }`}
-          >
-            {setting.is_active
-              ? `${LABEL_PROVIDER[setting.provider]} · ${setting.model} · kuota ${setting.daily_message_limit} pesan/peserta/hari`
-              : "Isi endpoint dan API key, muat daftar model, uji koneksinya, lalu nyalakan."}
-          </p>
-        </div>
+        <span className="font-bold">{setting.is_active ? "Aktif" : "Nonaktif"}</span>
+        <span className="opacity-40">·</span>
+        <span className="min-w-0 text-xs opacity-80">
+          {setting.is_active
+            ? `${LABEL_PROVIDER[setting.provider]} · ${setting.model} · ${setting.daily_message_limit} pesan/peserta/hari`
+            : "Lengkapi koneksi di bawah, uji, lalu nyalakan"}
+        </span>
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-2">
           <CardTitle className="text-base">Koneksi provider</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Peserta tidak pernah memanggil provider langsung. Semua permintaan
-            lewat server ini, jadi endpoint dan API key tidak pernah sampai ke
-            browser siapa pun.
-          </p>
         </CardHeader>
 
-        <CardContent className="space-y-5">
-          <Field label="Provider" hint="Menentukan bentuk request yang dikirim server.">
-            <select
-              value={draft.provider}
-              onChange={(event) => {
-                const provider = event.target.value as AiProvider;
-                const preset = CONTOH[provider];
-                // Daftar model milik provider sebelumnya tidak berlaku lagi.
-                setModels(null);
-                // Harga bawaan hanya diisikan kalau admin belum mengisinya,
-                // supaya angka yang sudah disesuaikan tidak tertimpa saat
-                // sekadar melihat pilihan provider.
-                setDraft((prev) => ({
-                  ...prev,
-                  provider,
-                  price_input_per_mtok: prev.price_input_per_mtok || preset.harga[0],
-                  price_output_per_mtok: prev.price_output_per_mtok || preset.harga[1],
-                  price_cached_per_mtok: prev.price_cached_per_mtok || preset.harga[2],
-                }));
-              }}
-              className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:max-w-xs"
+        <CardContent>
+          <div className="divide-y">
+            <Row label="Provider">
+              <Segmented
+                value={draft.provider}
+                options={setting.providers.map((provider) => ({
+                  value: provider,
+                  label: LABEL_PROVIDER[provider],
+                }))}
+                onChange={(provider) => {
+                  const preset = CONTOH[provider];
+                  // Daftar model milik provider sebelumnya tidak berlaku lagi.
+                  setModels(null);
+                  // Harga bawaan hanya diisikan kalau admin belum mengisinya,
+                  // supaya angka yang sudah disesuaikan tidak tertimpa saat
+                  // sekadar melihat pilihan provider.
+                  setDraft((prev) => ({
+                    ...prev,
+                    provider,
+                    price_input_per_mtok: prev.price_input_per_mtok || preset.harga[0],
+                    price_output_per_mtok: prev.price_output_per_mtok || preset.harga[1],
+                    price_cached_per_mtok: prev.price_cached_per_mtok || preset.harga[2],
+                  }));
+                }}
+              />
+            </Row>
+
+            {/* Catatannya cuma nilai tersamarnya. "Tersimpan ... — kosongkan untuk
+                mempertahankan" sudah diwakili placeholder kolomnya sendiri
+                ("••• (tidak diubah)"), jadi kalimat itu hanya mengulang apa yang
+                sudah terbaca dua senti di sebelahnya. */}
+            <Row
+              label="Endpoint"
+              note={
+                setting.has_endpoint ? <Masked value={setting.endpoint_masked} /> : undefined
+              }
             >
-              {setting.providers.map((provider) => (
-                <option key={provider} value={provider}>
-                  {LABEL_PROVIDER[provider]}
-                </option>
-              ))}
-            </select>
-          </Field>
+              <Input
+                value={draft.endpoint}
+                onChange={(event) => {
+                  setModels(null);
+                  set("endpoint", event.target.value);
+                }}
+                placeholder={setting.has_endpoint ? "•••  (tidak diubah)" : contoh.endpoint}
+              />
+            </Row>
 
-          <Field
-            label="Endpoint"
-            hint={
-              setting.has_endpoint
-                ? `Terpasang: ${setting.endpoint_masked} · biarkan kosong kalau tidak ingin menggantinya`
-                : contoh.catatan
-            }
-          >
-            <Input
-              value={draft.endpoint}
-              onChange={(event) => {
-                setModels(null);
-                set("endpoint", event.target.value);
-              }}
-              placeholder={
-                setting.has_endpoint && setting.endpoint_masked
-                  ? `${setting.endpoint_masked}  (tidak diubah)`
-                  : contoh.endpoint
-              }
-            />
-            <p className="mt-1 text-xs text-slate-500">
-              {setting.has_endpoint ? (
-                <>
-                  Endpoint tersimpan aman (terenkripsi):{" "}
-                  <code className="rounded bg-slate-200/70 px-1 py-0.5 font-mono text-[11px] text-slate-800">
-                    {setting.endpoint_masked}
-                  </code>
-                  . Biarkan kosong jika tidak ingin mengubah.
-                </>
-              ) : (
-                "Wajib https, dan tidak boleh menunjuk alamat internal — server yang memanggilnya."
-              )}
-            </p>
-          </Field>
-
-          <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-4">
-            <div className="mb-3 flex items-start gap-2.5">
-              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-slate-600" />
-              <p className="text-xs leading-relaxed text-slate-600">
-                <span className="font-bold text-slate-800">
-                  Endpoint dan API key disimpan terenkripsi.
-                </span>{" "}
-                Kredensial disimpan terenkripsi di server dan tidak pernah dikirim balik secara mentah ke
-                halaman ini. Simpan salinan URL dan kunci Anda di tempat yang aman.
-              </p>
-            </div>
-
-            <Field
-              label="API Key"
-              hint={
-                setting.has_api_key
-                  ? `Terpasang: ${setting.api_key_masked} · biarkan kosong kalau tidak ingin menggantinya`
-                  : "Belum ada key terpasang."
-              }
+            <Row
+              label="API key"
+              note={setting.has_api_key ? <Masked value={setting.api_key_masked} /> : undefined}
             >
               <div className="relative">
                 <KeyRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
@@ -343,100 +364,99 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
                   autoComplete="new-password"
                   value={draft.api_key}
                   onChange={(event) => set("api_key", event.target.value)}
-                  placeholder={setting.has_api_key ? "••••••••  (tidak diubah)" : "sk-..."}
-                  className="bg-white pl-9"
+                  placeholder={setting.has_api_key ? "•••  (tidak diubah)" : "sk-..."}
+                  className="pl-9"
                 />
               </div>
-            </Field>
+            </Row>
+
+            {/* Model dimuat dari provider supaya tidak perlu dihafal, tapi tetap
+                bisa diketik - daftar provider bisa gagal dimuat, dan sebagian
+                gateway tidak menyediakan endpoint daftarnya sama sekali. */}
+            <Row
+              label="Model"
+              note={
+                models && models.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setModels(null)}
+                    className="font-semibold text-slate-500 transition-colors hover:text-slate-900 hover:underline"
+                  >
+                    {models.length} model dimuat · ketik manual saja
+                  </button>
+                ) : undefined
+              }
+            >
+              <div className="flex gap-2">
+                {models && models.length > 0 ? (
+                  <div className="min-w-0 flex-1">
+                    <ModelPicker
+                      value={draft.model}
+                      models={models}
+                      onChange={(model) => set("model", model)}
+                    />
+                  </div>
+                ) : (
+                  <Input
+                    value={draft.model}
+                    onChange={(event) => set("model", event.target.value)}
+                    placeholder={contoh.model}
+                    className="min-w-0 flex-1"
+                  />
+                )}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Muat daftar model dari provider"
+                  title="Muat daftar model dari provider"
+                  onClick={() =>
+                    loadModels.mutate(probe(), {
+                      onSuccess: (result) => {
+                        setModels(result.data);
+                        toast.success(result.message);
+                      },
+                      onError: (error) => tampilkanGalat("Gagal memuat daftar model", error),
+                    })
+                  }
+                  disabled={loadModels.isPending || !adaEndpoint || !adaKunci}
+                  className="size-9 shrink-0"
+                >
+                  {loadModels.isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Download className="size-4" />
+                  )}
+                </Button>
+              </div>
+            </Row>
+
+            <Row label="Aktif untuk peserta">
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={draft.is_active}
+                  onCheckedChange={(next) => set("is_active", next)}
+                  disabled={!siap && !draft.is_active}
+                />
+                <span className="text-xs text-slate-500">
+                  {siap || draft.is_active
+                    ? draft.is_active
+                      ? "Tombol asisten muncul di dashboard peserta"
+                      : "Tombol asisten tidak dirender"
+                    : "Lengkapi endpoint, key, dan model dulu"}
+                </span>
+              </div>
+            </Row>
           </div>
 
-          {/* Model dimuat dari provider supaya tidak perlu dihafal, tapi tetap
-              bisa diketik - daftar provider bisa gagal dimuat, dan sebagian
-              gateway tidak menyediakan endpoint daftarnya sama sekali. */}
-          <Field
-            label="Model"
-            hint={
-              models
-                ? `${models.length} model dimuat dari provider. Masih bisa diketik manual.`
-                : `Contoh: ${contoh.model}. Muat daftarnya kalau tidak ingat id modelnya.`
-            }
-          >
-            <div className="flex flex-col gap-2 sm:flex-row">
-              {models && models.length > 0 ? (
-                <select
-                  value={models.some((item) => item.id === draft.model) ? draft.model : ""}
-                  onChange={(event) => set("model", event.target.value)}
-                  className="h-9 min-w-0 flex-1 rounded-md border border-input bg-white px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                >
-                  <option value="">— pilih model —</option>
-                  {models.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name ? `${item.id} · ${item.name}` : item.id}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <Input
-                  value={draft.model}
-                  onChange={(event) => set("model", event.target.value)}
-                  placeholder={contoh.model}
-                  className="min-w-0 flex-1"
-                />
-              )}
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() =>
-                  loadModels.mutate(probe(), {
-                    onSuccess: (result) => {
-                      setModels(result.data);
-                      toast.success(result.message);
-                    },
-                    onError: (error) => tampilkanGalat("Gagal memuat daftar model", error),
-                  })
-                }
-                disabled={loadModels.isPending || !draft.endpoint || !adaKunci}
-                className="shrink-0 border-2 font-bold"
-              >
-                {loadModels.isPending ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                ) : (
-                  <Download className="mr-2 size-4" />
-                )}
-                Muat Daftar
-              </Button>
-            </div>
-
-            {models && models.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setModels(null)}
-                className="mt-1 text-xs font-semibold text-slate-500 transition-colors hover:text-slate-900 hover:underline"
-              >
-                Ketik manual saja
-              </button>
-            )}
-          </Field>
-
-          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <label className="flex cursor-pointer items-center gap-3">
-              <Switch
-                checked={draft.is_active}
-                onCheckedChange={(next) => set("is_active", next)}
-                disabled={!siap && !draft.is_active}
-              />
-              <span className="text-sm">
-                <span className="font-semibold text-slate-800">
-                  {draft.is_active ? "Aktifkan untuk peserta" : "Nonaktif"}
-                </span>
-                <span className="block text-xs text-slate-500">
-                  {siap || draft.is_active
-                    ? "Berlaku setelah disimpan."
-                    : "Lengkapi endpoint, key, dan model dulu."}
-                </span>
-              </span>
-            </label>
+          <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+            {/* Satu kalimat untuk seluruh kartu, menggantikan empat hint. */}
+            <p className="text-xs leading-relaxed text-slate-500">
+              <ShieldCheck className="mr-1 inline size-3.5 -translate-y-px text-slate-400" />
+              Endpoint dan key disimpan terenkripsi, tidak pernah dikirim ke browser.
+              Uji koneksi memakai isi kolom di atas — tanpa perlu disimpan dulu.
+            </p>
 
             <Button
               type="button"
@@ -450,8 +470,8 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
                   onError: (error) => tampilkanGalat("Uji koneksi gagal", error),
                 })
               }
-              disabled={test.isPending || !draft.endpoint || !adaKunci || !draft.model}
-              className="border-2 font-bold"
+              disabled={test.isPending || !adaEndpoint || !adaKunci || !draft.model}
+              className="shrink-0 border-2 font-bold"
             >
               {test.isPending ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -461,71 +481,59 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
               Uji Koneksi
             </Button>
           </div>
-
-          <p className="text-xs leading-relaxed text-slate-500">
-            Uji koneksi dan muat daftar memakai isi kolom di atas —{" "}
-            <span className="font-semibold">tidak perlu disimpan dulu</span>, dan
-            kredensial yang diuji tidak ikut tersimpan.
-          </p>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="flex flex-col gap-3 pt-6 sm:flex-row sm:items-center">
-          <FileText className="size-5 shrink-0 text-slate-400" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-slate-900">Persona asisten</p>
-            <p className="text-xs leading-relaxed text-slate-500">
-              {draft.system_prompt.length.toLocaleString("id-ID")} karakter ·
-              disimpan di server, jadi peserta tidak bisa membacanya maupun
-              menyuruh asisten mengabaikannya.
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setPersonaOpen(true)}
-            className="shrink-0 border-2 font-bold"
-          >
-            <Pencil className="mr-2 size-4" />
-            Ubah Persona
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Satu baris, bukan kartu berpadding penuh: isinya cuma satu tautan ke
+          modal, dan kartu setinggi 90px untuk itu memakan ruang yang seharusnya
+          jadi milik kontrol yang benar-benar disetel. */}
+      <div className="flex items-center gap-3 rounded-xl border bg-white px-4 py-2.5">
+        <FileText className="size-4 shrink-0 text-slate-400" />
+        <p className="min-w-0 flex-1 truncate text-sm text-slate-600">
+          <span className="font-semibold text-slate-900">Persona asisten</span>
+          <span className="text-slate-400"> · </span>
+          {draft.system_prompt.length.toLocaleString("id-ID")} karakter
+        </p>
+        <button
+          type="button"
+          onClick={() => setPersonaOpen(true)}
+          className="flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+        >
+          <Pencil className="size-3.5" />
+          Ubah
+        </button>
+      </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-2">
           <CardTitle className="text-base">Batas pemakaian & harga</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Harga dipakai untuk estimasi biaya di tab Pemantauan, dan dibekukan ke
-            tiap permintaan saat terjadi — mengubahnya di sini tidak mengubah
-            biaya yang sudah tercatat.
-          </p>
         </CardHeader>
 
-        <CardContent className="space-y-5">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Field label="Kuota per peserta / hari" hint="Setiap pesan berbiaya.">
+        <CardContent>
+          <div className="divide-y">
+            <Row label="Kuota per peserta" unit="pesan / hari">
               <Input
                 type="number"
                 min={1}
                 max={1000}
                 value={draft.daily_message_limit}
                 onChange={(event) => set("daily_message_limit", Number(event.target.value))}
+                className="sm:max-w-32"
               />
-            </Field>
+            </Row>
 
-            <Field label="Riwayat dikirim" hint="0 = tiap pesan berdiri sendiri.">
+            <Row label="Riwayat dikirim" unit={draft.history_limit === 0 ? "tiap pesan berdiri sendiri" : "pesan terakhir"}>
               <Input
                 type="number"
                 min={0}
                 max={40}
                 value={draft.history_limit}
                 onChange={(event) => set("history_limit", Number(event.target.value))}
+                className="sm:max-w-32"
               />
-            </Field>
+            </Row>
 
-            <Field label="Max tokens" hint="Panjang maksimum satu jawaban.">
+            <Row label="Panjang jawaban" unit="token maksimum">
               <Input
                 type="number"
                 min={256}
@@ -533,12 +541,13 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
                 step={256}
                 value={draft.max_tokens}
                 onChange={(event) => set("max_tokens", Number(event.target.value))}
+                className="sm:max-w-32"
               />
-            </Field>
+            </Row>
 
-            <Field
+            <Row
               label="Temperature"
-              hint={`${(draft.temperature_x100 / 100).toFixed(2)} — makin tinggi makin bervariasi.`}
+              unit={draft.temperature_x100 <= 30 ? "konsisten" : draft.temperature_x100 >= 120 ? "sangat bervariasi" : "seimbang"}
             >
               <Input
                 type="number"
@@ -547,67 +556,102 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
                 step={5}
                 value={draft.temperature_x100}
                 onChange={(event) => set("temperature_x100", Number(event.target.value))}
+                className="sm:max-w-32"
               />
-            </Field>
+            </Row>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-3">
-            <Field label="Harga input / 1 jt token" hint="USD. Lihat halaman harga providermu.">
+          <div className="mt-4 divide-y border-t pt-2">
+            <Row label="Harga input" unit="Rp / 1 jt token">
               <Input
                 type="number"
                 min={0}
                 step={0.01}
                 value={draft.price_input_per_mtok}
                 onChange={(event) => set("price_input_per_mtok", Number(event.target.value))}
+                className="sm:max-w-32"
               />
-            </Field>
-            <Field label="Harga output / 1 jt token" hint="USD. Biasanya lebih mahal dari input.">
+            </Row>
+
+            <Row label="Harga output" unit="Rp / 1 jt token">
               <Input
                 type="number"
                 min={0}
                 step={0.01}
                 value={draft.price_output_per_mtok}
                 onChange={(event) => set("price_output_per_mtok", Number(event.target.value))}
+                className="sm:max-w-32"
               />
-            </Field>
-            <Field label="Harga cache / 1 jt token" hint="USD. Biasanya jauh lebih murah.">
+            </Row>
+
+            <Row label="Harga cache" unit="Rp / 1 jt token">
               <Input
                 type="number"
                 min={0}
                 step={0.001}
                 value={draft.price_cached_per_mtok}
                 onChange={(event) => set("price_cached_per_mtok", Number(event.target.value))}
+                className="sm:max-w-32"
               />
-            </Field>
+            </Row>
           </div>
+
+          <p className="mt-4 border-t pt-4 text-xs leading-relaxed text-slate-500">
+            Harga diisi dalam Rupiah per satu juta token — halaman harga provider
+            biasanya dalam USD, jadi konversikan dulu dengan kursmu sendiri.
+            Aplikasi tidak menyimpan kurs, supaya tidak ada angka yang diam-diam
+            basi. Angka ini dibekukan ke tiap permintaan saat terjadi, jadi
+            mengubahnya tidak mengubah biaya yang sudah tercatat.
+          </p>
         </CardContent>
       </Card>
 
-      <div className="sticky bottom-0 flex flex-col gap-2 border-t-2 border-dashed border-slate-200 bg-white py-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-slate-500">
-          {setting.updated_at
-            ? `Terakhir diubah ${new Date(setting.updated_at).toLocaleString("id-ID")}`
-            : "Belum pernah disimpan"}
-        </p>
-        <Button
-          type="button"
-          onClick={() => simpan()}
-          disabled={save.isPending}
-          className="border-2 border-slate-900 font-bold"
-        >
-          {save.isPending ? (
-            <Loader2 className="mr-2 size-4 animate-spin" />
-          ) : (
-            <CheckCircle2 className="mr-2 size-4" />
-          )}
-          Simpan Pengaturan
-        </Button>
+      {/* Bilah simpan melayang di atas isi halaman, bukan garis pemisah yang
+          isinya rata mepet ke tepi. Sebelumnya ia hanya punya padding vertikal,
+          jadi tombolnya menyentuh tepi kontainer sementara seluruh kartu di
+          atasnya berpadding - dan garis putus-putusnya terbaca sebagai garis
+          nyasar, bukan kaki panel. */}
+      <div className="sticky bottom-4 z-10 pt-2">
+        <div className="flex flex-col gap-3 rounded-xl border bg-white/95 px-4 py-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            {berubah ? (
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-700">
+                <span className="size-1.5 shrink-0 rounded-full bg-amber-500" />
+                Ada perubahan yang belum disimpan
+              </p>
+            ) : (
+              <p className="text-xs text-slate-500">
+                {setting.updated_at
+                  ? `Tersimpan · terakhir diubah ${new Date(setting.updated_at).toLocaleString("id-ID")}`
+                  : "Belum pernah disimpan"}
+              </p>
+            )}
+          </div>
+
+          <Button
+            type="button"
+            onClick={() => simpan()}
+            disabled={save.isPending || !berubah}
+            className="w-full border-2 border-slate-900 font-bold sm:w-auto"
+          >
+            {save.isPending ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="mr-2 size-4" />
+            )}
+            {save.isPending ? "Menyimpan..." : "Simpan Pengaturan"}
+          </Button>
+        </div>
       </div>
 
       <Dialog open={personaOpen} onOpenChange={setPersonaOpen}>
         <DialogContent
           showCloseButton={false}
-          className="flex max-h-[90vh] max-w-3xl flex-col gap-0 p-0"
+          // sm:max-w-3xl! dengan penanda penting: dialog.tsx menanam
+          // sm:max-w-md (448px), dan varian yang sama membuat kelas biasa
+          // kalah di CSS - itu yang membuat modal ini sempit meski diberi
+          // max-w-3xl.
+          className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-3xl!"
         >
           {/* key membuat state editornya lahir ulang setiap kali dibuka,
               sehingga membatalkan lalu membuka lagi tidak menyisakan suntingan
@@ -616,6 +660,7 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
             <PersonaEditor
               key={draft.system_prompt}
               value={draft.system_prompt}
+              defaultValue={setting.default_system_prompt}
               saving={save.isPending}
               onSave={(text) => simpan({ system_prompt: text }, "Persona berhasil disimpan.")}
               onCancel={() => setPersonaOpen(false)}
@@ -636,17 +681,21 @@ function FormPengaturan({ setting, token }: { setting: AiSettings; token: string
  */
 function PersonaEditor({
   value,
+  defaultValue,
   saving,
   onSave,
   onCancel,
 }: {
   value: string;
+  /** Persona bawaan dari server, untuk tombol pulihkan. */
+  defaultValue?: string;
   saving: boolean;
   onSave: (text: string) => void;
   onCancel: () => void;
 }) {
   const [text, setText] = useState(value);
   const berubah = text !== value;
+  const bedaDariBawaan = Boolean(defaultValue && text.trim() !== defaultValue.trim());
 
   return (
     <>
@@ -662,44 +711,64 @@ function PersonaEditor({
         <textarea
           value={text}
           onChange={(event) => setText(event.target.value)}
-          rows={22}
+          rows={20}
           maxLength={20000}
           spellCheck={false}
-          className="w-full resize-y rounded-md border border-input bg-white px-3 py-2 font-mono text-xs leading-relaxed outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="w-full resize-y rounded-lg border border-input bg-white px-3.5 py-3 font-mono text-xs leading-relaxed outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
         />
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-right text-xs tabular-nums text-slate-400">
           {text.length.toLocaleString("id-ID")} / 20.000 karakter
         </p>
       </div>
 
-      <div className="flex flex-col gap-2 border-t px-5 py-4 sm:flex-row sm:justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setText(value)}
-          disabled={!berubah || saving}
-          className="border-2 font-bold"
-        >
-          <RotateCcw className="mr-2 size-4" />
-          Kembalikan
-        </Button>
+      {/* Empat tombol sejajar tidak punya hierarki - mata harus membaca
+          keempatnya untuk menemukan yang utama, dan "Batalkan suntingan" nyaris
+          tak terbedakan dari "Batal". Sekarang aksi pemulih jadi tautan teks di
+          kiri, dan hanya dua tombol berbentuk di kanan. */}
+      <div className="flex flex-col gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+          <button
+            type="button"
+            onClick={() => setText(value)}
+            disabled={!berubah || saving}
+            className="flex items-center gap-1.5 font-semibold text-slate-500 transition-colors hover:text-slate-900 hover:underline disabled:opacity-40 disabled:hover:no-underline"
+          >
+            <RotateCcw className="size-3.5" />
+            Kembalikan suntingan
+          </button>
 
-        <div className="flex flex-col gap-2 sm:flex-row">
+          {/* Jalan kembali ke persona bawaan. Tanpa ini, persona yang sudah
+              disunting tidak bisa dipulihkan - dan pengerasan terhadap injeksi
+              yang dikirim lewat pembaruan tidak akan pernah terpakai. */}
+          {defaultValue && (
+            <button
+              type="button"
+              onClick={() => setText(defaultValue)}
+              disabled={!bedaDariBawaan || saving}
+              title="Ganti dengan persona bawaan UrClass"
+              className="flex items-center gap-1.5 font-semibold text-slate-500 transition-colors hover:text-slate-900 hover:underline disabled:opacity-40 disabled:hover:no-underline"
+            >
+              <Sparkles className="size-3.5" />
+              Pakai persona bawaan
+            </button>
+          )}
+        </div>
+
+        <div className="flex gap-2">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={onCancel}
             disabled={saving}
-            className="border-2 font-bold"
+            className="font-bold"
           >
-            <X className="mr-2 size-4" />
             Batal
           </Button>
           <Button
             type="button"
             onClick={() => onSave(text)}
             disabled={!berubah || saving || !text.trim()}
-            className="border-2 border-slate-900 font-bold"
+            className="flex-1 border-2 border-slate-900 font-bold sm:flex-none"
           >
             {saving ? (
               <Loader2 className="mr-2 size-4 animate-spin" />
@@ -714,20 +783,139 @@ function PersonaEditor({
   );
 }
 
-function Field({
+/**
+ * Satu baris pengaturan: nama di kiri, kontrolnya di kanan.
+ *
+ * Menggantikan pola label-di-atas-input-lalu-paragraf-hint. Pola itu membuat
+ * sebelas field jadi dua puluh delapan potong teks, dan halaman yang isinya
+ * penjelasan lebih banyak daripada kontrol justru lebih lambat dibaca - mata
+ * harus melewati satu paragraf untuk sampai ke kolom berikutnya.
+ *
+ * Penjelasan yang benar-benar mencegah kesalahan dipindah ke satu kalimat per
+ * kartu, bukan satu per field. Sisanya diwakili placeholder dan satuan.
+ */
+/**
+ * Menyegarkan seluruh data pemantauan.
+ *
+ * Ada karena tidak semua yang ada di tab ini menyegarkan diri sendiri: peta
+ * pemakaian langsung memang menyegar tiap lima detik, tapi grafik per periode,
+ * pemakai terbanyak, dan kuota provider tidak - dan ketiganya yang paling sering
+ * ingin dilihat ulang setelah ada yang berubah.
+ *
+ * Membatalkan cache query, bukan memuat ulang halaman: memuat ulang halaman
+ * mengembalikan gulir ke atas dan membangun ulang seluruh pohon komponen untuk
+ * sesuatu yang cukup diselesaikan tiga permintaan.
+ */
+/**
+ * Query yang keadaan memuatnya diwakili tombol Segarkan.
+ *
+ * Semua query pemantauan kecuali peta langsung, yang menyegar sendiri.
+ */
+const dipantauTombol = (query: { queryKey: readonly unknown[] }) => {
+  const kunci = String(query.queryKey[0]);
+
+  return kunci.startsWith("admin-ai-") && kunci !== "admin-ai-live";
+};
+
+function TombolSegarkan() {
+  const queryClient = useQueryClient();
+
+
+  // Menghitung permintaan yang sedang berjalan, bukan menyimpan state sendiri:
+  // state buatan sendiri harus dinolkan lagi setelah selesai, dan ia tidak tahu
+  // kapan query-query itu benar-benar berhenti.
+  //
+  // Peta pemakaian langsung dikecualikan. Ia menyegar sendiri tiap lima detik,
+  // jadi memasukkannya membuat tombol ini berkedip "Menyegarkan..." dan
+  // nonaktif setiap lima detik tanpa ada yang menekannya - indikator yang
+  // menyala terus-menerus berhenti berarti apa pun.
+  const berjalan = useIsFetching({ predicate: dipantauTombol });
+
+  return (
+    <button
+      type="button"
+      // Yang dibatalkan termasuk peta langsung: ia memang akan menyegar sendiri
+      // sebentar lagi, tapi orang yang menekan tombol ini ingin semuanya baru
+      // sekarang.
+      onClick={() =>
+        queryClient.invalidateQueries({
+          predicate: (query) => String(query.queryKey[0]).startsWith("admin-ai-"),
+        })
+      }
+      disabled={berjalan > 0}
+      className="flex shrink-0 items-center gap-1.5 rounded-lg border bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:opacity-60"
+    >
+      <RefreshCw className={`size-3.5 ${berjalan > 0 ? "animate-spin" : ""}`} />
+      {berjalan > 0 ? "Menyegarkan..." : "Segarkan"}
+    </button>
+  );
+}
+
+/** Nilai tersamar, ditampilkan sebagai kode supaya jelas ini bukan teks biasa. */
+function Masked({ value }: { value?: string | null }) {
+  return (
+    <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[11px] text-slate-700">
+      {value ?? "•••"}
+    </code>
+  );
+}
+
+function Row({
   label,
-  hint,
   children,
+  unit,
+  note,
 }: {
   label: string;
-  hint?: string;
   children: React.ReactNode;
+  /** Satuan yang menempel di kanan input, mis. "token" atau "/1jt token". */
+  unit?: string;
+  /** Dipakai hemat - hanya ketika keadaannya perlu diberitahukan. */
+  note?: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-bold text-slate-700">{label}</label>
-      {children}
-      {hint && <p className="text-xs leading-relaxed text-slate-500">{hint}</p>}
+    <div className="flex flex-col gap-1.5 py-2.5 sm:flex-row sm:items-center sm:gap-4">
+      <label className="w-full shrink-0 text-sm text-slate-600 sm:w-44">{label}</label>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">{children}</div>
+          {unit && (
+            <span className="shrink-0 text-xs text-slate-400">{unit}</span>
+          )}
+        </div>
+        {note && <div className="mt-1 text-xs leading-relaxed text-slate-500">{note}</div>}
+      </div>
+    </div>
+  );
+}
+
+/** Pemilih dua nilai, menggantikan select untuk pilihan yang sudah jelas. */
+function Segmented<T extends string>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="inline-flex w-full rounded-lg border bg-slate-50 p-0.5 sm:w-auto">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          className={`flex-1 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-semibold transition-colors sm:flex-none ${
+            value === option.value
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }

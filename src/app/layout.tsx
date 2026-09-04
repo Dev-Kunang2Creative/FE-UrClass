@@ -11,23 +11,26 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  title: "UrClass - Tryout & Bimbel SNBP, UTBK (SNBT) & UM PTN",
+  // UrClass hanya punya dua jalur: UTBK dan CPNS. Judul sebelumnya menyebut SNBP
+  // dan UM PTN - dua hal yang tidak ada di aplikasi ini - jadi orang yang datang
+  // dari pencarian itu tidak menemukan apa yang dijanjikan judulnya.
+  title: "UrClass - UTBK dan CPNS Tryout",
   description:
-    "UrClass adalah platform tryout dan bimbingan intensif untuk persiapan SNBP, UTBK (SNBT), dan UM PTN. Dapatkan simulasi ujian real-time, pembahasan lengkap, kelas intensif, dan analitik progress untuk strategi masuk PTN terbaikmu.",
+    "UrClass adalah platform tryout untuk persiapan UTBK dan CPNS. Simulasi ujian real-time, pembahasan lengkap langkah demi langkah, papan peringkat, dan analitik progress untuk target PTN dan ASN impianmu.",
   keywords: [
     "tryout utbk",
-    "bimbel snbp",
-    "bimbel utbk online",
+    "tryout cpns",
+    "simulasi utbk",
+    "simulasi cpns",
     "latihan soal utbk",
-    "simulasi utbk snbt",
-    "prediksi passing grade",
-    "tips lolos snbp",
-    "persiapan um ptn",
-    "materi utbk dan pembahasan",
+    "latihan soal cpns",
     "bank soal utbk",
+    "bank soal cpns",
+    "materi utbk dan pembahasan",
+    "persiapan utbk",
+    "persiapan cpns",
     "UrClass",
     "platform tryout indonesia",
-    "persiapan utbk",
   ],
   authors: [{ name: "UrClass", url: "https://urclass.id" }],
   applicationName: "UrClass",
@@ -56,7 +59,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "UrClass - Platform Simulasi Tryout UTBK (SNBT) & CPNS (SKD)",
+    title: "UrClass - UTBK dan CPNS Tryout",
     description:
       "Simulasi ujian real-time, pembahasan detail langkah demi langkah, dan analitik performa untuk target lolos PTN & ASN impianmu.",
     url: "https://urclass.id",
@@ -66,7 +69,7 @@ export const metadata: Metadata = {
         url: "/images/logo/urclass.png",
         width: 1200,
         height: 630,
-        alt: "UrClass - Platform Tryout UTBK & CPNS",
+        alt: "UrClass - UTBK dan CPNS Tryout",
       },
     ],
     locale: "id_ID",
@@ -74,7 +77,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "UrClass - Platform Simulasi Tryout UTBK & CPNS",
+    title: "UrClass - UTBK dan CPNS Tryout",
     description:
       "Simulasi ujian real-time, pembahasan lengkap, dan analitik akurasi di UrClass.",
     creator: "@UrClass",
@@ -93,7 +96,7 @@ export default function RootLayout({
       : "https://app.sandbox.midtrans.com/snap/snap.js";
 
   return (
-    <html lang="en">
+    <html lang="id">
       <body className={`${rubik.variable} antialiased font-rubik`}>
         <Script
           src={midtransUrl}

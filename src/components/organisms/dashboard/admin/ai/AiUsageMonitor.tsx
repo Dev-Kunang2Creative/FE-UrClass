@@ -11,10 +11,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AlertTriangle, Ban, CheckCircle2, Clock, Loader2 } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle2, Clock, Gauge, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import AiLiveUsage from "@/components/organisms/dashboard/admin/ai/AiLiveUsage";
+import { useAiQuota } from "@/http/ai/admin-ai-quota";
 import {
   useAiUsage,
+  type UsageBucket,
   type UsagePoint,
   type UsageWindow,
 } from "@/http/ai/admin-ai-usage";
@@ -23,7 +26,8 @@ import {
   bucketTitle,
   compactNumber,
   formatDuration,
-  formatUsd,
+  formatRupiah,
+  fullRupiah,
   fullNumber,
 } from "@/lib/format-usage";
 
@@ -44,6 +48,15 @@ const SERIES = "#2a78d6";
 const GRID = "#e1e0d9";
 const AXIS_INK = "#898781";
 
+/**
+ * Lebar minimum satu titik pada grafik, dalam piksel.
+ *
+ * Menentukan seberapa lebar grafiknya jadi, dan karenanya berapa banyak yang
+ * bisa digulir. 34px cukup untuk satu label jam ("14.00") tanpa bertumpuk, dan
+ * cukup rapat supaya sehari penuh masih masuk dalam dua kali geser.
+ */
+const LEBAR_PER_TITIK = 34;
+
 type Metric = "tokens" | "cost";
 
 export default function AiUsageMonitor() {
@@ -52,8 +65,18 @@ export default function AiUsageMonitor() {
 
   const [periode, setPeriode] = useState<UsageWindow>("24h");
   const [metric, setMetric] = useState<Metric>("tokens");
+  // undefined = pakai bawaan jendelanya. Dipilih sendiri hanya kalau admin
+  // memang menggantinya.
+  const [bucket, setBucket] = useState<UsageBucket | undefined>(undefined);
 
-  const { data, isPending, isFetching } = useAiUsage({ token, window: periode });
+  const { data, isPending, isFetching } = useAiUsage({ token, window: periode, bucket });
+
+  // Dipanggil di sini, bukan di dalam KartuKuota: komponen itu baru dirender
+  // setelah query pemakaian selesai, jadi permintaan kuotanya - yang menempuh
+  // jaringan ke provider dan paling lambat di halaman ini - baru mulai setelah
+  // penantian pertama berakhir. Dua penantian berurutan yang sebenarnya bisa
+  // berjalan bersamaan.
+  const kuota = useAiQuota({ token });
 
   if (isPending || !data) {
     return (
@@ -64,11 +87,13 @@ export default function AiUsageMonitor() {
     );
   }
 
-  const { totals, series, bucket, by_model, top_users, recent } = data;
+  const { totals, series, bucket: bucketAktif, peak, top_users } = data;
   const kosong = totals.requests === 0;
 
   return (
     <div className="space-y-4">
+      <KartuKuota query={kuota} />
+
       {/* Filter dalam satu baris di atas grafik. */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex flex-wrap gap-1 rounded-xl border bg-white p-1">
@@ -76,7 +101,13 @@ export default function AiUsageMonitor() {
             <button
               key={item.key}
               type="button"
-              onClick={() => setPeriode(item.key)}
+              onClick={() => {
+                setPeriode(item.key);
+                // Pilihan per jam tidak berlaku di jendela panjang; dikembalikan
+                // ke bawaan supaya tidak diam-diam turun ke harian tanpa
+                // tombolnya ikut berubah.
+                setBucket(undefined);
+              }}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                 periode === item.key
                   ? "bg-slate-900 text-white"
@@ -110,6 +141,33 @@ export default function AiUsageMonitor() {
           ))}
         </div>
 
+        {/* Lebar ember. Hanya muncul untuk jendela yang mengizinkan per jam -
+            menawarkan tombol yang diam-diam tidak berlaku lebih buruk daripada
+            tidak menawarkannya. */}
+        {data.windows.find((item) => item.key === periode)?.hourly && (
+          <div className="flex gap-1 rounded-xl border bg-white p-1">
+            {(
+              [
+                ["hour", "Per jam"],
+                ["day", "Per hari"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setBucket(value)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  bucketAktif === value
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-500 hover:bg-slate-100"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {isFetching && (
           <Loader2 className="size-3.5 animate-spin text-slate-400" aria-label="Memuat" />
         )}
@@ -131,9 +189,9 @@ export default function AiUsageMonitor() {
         <StatTile label="Token keluar" value={compactNumber(totals.output_tokens)} full={fullNumber(totals.output_tokens)} />
         <StatTile
           label="Estimasi biaya"
-          value={formatUsd(totals.cost_usd)}
-          full={`$${totals.cost_usd}`}
-          hint="Menurut harga yang berlaku saat tiap permintaan terjadi"
+          value={formatRupiah(totals.cost_idr, { compact: true })}
+          full={fullRupiah(totals.cost_idr)}
+          hint="Rupiah, menurut harga saat tiap permintaan terjadi"
         />
       </div>
 
@@ -164,15 +222,39 @@ export default function AiUsageMonitor() {
         />
       </div>
 
+      {/* Pemakaian langsung di atas grafik riwayat: yang pertama ditanyakan
+          orang yang membuka halaman ini adalah keadaan sekarang, dan riwayatnya
+          dibaca sesudah itu. Ia tidak mengikuti filter periode di atas - node-nya
+          hidup satu menit lalu hilang, karena itu arti "langsung". */}
+      <AiLiveUsage />
+
       <Card>
         <CardContent className="pt-6">
-          <div className="mb-4">
-            <p className="text-sm font-bold text-slate-900">
-              {metric === "tokens" ? "Token per periode" : "Biaya per periode"}
-            </p>
-            <p className="text-xs text-slate-500">
-              {bucket === "hour" ? "Dikelompokkan per jam" : "Dikelompokkan per hari"}
-            </p>
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="text-sm font-bold text-slate-900">
+                {metric === "tokens" ? "Token per periode" : "Biaya per periode"}
+              </p>
+              <p className="text-xs text-slate-500">
+                {bucketAktif === "hour" ? "Dikelompokkan per jam" : "Dikelompokkan per hari"}
+                {series.length > 0 && ` · ${series.length} titik · geser untuk lihat riwayat`}
+              </p>
+            </div>
+
+            {/* Puncaknya ditulis apa adanya, bukan diserahkan ke mata. Ini
+                pertanyaan yang paling sering dibawa orang ke grafik pemakaian:
+                kapan paling ramai. */}
+            {peak && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-right">
+                <p className="text-[10px] uppercase tracking-wide text-slate-500">Puncak</p>
+                <p className="text-xs font-bold text-slate-900">
+                  {bucketTitle(peak.bucket, bucketAktif)}
+                </p>
+                <p className="text-[11px] tabular-nums text-slate-500">
+                  {compactNumber(peak.total_tokens)} token · {peak.requests}×
+                </p>
+              </div>
+            )}
           </div>
 
           {kosong ? (
@@ -180,8 +262,16 @@ export default function AiUsageMonitor() {
               Belum ada permintaan pada periode ini.
             </p>
           ) : (
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            /* Grafik dibuat selebar jumlah titiknya lalu digulir di dalam
+               wadahnya sendiri, bukan dipadatkan ke lebar panel. Enam puluh
+               titik yang dijejalkan ke 600px tidak bisa dibaca satu pun, dan
+               justru riwayat itulah yang dicari - jam berapa ramainya. */
+            <div className="-mx-2 overflow-x-auto px-2 pb-1">
+              <div
+                className="h-64"
+                style={{ minWidth: `${Math.max(560, series.length * LEBAR_PER_TITIK)}px` }}
+              >
+                <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={series} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="aiUsageFill" x1="0" y1="0" x2="0" y2="1">
@@ -196,19 +286,21 @@ export default function AiUsageMonitor() {
 
                   <XAxis
                     dataKey="bucket"
-                    tickFormatter={(value: string) => bucketLabel(value, bucket)}
+                    tickFormatter={(value: string) => bucketLabel(value, bucketAktif)}
                     tick={{ fill: AXIS_INK, fontSize: 11 }}
                     stroke={GRID}
-                    minTickGap={28}
+                    minTickGap={12}
                     tickMargin={8}
                   />
                   <YAxis
                     tickFormatter={(value: number) =>
-                      metric === "tokens" ? compactNumber(value) : formatUsd(value)
+                      metric === "tokens"
+                        ? compactNumber(value)
+                        : formatRupiah(value, { compact: true })
                     }
                     tick={{ fill: AXIS_INK, fontSize: 11 }}
                     stroke={GRID}
-                    width={metric === "tokens" ? 56 : 72}
+                    width={metric === "tokens" ? 56 : 84}
                   />
 
                   <Tooltip
@@ -221,13 +313,13 @@ export default function AiUsageMonitor() {
                       return (
                         <div className="rounded-xl border-2 border-slate-900 bg-white px-3 py-2 text-xs shadow-lg">
                           <p className="font-bold text-slate-900">
-                            {bucketTitle(point.bucket, bucket)}
+                            {bucketTitle(point.bucket, bucketAktif)}
                           </p>
                           <dl className="mt-1.5 space-y-0.5 tabular-nums">
                             <Row label="Permintaan" value={fullNumber(point.requests)} />
                             <Row label="Token masuk" value={fullNumber(point.input_tokens)} />
                             <Row label="Token keluar" value={fullNumber(point.output_tokens)} />
-                            <Row label="Biaya" value={formatUsd(point.cost_usd)} />
+                            <Row label="Biaya" value={formatRupiah(point.cost_idr)} />
                           </dl>
                         </div>
                       );
@@ -236,111 +328,56 @@ export default function AiUsageMonitor() {
 
                   <Area
                     type="monotone"
-                    dataKey={metric === "tokens" ? "total_tokens" : "cost_usd"}
+                    dataKey={metric === "tokens" ? "total_tokens" : "cost_idr"}
                     stroke={SERIES}
                     strokeWidth={2}
                     fill="url(#aiUsageFill)"
                     dot={false}
                     activeDot={{ r: 4, fill: SERIES, stroke: "#ffffff", strokeWidth: 2 }}
                   />
-                </AreaChart>
-              </ResponsiveContainer>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Panel title="Pemakai terbanyak" empty={top_users.length === 0}>
-          <ul className="divide-y">
-            {top_users.map((user) => (
-              <li key={user.email ?? user.name} className="flex items-center gap-3 py-2.5">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-800">{user.name}</p>
-                  {user.email && (
-                    <p className="truncate text-xs text-slate-500">{user.email}</p>
-                  )}
-                </div>
-                <div className="shrink-0 text-right tabular-nums">
-                  <p className="text-sm font-semibold text-slate-900">{user.requests}×</p>
-                  <p className="text-xs text-slate-500">{formatUsd(user.cost_usd)}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-
-        <Panel title="Per model" empty={by_model.length === 0}>
-          <ul className="divide-y">
-            {by_model.map((row) => (
-              <li key={row.model} className="flex items-center gap-3 py-2.5">
-                <p className="min-w-0 flex-1 truncate font-mono text-xs text-slate-700">
-                  {row.model}
-                </p>
-                <div className="shrink-0 text-right tabular-nums">
-                  <p className="text-sm font-semibold text-slate-900">{row.requests}×</p>
-                  <p className="text-xs text-slate-500">
-                    {compactNumber(row.total_tokens)} token · {formatUsd(row.cost_usd)}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-      </div>
-
       <Panel
-        title="20 permintaan terakhir"
-        subtitle="Tidak mengikuti filter periode — kalau asisten baru rusak, ini yang dicari."
-        empty={recent.length === 0}
+        title="10 pemakai terbanyak"
+        subtitle="Pada periode yang dipilih."
+        empty={top_users.length === 0}
       >
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[36rem] text-xs">
-            <thead>
-              <tr className="border-b text-left text-slate-500">
-                <th className="py-2 pr-3 font-semibold">Jam</th>
-                <th className="py-2 pr-3 font-semibold">Pengguna</th>
-                <th className="py-2 pr-3 font-semibold">Model</th>
-                <th className="py-2 pr-3 text-right font-semibold">Masuk</th>
-                <th className="py-2 pr-3 text-right font-semibold">Keluar</th>
-                <th className="py-2 pr-3 text-right font-semibold">Biaya</th>
-                <th className="py-2 font-semibold">Hasil</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y tabular-nums">
-              {recent.map((row) => (
-                <tr key={row.id}>
-                  <td className="py-2 pr-3 whitespace-nowrap text-slate-600">
-                    {new Date(row.created_at).toLocaleTimeString("id-ID", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                    })}
-                  </td>
-                  <td className="max-w-[10rem] truncate py-2 pr-3 text-slate-700">
-                    {row.user_name}
-                  </td>
-                  <td className="max-w-[10rem] truncate py-2 pr-3 font-mono text-slate-500">
-                    {row.model ?? "—"}
-                  </td>
-                  <td className="py-2 pr-3 text-right text-slate-600">
-                    {compactNumber(row.input_tokens)}
-                  </td>
-                  <td className="py-2 pr-3 text-right text-slate-600">
-                    {compactNumber(row.output_tokens)}
-                  </td>
-                  <td className="py-2 pr-3 text-right text-slate-600">
-                    {formatUsd(row.cost_usd)}
-                  </td>
-                  <td className="py-2">
-                    <StatusBadge status={row.status} reason={row.reason} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ul className="divide-y">
+          {top_users.map((user, index) => (
+            <li key={user.email ?? user.name} className="flex items-center gap-3 py-2.5">
+              {/* Nomor urut: daftar peringkat tanpa nomor memaksa mata
+                  menghitung sendiri. */}
+              <span className="w-5 shrink-0 text-right text-xs tabular-nums text-slate-400">
+                {index + 1}
+              </span>
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-slate-800">{user.name}</p>
+                {user.email && <p className="truncate text-xs text-slate-500">{user.email}</p>}
+              </div>
+
+              {/* Token ikut ditampilkan: jumlah permintaan saja tidak
+                  membedakan pemakai yang banyak bertanya pendek dari yang
+                  sedikit tapi mahal. */}
+              <div className="shrink-0 text-right tabular-nums">
+                <p className="text-sm font-semibold text-slate-900">
+                  {user.requests}× · {formatRupiah(user.cost_idr)}
+                </p>
+                <p className="text-xs text-slate-500" title={fullNumber(user.total_tokens)}>
+                  {compactNumber(user.total_tokens)} token
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
       </Panel>
+
     </div>
   );
 }
@@ -393,29 +430,6 @@ function StatusTile({
   );
 }
 
-/** Status selalu ikon + label, tidak pernah warna sendirian. */
-function StatusBadge({ status, reason }: { status: string; reason: string | null }) {
-  const meta = {
-    ok: { Icon: CheckCircle2, cls: "text-emerald-700 bg-emerald-50 border-emerald-200", label: "Berhasil" },
-    failed: { Icon: AlertTriangle, cls: "text-red-700 bg-red-50 border-red-200", label: "Gagal" },
-    blocked: { Icon: Ban, cls: "text-amber-700 bg-amber-50 border-amber-200", label: "Ditolak" },
-  }[status] ?? {
-    Icon: AlertTriangle,
-    cls: "text-slate-700 bg-slate-50 border-slate-200",
-    label: status,
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${meta.cls}`}
-      title={reason ?? undefined}
-    >
-      <meta.Icon className="size-3" />
-      {meta.label}
-      {reason && <span className="font-normal opacity-70">· {reason}</span>}
-    </span>
-  );
-}
 
 function Panel({
   title,
@@ -450,6 +464,179 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between gap-4">
       <dt className="text-slate-500">{label}</dt>
       <dd className="font-medium text-slate-900">{value}</dd>
+    </div>
+  );
+}
+
+/**
+ * Kuota yang tersisa di provider.
+ *
+ * Ini satu-satunya angka di halaman ini yang tidak berasal dari catatan
+ * aplikasi sendiri, dan justru karena itu ia perlu ada: kunci yang sama bisa
+ * dipakai dari tempat lain - pengujian manual, skrip, aplikasi lain - dan
+ * pemakaian itu tetap memotong kuota tanpa meninggalkan jejak di tabel
+ * pemakaian. Total di bawah menjawab "berapa yang kita pakai"; kartu ini
+ * menjawab "berapa yang masih ada", dan keduanya bisa berbeda jauh.
+ *
+ * Ditaruh paling atas karena ia satu-satunya yang bisa mematikan fiturnya:
+ * kuota habis berarti setiap peserta menerima galat.
+ *
+ * Yang ditampilkan **hanya sisa token, persen terpakai, dan tanggal habisnya**.
+ * Respons provider memuat lebih banyak - nama akun, jumlah permintaan di
+ * sisinya, panjang masa berlaku paket - tapi tidak satu pun dari itu mengubah
+ * keputusan yang diambil dari kartu ini, dan merendernya membuat angka yang
+ * penting harus dicari dulu. Warna merah sudah menyampaikan urgensinya tanpa
+ * perlu paragraf yang menjelaskannya.
+ */
+function KartuKuota({ query }: { query: ReturnType<typeof useAiQuota> }) {
+  const { data, isPending, isError } = query;
+
+  // Selama menunggu, kartunya tetap ada - dengan tinggi yang sama seperti versi
+  // terisinya, supaya isi di bawahnya tidak tergeser saat datanya tiba.
+  // Mengembalikan null di sini membuat halaman terlihat sudah selesai memuat,
+  // lalu ada yang menyelip masuk beberapa saat kemudian.
+  if (isPending) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+          <Gauge className="size-3.5 shrink-0 text-slate-400" />
+          Kuota provider
+          <Loader2 className="size-3 animate-spin text-slate-400" />
+        </p>
+
+        <div className="mt-1 flex items-baseline gap-2">
+          <span className="h-8 w-32 animate-pulse rounded bg-slate-100" />
+          <span className="text-xs text-slate-400">memeriksa di provider...</span>
+        </div>
+
+        <div className="mt-3 h-1.5 w-full animate-pulse rounded-full bg-slate-100" />
+      </div>
+    );
+  }
+
+  // Diam untuk yang memang tidak akan pernah ada: gateway tanpa endpoint kuota,
+  // atau koneksi yang belum disetel. Beda dari keadaan di atas - ini bukan
+  // sesuatu yang sedang dalam perjalanan.
+  if (isError || !data || !data.configured || !data.supported || !data.quota) {
+    return null;
+  }
+
+  const kuota = data.quota;
+  const persen = kuota.used_percent;
+
+  // Dihitung saat pengambilan, bukan di sini - lihat catatan di useAiQuota.
+  // Yang penting: ini bukan valid_days dari provider, karena angka itu panjang
+  // masa berlaku paketnya, bukan sisanya.
+  const sisaHari = kuota.days_left;
+
+  const kritis = (persen !== null && persen >= 90) || (sisaHari !== null && sisaHari <= 3);
+  const waspada =
+    !kritis && ((persen !== null && persen >= 75) || (sisaHari !== null && sisaHari <= 7));
+
+  const nada = kritis
+    ? "border-red-200 bg-red-50"
+    : waspada
+      ? "border-amber-200 bg-amber-50"
+      : "border-slate-200 bg-white";
+
+  const bar = kritis ? "bg-red-500" : waspada ? "bg-amber-500" : "bg-slate-900";
+  const tinta = kritis ? "text-red-700" : waspada ? "text-amber-700" : "text-slate-900";
+
+  return (
+    <div className={`rounded-xl border p-4 ${nada}`}>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        {/* Sisa token adalah angka utama kartu ini, dan satu-satunya yang
+            diberi ukuran besar: ia yang menentukan berapa lama fiturnya masih
+            hidup. Sisanya keterangan. */}
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+            <Gauge
+              className={`size-3.5 shrink-0 ${
+                kritis ? "text-red-600" : waspada ? "text-amber-600" : "text-slate-400"
+              }`}
+            />
+            Kuota provider
+            {kuota.status && kuota.status !== "active" && (
+              <span className="rounded-md bg-red-100 px-1.5 py-0.5 text-[11px] font-bold uppercase text-red-700">
+                {kuota.status}
+              </span>
+            )}
+          </p>
+
+          {kuota.remaining_tokens !== null && (
+            <p className="mt-1 flex flex-wrap items-baseline gap-x-2 tabular-nums">
+              <span
+                className={`text-3xl font-bold leading-none tracking-tight ${tinta}`}
+                title={fullNumber(kuota.remaining_tokens)}
+              >
+                {compactNumber(kuota.remaining_tokens)}
+              </span>
+              <span className="text-xs text-slate-500">
+                token tersisa
+                {kuota.max_tokens !== null && ` dari ${compactNumber(kuota.max_tokens)}`}
+              </span>
+            </p>
+          )}
+        </div>
+
+        <div className="flex shrink-0 flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-slate-500">
+          {persen !== null && (
+            <span className="tabular-nums">
+              <span className="font-bold text-slate-700">{persen.toFixed(2)}%</span> terpakai
+            </span>
+          )}
+          {kuota.expires_at && (
+            <span>
+              Habis{" "}
+              <span className="font-semibold text-slate-700">
+                {new Date(kuota.expires_at).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+              {sisaHari !== null &&
+                (sisaHari > 0
+                  ? ` · ${sisaHari} hari lagi`
+                  : sisaHari === 0
+                    ? " · hari ini"
+                    : " · sudah lewat")}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {persen !== null && (
+        <div
+          className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-200"
+          role="progressbar"
+          aria-valuenow={Math.round(persen)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Kuota terpakai"
+        >
+          <div
+            className={`h-full rounded-full transition-all ${bar}`}
+            style={{ width: `${Math.min(100, Math.max(0, persen))}%` }}
+          />
+        </div>
+      )}
+
+      {/* Penalti tetap disebut: selama ia aktif, permintaan bisa ditolak
+          provider meski kuotanya masih ada - gejala yang akan salah
+          didiagnosis sebagai kerusakan aplikasi, dan tidak terbaca dari angka
+          mana pun di atas. */}
+      {kuota.penalty_active && (
+        <p className="mt-3 flex items-start gap-2 border-t border-red-200 pt-3 text-xs leading-relaxed text-red-700">
+          <Ban className="mt-px size-3.5 shrink-0" />
+          <span>
+            <span className="font-bold">Provider sedang menerapkan penalti.</span>{" "}
+            {kuota.penalty_reason ?? "Tanpa alasan yang disebutkan."}
+            {kuota.penalty_until &&
+              ` Sampai ${new Date(kuota.penalty_until).toLocaleString("id-ID")}.`}
+          </span>
+        </p>
+      )}
     </div>
   );
 }

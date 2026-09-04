@@ -30,6 +30,8 @@ export interface AiSettings {
   daily_message_limit: number;
   history_limit: number;
   is_active: boolean;
+  /** Peta pola nama model -> pengali token. Kebijakan penagihan gateway. */
+  model_multipliers: Record<string, number>;
   /** Apakah sudah ada endpoint terpasang. Endpoint aslinya tidak pernah dikirim. */
   has_endpoint?: boolean;
   /** Bentuk tersamar, mis. "https://api.ban…/v1". */
@@ -39,6 +41,8 @@ export interface AiSettings {
   /** Bentuk tersamar, mis. "sk-or-…4f2a". Tidak bisa dipakai. */
   api_key_masked: string | null;
   providers: AiProvider[];
+  /** Persona bawaan, untuk tombol pulihkan di modal persona. */
+  default_system_prompt?: string;
   updated_at: string | null;
 }
 
@@ -49,6 +53,7 @@ export interface AiSettingsPayload {
   /** Dikosongkan berarti "jangan ubah kunci yang sudah ada". */
   api_key: string;
   model: string;
+  model_multipliers: Record<string, number>;
   system_prompt: string;
   max_tokens: number;
   temperature_x100: number;

@@ -22,20 +22,46 @@ export function fullNumber(value: number): string {
 }
 
 /**
- * Biaya ditampilkan dengan presisi yang menyesuaikan besarnya.
+ * Biaya dalam Rupiah, dengan presisi yang menyesuaikan besarnya.
  *
- * Satu permintaan bisa berbiaya $0,000180 - dibulatkan ke dua desimal ia jadi
- * "$0,00", yang membuat pemantauan biaya tidak ada gunanya. Sebaliknya total
- * ribuan dolar tidak perlu enam desimal.
+ * Satu permintaan bisa berbiaya Rp 4,55 sementara total sebulan bisa jutaan.
+ * Memakai satu format untuk keduanya berarti salah satunya jadi tidak terbaca:
+ * dua desimal pada angka juta hanya ramai, dan nol desimal pada biaya satu
+ * permintaan membuatnya tampil "Rp 5" - kehilangan justru bagian yang dipakai
+ * untuk membandingkan antar permintaan.
+ *
+ * Angka besar dipadatkan karena kartu statistik dibaca sekilas; nilai penuhnya
+ * tetap tersedia lewat atribut title.
  */
-export function formatUsd(value: number): string {
+export function formatRupiah(value: number, opsi?: { compact?: boolean }): string {
   const abs = Math.abs(value);
 
-  if (abs === 0) return "$0";
-  if (abs < 0.01) return `$${value.toFixed(6)}`;
-  if (abs < 1) return `$${value.toFixed(4)}`;
+  if (abs === 0) return "Rp 0";
 
-  return `$${value.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  // Di bawah seratus rupiah, desimalnya yang membedakan satu permintaan dari
+  // yang lain.
+  if (abs < 100) {
+    return `Rp ${value.toLocaleString("id-ID", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+
+  if (opsi?.compact) {
+    if (abs >= 1_000_000_000) return `Rp ${(value / 1_000_000_000).toFixed(2)} M`;
+    if (abs >= 1_000_000) return `Rp ${(value / 1_000_000).toFixed(2)} jt`;
+    if (abs >= 100_000) return `Rp ${(value / 1_000).toFixed(0)} rb`;
+  }
+
+  return `Rp ${value.toLocaleString("id-ID", { maximumFractionDigits: 0 })}`;
+}
+
+/** Nilai penuh tanpa pemadatan, untuk atribut title. */
+export function fullRupiah(value: number): string {
+  return `Rp ${value.toLocaleString("id-ID", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 /** Label sumbu x: jam saja untuk ember per jam, tanggal untuk ember harian. */

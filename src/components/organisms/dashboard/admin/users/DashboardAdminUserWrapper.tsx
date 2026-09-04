@@ -1,6 +1,7 @@
 "use client";
 
 import AlertDialogDeleteUser from "@/components/atoms/alert-dialog/user/AlertDialogDeleteUser";
+import DialogAturTiket from "@/components/organisms/dashboard/admin/users/DialogAturTiket";
 import {
   AdminDataToolbar,
   AdminExportColumn,
@@ -33,6 +34,8 @@ const userExportColumns: AdminExportColumn<User>[] = [
   { header: "Asal Sekolah", accessor: (row) => row.school_origin || "-" },
   { header: "Kelas", accessor: (row) => row.grade_level || "-" },
   { header: "Tiket", accessor: (row) => row.ticket_balance ?? 0 },
+  { header: "Token AI", accessor: (row) => row.ai_total_tokens ?? 0 },
+  { header: "Permintaan AI", accessor: (row) => row.ai_requests ?? 0 },
   { header: "Tanggal Daftar", accessor: (row) => new Date(row.created_at).toLocaleDateString("id-ID") },
 ];
 const userSortOptions: AdminSortOption<User>[] = [
@@ -41,6 +44,7 @@ const userSortOptions: AdminSortOption<User>[] = [
   { key: "az", label: "Nama A-Z", compare: (a, b) => a.name.localeCompare(b.name, "id-ID") },
   { key: "za", label: "Nama Z-A", compare: (a, b) => b.name.localeCompare(a.name, "id-ID") },
   { key: "tickets", label: "Tiket terbanyak", compare: (a, b) => (b.ticket_balance ?? 0) - (a.ticket_balance ?? 0) },
+  { key: "ai_tokens", label: "Token AI terbanyak", compare: (a, b) => (b.ai_total_tokens ?? 0) - (a.ai_total_tokens ?? 0) },
 ];
 
 export default function DashboardAdminUserWrapper() {
@@ -54,6 +58,11 @@ export default function DashboardAdminUserWrapper() {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedDeleteUser, setSelectedDeleteUser] = useState<User | null>(null);
+
+  const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
+  // Pengguna yang dipilih tetap disimpan setelah dialognya ditutup, supaya
+  // animasi tutupnya tidak menampilkan panel kosong sekejap.
+  const [selectedTicketUser, setSelectedTicketUser] = useState<User | null>(null);
 
   const { data, isPending } = useGetAllUsers({
     token: session?.access_token as string,
@@ -166,6 +175,10 @@ export default function DashboardAdminUserWrapper() {
                   setSelectedDeleteUser(user);
                   setIsDeleteDialogOpen(true);
                 },
+                manageTicketHandler: (user) => {
+                  setSelectedTicketUser(user);
+                  setIsTicketDialogOpen(true);
+                },
               })}
               data={controls.rows}
               isLoading={isPending}
@@ -226,6 +239,13 @@ export default function DashboardAdminUserWrapper() {
           isPending={isDeleting}
         />
       )}
+
+      <DialogAturTiket
+        user={selectedTicketUser}
+        token={session?.access_token as string}
+        open={isTicketDialogOpen}
+        onOpenChange={setIsTicketDialogOpen}
+      />
     </section>
   );
 }
