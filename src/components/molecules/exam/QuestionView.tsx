@@ -5,6 +5,7 @@ import type { ExamQuestion } from "@/types/exam/exam";
 import { useKategori } from "@/hooks/useKategori";
 import RichTextRenderer from "@/components/atoms/rich-text/RichTextRenderer";
 import RichTextEditor from "@/components/atoms/rich-text/RichTextEditor";
+import { Check, X } from "lucide-react";
 import {
   getReviewOptionState,
   type TryoutLayoutMode,
@@ -38,6 +39,11 @@ export default function QuestionView({
 
   const isReviewMode = mode === "review" || mode === "admin-review";
   const isEssay = question.question_type === "essay";
+  const isShuffled = Boolean(
+    question.options?.some(
+      (opt, idx) => opt.option_key !== String.fromCharCode(65 + idx),
+    ),
+  );
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -114,68 +120,86 @@ export default function QuestionView({
         ) : (
           <div className="space-y-3">
             {question.options?.map((option, index) => {
-              const visualOptionKey =
-                option.option_key || String.fromCharCode(65 + index);
-              const isSelected = selectedAnswer === option.option_key;
-              const reviewState = getReviewOptionState({
-                optionKey: option.option_key,
-                correctAnswer: question.correct_answer,
-                userAnswer: selectedAnswer,
-              });
+                const visualOptionKey =
+                  option.option_key || String.fromCharCode(65 + index);
+                const isSelected = selectedAnswer === option.option_key;
+                const reviewState = getReviewOptionState({
+                  optionKey: option.option_key,
+                  correctAnswer: question.correct_answer,
+                  userAnswer: selectedAnswer,
+                });
 
-              const isCorrectAnswer = reviewState === "correct_answer";
-              const isUserWrongAnswer = reviewState === "user_wrong_answer";
+                const isCorrectAnswer = reviewState === "correct_answer";
+                const isUserWrongAnswer = reviewState === "user_wrong_answer";
 
-              const optionClass = isReviewMode
-                ? isCorrectAnswer
-                  ? "border-green-500 bg-green-100 text-green-900"
-                  : isUserWrongAnswer
-                    ? "border-red-400 bg-red-100 text-red-900"
-                    : "border-gray-200 bg-white text-gray-900"
-                : isSelected
-                  ? isCpns
-                    ? "border-orange-700 bg-orange-50/70"
-                    : "border-blue-600 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50";
+                const optionClass = isReviewMode
+                  ? isCorrectAnswer
+                    ? "border-green-500 bg-green-100 text-green-900"
+                    : isUserWrongAnswer
+                      ? "border-red-400 bg-red-100 text-red-900"
+                      : "border-gray-200 bg-white text-gray-900"
+                  : isSelected
+                    ? isCpns
+                      ? "border-orange-700 bg-orange-50/70"
+                      : "border-blue-600 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50";
 
-              const markerClass = isReviewMode
-                ? isCorrectAnswer
-                  ? "bg-green-600 text-white"
-                  : isUserWrongAnswer
-                    ? "bg-red-500 text-white"
-                    : "bg-gray-100 text-gray-600"
-                : isSelected
-                  ? isCpns
-                    ? "bg-orange-800 text-white"
-                    : "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600";
+                const markerClass = isReviewMode
+                  ? isCorrectAnswer
+                    ? "bg-green-600 text-white"
+                    : isUserWrongAnswer
+                      ? "bg-red-500 text-white"
+                      : isShuffled
+                        ? "bg-gray-50 border-2 border-gray-200 text-gray-400"
+                        : "bg-gray-100 text-gray-600"
+                  : isSelected
+                    ? isCpns
+                      ? "bg-orange-800 text-white shadow-sm"
+                      : "bg-blue-600 text-white shadow-sm"
+                    : isShuffled
+                      ? isCpns
+                        ? "bg-white border-2 border-gray-300 text-gray-400 group-hover:border-orange-500"
+                        : "bg-white border-2 border-gray-300 text-gray-400 group-hover:border-blue-400"
+                      : "bg-gray-100 text-gray-600";
 
-              const textClass = isReviewMode
-                ? isCorrectAnswer
-                  ? "text-green-900 font-semibold"
-                  : isUserWrongAnswer
-                    ? "text-red-900 font-semibold"
-                    : "text-gray-700"
-                : isSelected
-                  ? isCpns
-                    ? "text-orange-900 font-semibold"
-                    : "text-blue-600 font-semibold"
-                  : "text-gray-700";
+                const textClass = isReviewMode
+                  ? isCorrectAnswer
+                    ? "text-green-900 font-semibold"
+                    : isUserWrongAnswer
+                      ? "text-red-900 font-semibold"
+                      : "text-gray-700"
+                  : isSelected
+                    ? isCpns
+                      ? "text-orange-900 font-semibold"
+                      : "text-blue-600 font-semibold"
+                    : "text-gray-700";
 
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => handleOptionClick(option.option_key)}
-                  disabled={isReviewMode}
-                  className={`w-full flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all disabled:cursor-default ${optionClass}`}
-                >
-                  <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${markerClass}`}
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => handleOptionClick(option.option_key)}
+                    disabled={isReviewMode}
+                    className={`group w-full flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all disabled:cursor-default ${optionClass}`}
                   >
-                    {visualOptionKey}
-                  </div>
-                  <div className="flex-1 min-w-0">
+                    <div
+                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${markerClass}`}
+                    >
+                      {isShuffled ? (
+                        isReviewMode ? (
+                          isCorrectAnswer ? (
+                            <Check className="w-5 h-5 text-white stroke-[2.5]" />
+                          ) : isUserWrongAnswer ? (
+                            <X className="w-5 h-5 text-white stroke-[2.5]" />
+                          ) : null
+                        ) : isSelected ? (
+                          <div className="w-3.5 h-3.5 rounded-full bg-white shadow-sm" />
+                        ) : null
+                      ) : (
+                        visualOptionKey
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
                     <RichTextRenderer
                       html={option.option_text}
                       className={`pt-1 ${textClass}`}
