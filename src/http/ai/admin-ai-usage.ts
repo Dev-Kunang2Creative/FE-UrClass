@@ -11,7 +11,7 @@ export interface UsageTotals {
   input_tokens: number;
   output_tokens: number;
   cached_tokens: number;
-  cost_usd: number;
+  cost_idr: number;
   avg_duration_ms: number;
 }
 
@@ -21,14 +21,7 @@ export interface UsagePoint {
   input_tokens: number;
   output_tokens: number;
   total_tokens: number;
-  cost_usd: number;
-}
-
-export interface UsageByModel {
-  model: string;
-  requests: number;
-  total_tokens: number;
-  cost_usd: number;
+  cost_idr: number;
 }
 
 export interface UsageTopUser {
@@ -36,32 +29,23 @@ export interface UsageTopUser {
   email: string | null;
   requests: number;
   total_tokens: number;
-  cost_usd: number;
+  cost_idr: number;
 }
 
-export interface UsageRecent {
-  id: string;
-  created_at: string;
-  user_name: string;
-  model: string | null;
-  input_tokens: number;
-  output_tokens: number;
-  cost_usd: number;
-  status: "ok" | "failed" | "blocked";
-  reason: string | null;
-  duration_ms: number;
-}
+
+export type UsageBucket = "hour" | "day";
 
 export interface UsageReport {
   window: UsageWindow;
-  windows: { key: UsageWindow; label: string }[];
+  /** `hourly` menyatakan apakah jendela itu boleh dilihat per jam. */
+  windows: { key: UsageWindow; label: string; hourly: boolean }[];
   since: string;
-  bucket: "hour" | "day";
+  bucket: UsageBucket;
   totals: UsageTotals;
   series: UsagePoint[];
-  by_model: UsageByModel[];
+  /** Ember dengan token terbanyak, dihitung server dari seri yang sama. */
+  peak: UsagePoint | null;
   top_users: UsageTopUser[];
-  recent: UsageRecent[];
 }
 
 /**
@@ -77,18 +61,20 @@ export interface UsageReport {
 export const useAiUsage = ({
   token,
   window,
+  bucket,
 }: {
   token: string;
   window: UsageWindow;
+  bucket?: UsageBucket;
 }) =>
   useQuery({
-    queryKey: ["admin-ai-usage", window],
+    queryKey: ["admin-ai-usage", window, bucket ?? "auto"],
     enabled: !!token,
     staleTime: 30 * 1000,
     queryFn: async () => {
       const { data } = await api.get<{ data: UsageReport }>("/admin/ai-usage", {
         headers: { Authorization: `Bearer ${token}` },
-        params: { window },
+        params: { window, bucket },
       });
       return data.data;
     },

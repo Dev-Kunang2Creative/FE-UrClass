@@ -99,7 +99,11 @@ export default function ReferenceCombobox({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[--radix-popover-trigger-width] p-0"
+        // w-(--var), bukan w-[--var]: bentuk kurung siku adalah sintaks
+        // Tailwind v3, dan di v4 ia terkompilasi jadi
+        // `width:--radix-popover-trigger-width` - tanpa var(), jadi nilainya
+        // tidak sah dan popover-nya tidak pernah selebar pemicunya.
+        className="w-(--radix-popover-trigger-width) p-0"
         align="start"
       >
         <Command shouldFilter={false}>

@@ -248,3 +248,139 @@ body {
     transparent 1px 11px
   );
 }
+
+/* ---------------------------------------------------------------------------
+   Maskot asisten belajar.
+
+   Bergerak terus-menerus supaya terbaca sebagai sesuatu yang bisa diklik -
+   maskot yang diam di sudut layar terbaca sebagai hiasan, dan peserta yang
+   tidak tahu ia bisa diklik tidak akan pernah mengkliknya.
+
+   Dua lapis gerakan, dan sengaja dua: ayunan halus yang tidak pernah berhenti
+   membuatnya terasa hidup tanpa menuntut perhatian, sementara sapaan yang
+   muncul sesekali menarik mata sekali lalu berhenti. Satu lapis saja gagal di
+   salah satu sisi - gerakan besar terus-menerus jadi gangguan di halaman yang
+   dipakai untuk belajar, dan gerakan halus saja tidak pernah tertangkap mata.
+   --------------------------------------------------------------------------- */
+
+@keyframes maskot-ayun {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(-1.5deg);
+  }
+}
+
+/* Sapaan: miring-tegak-miring, lalu diam sepanjang sisa siklus. Bagian diam
+   itu yang membuatnya terasa sebagai sapaan sesekali, bukan getaran. */
+@keyframes maskot-sapa {
+  0%,
+  62%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  66% {
+    transform: rotate(-9deg) scale(1.04);
+  }
+  70% {
+    transform: rotate(7deg) scale(1.04);
+  }
+  74% {
+    transform: rotate(-6deg) scale(1.03);
+  }
+  78% {
+    transform: rotate(4deg) scale(1.02);
+  }
+  82% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes gelembung-muncul {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.maskot-ayun {
+  animation: maskot-ayun 3.4s ease-in-out infinite;
+}
+
+.maskot-sapa {
+  /* Siklusnya panjang supaya sapaannya jarang: yang sering diulang berhenti
+     menarik perhatian, dan mulai mengganggu. */
+  animation: maskot-sapa 7s ease-in-out infinite;
+  transform-origin: 50% 85%;
+}
+
+.gelembung-muncul {
+  animation: gelembung-muncul 0.35s ease-out both;
+}
+
+/* Dihormati tanpa kompromi: gerakan yang tidak bisa dihentikan adalah hambatan
+   nyata bagi sebagian orang, dan maskot yang bergoyang bukan hal yang layak
+   ditukar dengan itu. */
+@media (prefers-reduced-motion: reduce) {
+  .maskot-ayun,
+  .maskot-sapa,
+  .gelembung-muncul {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Peta node pemakaian langsung.
+
+   Permukaan gelap yang berdiri sendiri, bukan tema halaman yang berubah: ini
+   permukaan visualisasi - seperti grafik atau peta - dan latar gelap membuat
+   garis yang menyala terbaca sebagai lalu lintas. Garis oranye yang sama di
+   atas putih hanya terlihat sebagai garis.
+   --------------------------------------------------------------------------- */
+
+/* Lalu lintas mengalir dari pengguna ke pusat. Dash yang bergerak, bukan garis
+   yang berkedip: kedipan menarik perhatian ke dirinya sendiri, sementara arah
+   alirannya justru yang berarti - ia menunjukkan permintaan sedang berjalan. */
+@keyframes aliran-node {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+.aliran-node {
+  stroke-dasharray: 4 8;
+  animation: aliran-node 0.9s linear infinite;
+}
+
+/* Denyut di sekeliling node yang sedang menunggu jawaban. */
+@keyframes denyut-node {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+.denyut-node {
+  animation: denyut-node 1.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aliran-node,
+  .denyut-node {
+    animation: none;
+  }
+
+  .aliran-node {
+    stroke-dasharray: none;
+  }
+}
