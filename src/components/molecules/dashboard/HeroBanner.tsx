@@ -1,4 +1,5 @@
 "use client";
+import { useAmbangSkd } from '@/hooks/useAmbangSkd';
 
 import { useKategori } from "@/hooks/useKategori";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
@@ -30,6 +31,7 @@ function greeting(hour: number) {
  * fails the whole SKD.
  */
 export default function HeroBanner({ userName }: HeroBannerProps) {
+  const ambang = useAmbangSkd();
   const displayName = userName || "Sobat UrClass";
   const { kategori } = useKategori();
   const config = KATEGORI_CONFIG[kategori];
@@ -69,7 +71,7 @@ export default function HeroBanner({ userName }: HeroBannerProps) {
                 {s.code}
               </p>
               <p className="mt-0.5 text-xl font-black text-orange-900 sm:text-2xl">
-                {s.passingGrade}
+                {ambang.data?.[s.code] ?? (ambang.isError ? 'Tidak tersedia' : '…')}
               </p>
               <p className="text-[10px] font-semibold text-orange-700/60">
                 dari {s.maxScore}

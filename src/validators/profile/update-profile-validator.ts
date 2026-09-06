@@ -25,7 +25,7 @@ export type CpnsTargetType = (typeof cpnsTargetTypes)[number];
  * @param isAdmin melonggarkan semuanya kecuali nama.
  * @param cpnsTarget sub-jalur CPNS yang dipilih, atau null kalau bukan CPNS.
  *   Menentukan pasangan field mana yang wajib: sekolah kedinasan mengisi
- *   sekolah dan program studi, CPNS umum mengisi instansi dan formasi. Meminta
+ *   sekolah, CPNS umum mengisi instansi dan formasi. Meminta
  *   keduanya berarti meminta salah satu diisi asal-asalan.
  * @param formasiOpen rekap formasi periode ini sudah terbit. Selama belum,
  *   formasi tidak bisa diwajibkan - kalau diwajibkan, tidak ada pelamar CPNS
@@ -79,10 +79,10 @@ export function makeUpdateProfileSchema(
         ? requiredWhen(true, "Sekolah kedinasan tujuan harus diisi")
         : target,
       target_major_1: kedinasan
-        ? requiredWhen(true, "Program studi tujuan harus diisi")
+        ? z.string().nullish()
         : target,
       target_university_2: z.string().optional(),
-      target_major_2: z.string().optional(),
+      target_major_2: z.string().nullish(),
 
       cpns_target_type: z.enum(cpnsTargetTypes).optional().nullable(),
       target_instansi_1: requiredWhen(umum, "Instansi tujuan harus diisi"),

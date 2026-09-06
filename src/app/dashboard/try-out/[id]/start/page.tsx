@@ -160,8 +160,7 @@ export default function TryoutStartPage({
           <ol className="min-h-0 min-w-0 flex-1 list-decimal space-y-2.5 overflow-y-auto py-4 pl-10 pr-5 text-sm leading-relaxed text-slate-700">
             <li>Timer langsung berjalan begitu tombol Mulai Tryout ditekan.</li>
             <li>
-              Setiap subtest punya batas waktunya sendiri. Waktunya dihitung di
-              server, jadi{" "}
+              {isCpns ? 'Seluruh subtes memakai satu batas waktu tryout.' : 'Setiap subtest punya batas waktunya sendiri.'} Waktunya dihitung di server, jadi{" "}
               <span className="font-bold text-slate-900">
                 tetap berjalan walau kamu menutup tab atau koneksimu terputus
               </span>
@@ -176,12 +175,10 @@ export default function TryoutStartPage({
               tombol simpan.
             </li>
             <li>
-              Kalau waktu satu subtest habis, jawaban yang sudah masuk otomatis
-              dikumpulkan dan kamu lanjut ke subtest berikutnya.
+              {isCpns ? 'Kalau waktu tryout habis, ujian berakhir dengan jawaban yang sudah tersimpan.' : 'Kalau waktu satu subtest habis, jawaban yang sudah masuk otomatis dikumpulkan dan kamu lanjut ke subtest berikutnya.'}
             </li>
             <li>
-              Subtest yang sudah selesai atau waktunya habis tidak bisa
-              dikerjakan lagi, jadi selesaikan sebelum lanjut.
+              {isCpns ? 'Semua soal TWK, TIU, dan TKP terbuka. Kamu bebas berpindah dan mengubah jawaban sampai tryout selesai.' : 'Subtest yang sudah selesai atau waktunya habis tidak bisa dikerjakan lagi, jadi selesaikan sebelum lanjut.'}
             </li>
             <li>
               Kalau masih ada soal kosong saat menekan Selesai Subtest, sistem

@@ -250,6 +250,11 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
+                    <SidebarMenuButton asChild className={buttonClass("/dashboard/admin/kritik-saran")}>
+                      <Link href="/dashboard/admin/kritik-saran"><FileClock /><span>Kritik &amp; Saran Peserta</span></Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
                       className={buttonClass("/dashboard/admin/ai")}

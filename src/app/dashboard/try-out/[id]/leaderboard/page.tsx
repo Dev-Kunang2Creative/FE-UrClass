@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, use } from "react";
+import { Fragment, use, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, Clock, Medal, RotateCcw, Trophy, Users, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -20,10 +20,13 @@ export default function TryoutLeaderboardPage({
   const currentUserId = session?.user?.id || "";
   const { kategori } = useKategori();
   const isCpns = kategori === "cpns";
+  const [targetSama, setTargetSama] = useState(false);
+  const targetKedinasan = session?.user?.cpns_target_type === "kedinasan" ? session.user.target_university_1 : undefined;
 
   const { data, isLoading, isError, refetch } = useGetTryoutLeaderboard({
     tryoutId,
     token,
+    targetInstance: targetSama ? targetKedinasan : undefined,
   });
 
   const leaderboardData = data?.data;
@@ -96,6 +99,11 @@ export default function TryoutLeaderboardPage({
           </div>
         )}
       </div>
+
+      {isCpns && targetKedinasan && <label className="mb-6 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm">
+        <input type="checkbox" checked={targetSama} onChange={(event) => setTargetSama(event.target.checked)} className="size-5 accent-primary" />
+        Target instansi yang sama: {targetKedinasan}
+      </label>}
 
       {/* Angkanya nyata, hanya belum final. Menahan seluruh papan sampai periode
           ditutup membuatnya kosong justru saat orang paling ingin melihatnya. */}

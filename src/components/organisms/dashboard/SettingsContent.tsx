@@ -113,7 +113,6 @@ export default function SettingsContent() {
         kategori === "utbk" && !targetMajor1 && "target jurusan",
         kategori === "cpns" && !cpnsTargetType && "tujuan (kedinasan atau CPNS umum)",
         isKedinasan && !targetUniversity1 && "target sekolah kedinasan",
-        isKedinasan && !targetMajor1 && "target program studi",
         isUmum && !targetInstansi1 && "target instansi",
         isUmum && formasiOpen && !targetFormasi1 && "target formasi",
       ].filter((item): item is string => typeof item === "string");

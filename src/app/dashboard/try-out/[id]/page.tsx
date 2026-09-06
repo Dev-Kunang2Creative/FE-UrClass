@@ -529,7 +529,7 @@ export default function TryoutDetailPage({
                   <span className="font-bold text-slate-900">
                     {subtests.length}
                   </span>{" "}
-                  subtest dikerjakan berurutan
+                  {kategori === 'cpns' ? 'subtes dengan satu waktu, bebas berpindah soal' : 'subtest dikerjakan berurutan'}
                 </p>
               </div>
 

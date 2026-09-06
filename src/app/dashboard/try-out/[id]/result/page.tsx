@@ -21,6 +21,7 @@ import { useKategori } from "@/hooks/useKategori";
 import { useGetTryoutResult } from "@/http/tryout/get-tryout-result";
 import { formatJakartaDate } from "@/utils/date-time";
 import SubtestBreakdown from "@/components/molecules/exam/SubtestBreakdown";
+import MasukanUjian from "@/components/molecules/exam/MasukanUjian";
 
 export default function ResultPage({
   params,
@@ -128,6 +129,8 @@ export default function ResultPage({
           Hasil Tryout
         </h1>
       </div>
+
+      <MasukanUjian key={`${tryoutId}-${attempt ?? 'latest'}`} tryoutId={tryoutId} token={token} />
 
       {is_full_skd && (
         <section

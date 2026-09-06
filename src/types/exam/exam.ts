@@ -7,6 +7,8 @@ export interface ExamOption {
 
 export interface ExamQuestion {
   id: string;
+  tryout_subtest_id?: string;
+  category?: string;
   question_type: "multiple_choice" | "essay";
   question_text: string;
   question_image: string | null;
@@ -118,6 +120,7 @@ export interface SkdSubtestResult {
 }
 
 export interface LeaderboardEntry {
+  is_dummy?: boolean;
   rank: number;
   user_id: string;
   user_name: string;

@@ -3,6 +3,9 @@
 import { useGetTryoutLeaderboard } from "@/http/tryout/get-tryout-leaderboard";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { api } from "@/lib/axios";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/utils/get-error-message";
 import type { LeaderboardEntry } from "@/types/exam/exam";
 import {
   Card,
@@ -46,6 +49,7 @@ import {
   Images,
   ExternalLink,
   RotateCcw,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { formatJakartaDateTime } from "@/utils/date-time";
@@ -177,11 +181,13 @@ function LeaderboardTableRow({
   tryoutId,
   isFullSkd,
   onViewProof,
+  onDeleteDummy,
 }: {
   entry: LeaderboardEntry;
   tryoutId: string;
   isFullSkd: boolean;
   onViewProof: (entry: LeaderboardEntry) => void;
+  onDeleteDummy: (entry: LeaderboardEntry) => void;
 }) {
   const rankStyle = getRankStyle(entry.rank);
   const finishedAt = entry.finished_at
@@ -343,6 +349,7 @@ function LeaderboardTableRow({
       {/* Aksi */}
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
+          {entry.is_dummy && <Button type="button" variant="destructive" size="icon" aria-label={`Hapus peserta dummy ${entry.user_name}`} onClick={() => onDeleteDummy(entry)}><Trash2 /></Button>}
           {(entry.proof_image_urls?.length ?? 0) > 0 && (
             <Button
               type="button"
@@ -529,6 +536,8 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
 }: DashboardAdminTryoutLeaderboardWrapperProps) {
   const { data: session } = useSession();
   const [selectedProofEntry, setSelectedProofEntry] = useState<LeaderboardEntry | null>(null);
+  const [dummyDihapus, setDummyDihapus] = useState<LeaderboardEntry | null>(null);
+  const [menghapus, setMenghapus] = useState(false);
 
   const { data, isPending, isError, refetch } = useGetTryoutLeaderboard({
     token: session?.access_token ?? "",
@@ -674,6 +683,7 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
                   tryoutId={tryoutId}
                   isFullSkd={isFullSkd}
                   onViewProof={setSelectedProofEntry}
+                  onDeleteDummy={setDummyDihapus}
                 />
               ))}
             </TableBody>
@@ -681,6 +691,22 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
         </CardContent>
       </Card>
 
+      <Dialog open={!!dummyDihapus} onOpenChange={(open) => { if (!open && !menghapus) setDummyDihapus(null); }}>
+        <DialogContent><DialogHeader><DialogTitle>Hapus peserta dummy?</DialogTitle>
+          <DialogDescription>Hapus peserta dummy {dummyDihapus?.user_name} dari leaderboard ini? Akun dummy beserta sesi dan jawabannya akan dihapus.</DialogDescription>
+        </DialogHeader><div className="flex flex-wrap justify-end gap-2">
+          <Button variant="outline" disabled={menghapus} onClick={() => setDummyDihapus(null)}>Batal</Button>
+          <Button variant="destructive" disabled={menghapus} onClick={async () => {
+            if (!dummyDihapus) return;
+            setMenghapus(true);
+            try {
+              await api.delete(`/admin/tryouts/${tryoutId}/leaderboard/dummy/${dummyDihapus.user_id}`, { headers: { Authorization: `Bearer ${session?.access_token}` } });
+              setDummyDihapus(null); toast.success('Peserta dummy berhasil dihapus.'); await refetch();
+            } catch (error) { toast.error(getErrorMessage(error, 'Peserta dummy gagal dihapus.')); }
+            finally { setMenghapus(false); }
+          }}>{menghapus ? 'Menghapus…' : 'Hapus Peserta Dummy'}</Button>
+        </div></DialogContent>
+      </Dialog>
       <ProofImagesDialog
         entry={selectedProofEntry}
         open={!!selectedProofEntry}

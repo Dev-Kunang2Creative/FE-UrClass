@@ -93,9 +93,9 @@ export const KATEGORI_CONFIG: Record<
       switcherActive: "bg-orange-700 text-white shadow-sm",
     },
     subtests: [
-      { name: "Tes Wawasan Kebangsaan (TWK)", code: "TWK", passingGrade: 65, maxScore: 150, description: "Pancasila, UUD 1945, NKRI, Bela Negara, Bahasa Indo" },
-      { name: "Tes Inteligensi Umum (TIU)", code: "TIU", passingGrade: 80, maxScore: 175, description: "Verbal, Numerik, Logika Berhitung & Figural" },
-      { name: "Tes Karakteristik Pribadi (TKP)", code: "TKP", passingGrade: 166, maxScore: 225, description: "Integritas, Pelayanan Publik, Sosbud, Profesionalisme" },
+      { name: "Tes Wawasan Kebangsaan (TWK)", code: "TWK", maxScore: 150, description: "Pancasila, UUD 1945, NKRI, Bela Negara, Bahasa Indo" },
+      { name: "Tes Inteligensi Umum (TIU)", code: "TIU", maxScore: 175, description: "Verbal, Numerik, Logika Berhitung & Figural" },
+      { name: "Tes Karakteristik Pribadi (TKP)", code: "TKP", maxScore: 225, description: "Integritas, Pelayanan Publik, Sosbud, Profesionalisme" },
     ],
   },
 };

@@ -15,6 +15,7 @@ import type { AxiosError } from "axios";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import ExamTimer from "@/components/molecules/exam/ExamTimer";
+import UjianCpns from "@/components/molecules/exam/UjianCpns";
 import ExamSidebar from "@/components/molecules/exam/ExamSidebar";
 import QuestionView from "@/components/molecules/exam/QuestionView";
 import DialogFinishSubtest from "@/components/molecules/dialog/DialogFinishSubtest";
@@ -412,6 +413,15 @@ function ExamContent({ tryoutId }: { tryoutId: string }) {
   );
 }
 
+function PilihUjian({ tryoutId }: { tryoutId: string }) {
+  const { data: session } = useSession();
+  const token = session?.access_token ?? "";
+  const query = useGetUserTryoutDetail({ id: tryoutId, token });
+  if (query.isPending) return <p role="status">Memuat tryout…</p>;
+  if (query.isError) return <div role="alert">Tryout gagal dimuat. <button onClick={() => query.refetch()}>Coba lagi</button></div>;
+  return query.data?.data.kategori === "cpns" ? <UjianCpns tryoutId={tryoutId} token={token} /> : <ExamContent tryoutId={tryoutId} />;
+}
+
 export default function ExamPage({
   params,
 }: {
@@ -427,7 +437,7 @@ export default function ExamPage({
         </div>
       }
     >
-      <ExamContent tryoutId={tryoutId} />
+      <PilihUjian tryoutId={tryoutId} />
     </Suspense>
   );
 }

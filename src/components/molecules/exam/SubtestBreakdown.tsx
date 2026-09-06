@@ -1,4 +1,5 @@
 "use client";
+import { useAmbangSkd } from '@/hooks/useAmbangSkd';
 
 import { CheckCircle2, XCircle, MinusCircle } from "lucide-react";
 import { useKategori } from "@/hooks/useKategori";
@@ -25,6 +26,7 @@ interface SubtestBreakdownProps {
  * would be misinformation.
  */
 export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) {
+  const ambang = useAmbangSkd();
   const { kategori } = useKategori();
 
   if (!perSubtest?.length) return null;
@@ -39,7 +41,7 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
     // vonis atas jumlah soalnya, bukan atas peserta.
     const fullScale =
       meta?.maxScore === undefined || s.max_score >= meta.maxScore;
-    const threshold = fullScale ? meta?.passingGrade : undefined;
+    const threshold = fullScale && meta ? ambang.data?.[meta.code] : undefined;
 
     // Undefined, not false, when there is no threshold: "no verdict" and
     // "failed" must never collapse into the same thing.
@@ -49,7 +51,7 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
 
   const graded = rows.filter((r) => r.passed !== undefined);
   const shortened = rows.filter(
-    (r) => !r.fullScale && findSubtestMeta(kategori, r.name)?.passingGrade !== undefined,
+    (r) => !r.fullScale && kategori === 'cpns',
   );
   const allPassed = graded.length > 0 && graded.every((r) => r.passed);
   const failedRows = graded.filter((r) => !r.passed);
@@ -64,7 +66,7 @@ export default function SubtestBreakdown({ perSubtest }: SubtestBreakdownProps) 
           <p className="text-xs text-slate-500 font-medium">
             {graded.length > 0
               ? "Setiap subtest punya ambang sendiri yang wajib dilampaui."
-              : "Tidak ada ambang minimum per subtest — yang dinilai skor akhir."}
+              : kategori === 'cpns' ? 'Ambang batas SKD mengikuti pengaturan global.' : "Tidak ada ambang minimum per subtest, yang dinilai skor akhir."}
           </p>
 
           {shortened.length > 0 && (

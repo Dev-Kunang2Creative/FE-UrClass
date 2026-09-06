@@ -1,4 +1,5 @@
 "use client";
+import { useAmbangSkd } from '@/hooks/useAmbangSkd';
 
 import { useKategori } from "@/hooks/useKategori";
 import { KATEGORI_CONFIG, findSubtestMeta } from "@/lib/kategori";
@@ -31,6 +32,7 @@ export default function ExamSidebar({
   reviewStatuses = {},
 }: ExamSidebarProps) {
   const { kategori } = useKategori();
+  const ambang = useAmbangSkd();
   const config = KATEGORI_CONFIG[kategori];
   const meta = findSubtestMeta(kategori, subtestName);
 
@@ -55,14 +57,14 @@ export default function ExamSidebar({
           worse than showing neither. */}
       {mode === "attempt" && (
         <div className="rounded-xl border-2 border-track-border bg-track-tint p-4">
-          {meta?.passingGrade !== undefined ? (
+          {meta && ambang.data?.[meta.code] !== undefined ? (
             <>
               <p className="text-[11px] font-bold uppercase tracking-wide text-primary/70">
                 Passing Grade {meta.code}
               </p>
               <div className="mt-1 flex items-baseline gap-1.5">
                 <span className="text-3xl font-black text-primary">
-                  {meta.passingGrade}
+                  {ambang.data?.[meta.code]}
                 </span>
                 <span className="text-xs font-semibold text-primary/60">
                   / {meta.maxScore}

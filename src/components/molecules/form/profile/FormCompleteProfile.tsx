@@ -755,7 +755,7 @@ export default function FormCompleteProfile({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      {isCpns ? "Sekolah kedinasan pilihan 1" : "Universitas pilihan 1"}{" "}
+                      {isCpns ? "Instansi / Sekolah Kedinasan Tujuan" : "Universitas pilihan 1"}{" "}
                       <Required />
                     </FieldLabel>
                     <ReferenceCombobox
@@ -769,8 +769,8 @@ export default function FormCompleteProfile({
                       options={campusOptions(uni1.data)}
                       loading={uni1.isFetching}
                       disabled={isLoading}
-                      placeholder="Pilih atau ketik universitas"
-                      searchPlaceholder="Cari PTN..."
+                      placeholder={isCpns ? "Pilih atau ketik sekolah kedinasan" : "Pilih atau ketik universitas"}
+                      searchPlaceholder={isCpns ? "Cari sekolah kedinasan..." : "Cari PTN..."}
                       freeTextHint="Tidak ada di daftar?"
                       emptyHint="Ketik nama kampus untuk mencari."
                       onSearchChange={setUniSearch1}
@@ -786,8 +786,8 @@ export default function FormCompleteProfile({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      {isCpns ? "Program studi pilihan 1" : "Jurusan pilihan 1"}{" "}
-                      <Required />
+                      {isCpns ? "Program studi pilihan 1 (opsional)" : "Jurusan pilihan 1"}{" "}
+                      {!isCpns && <Required />}
                     </FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}
@@ -817,7 +817,7 @@ export default function FormCompleteProfile({
                 name="target_university_2"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Universitas pilihan 2</FieldLabel>
+                    <FieldLabel>{isCpns ? "Sekolah kedinasan pilihan 2 (opsional)" : "Universitas pilihan 2"}</FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}
                       onChange={(label, option) => {
@@ -845,7 +845,7 @@ export default function FormCompleteProfile({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      {isCpns ? "Program studi pilihan 2" : "Jurusan pilihan 2"}
+                      {isCpns ? "Program studi pilihan 2 (opsional)" : "Jurusan pilihan 2"}
                     </FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import SettingsContent from '@/components/organisms/dashboard/SettingsContent';
+import PengaturanAmbangSkd from '@/components/organisms/dashboard/admin/PengaturanAmbangSkd';
 
 export const metadata: Metadata = {
   title: 'Pengaturan Akun - UrClass',
@@ -19,6 +20,7 @@ export default function SettingsPage() {
       </div>
       
       <SettingsContent />
+      <PengaturanAmbangSkd />
     </div>
   );
 }
