@@ -171,6 +171,36 @@ tidak pernah menemukan hasil, persis seperti kalau datanya memang kosong.
 Kalau sebuah picker "tidak menemukan apa-apa", periksa `connect-src` **sebelum**
 mencurigai datanya.
 
+### Host backend baru harus masuk tiga daftar, bukan satu
+
+`next.config.ts` menyaring host backend di **tiga** tempat, dan ketiganya harus
+ikut saat sebuah lingkungan baru naik:
+
+1. `images.remotePatterns` — dipakai `next/image`
+2. `img-src` di CSP — untuk `<img>` yang menunjuk langsung ke host itu
+3. `connect-src` di CSP — untuk permintaan API dari browser
+
+**Kejadiannya:** `dev-api.urclass.id` naik tanpa masuk satu pun dari ketiganya —
+yang terdaftar `dev-api.amunisiptn.com`, host proyek pendahulunya. Akibatnya
+setiap gambar soal di dev tidak muncul, dan `/_next/image` menjawab
+`400 "url" parameter is not allowed`. Di layar tidak ada petunjuk apa pun bahwa
+sebabnya ada di konfigurasi ini, jadi dugaan pertama jatuh ke
+`php artisan storage:link` di backend — yang ternyata memang sudah benar.
+
+**Cara memastikan dalam satu perintah**, tanpa menebak: kalau URL-nya diambil
+langsung mengembalikan 200 tapi lewat `/_next/image` mengembalikan 400, yang
+salah daftar izinnya, bukan berkasnya.
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' "https://<host>/storage/<berkas>"
+curl -s "http://localhost:3000/_next/image?url=<url-terenkode>&w=1920&q=75" | head -c 60
+```
+
+Host menurut `NEXT_PUBLIC_API_URL` sekarang ikut diturunkan otomatis ke
+`remotePatterns` dan kedua direktif CSP, jadi lingkungan baru bekerja tanpa
+menyunting berkas ini. Daftar eksplisitnya tetap ada sebagai jaring pengaman
+kalau env-nya tidak tersetel saat build.
+
 ---
 
 ## 4. Field data referensi
