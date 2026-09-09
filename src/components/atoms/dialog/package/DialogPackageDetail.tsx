@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -22,6 +23,7 @@ export default function DialogPackageDetail({
   packageId,
 }: DialogPackageDetailProps) {
   const { data: session, status } = useSession();
+  const [imgError, setImgError] = useState(false);
 
   const { data } = useGetDetailPackage({
     id: packageId,
@@ -40,14 +42,14 @@ export default function DialogPackageDetail({
           <DialogTitle>Detail Paket</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4">
-          {thumbnailUrl && (
+          {thumbnailUrl && !imgError && (
             <div className="flex flex-col gap-1">
               <h3 className="text-muted-foreground">Thumbnail</h3>
-              { }
               <img
                 src={thumbnailUrl}
                 alt={data?.data?.name ?? "Thumbnail"}
                 className="w-full h-48 object-cover rounded-lg border"
+                onError={() => setImgError(true)}
               />
             </div>
           )}

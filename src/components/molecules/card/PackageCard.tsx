@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Package, Tag, Ticket } from "lucide-react";
@@ -26,6 +27,7 @@ export default function PackageCard({
   description,
   ticketAmount,
 }: PackageCardProps) {
+  const [imageError, setImageError] = useState(false);
   const thumbnailSrc = storageUrl(thumbnail);
   const isExternal = thumbnailSrc?.startsWith("http");
 
@@ -33,13 +35,14 @@ export default function PackageCard({
     <div className="flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all group">
       {/* Thumbnail / Header */}
       <div className="relative w-full h-40 bg-primary">
-        {thumbnailSrc ? (
+        {thumbnailSrc && !imageError ? (
           <Image
             src={thumbnailSrc}
             alt={title}
             fill
             className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
             unoptimized={!!isExternal}
+            onError={() => setImageError(true)}
           />
         ) : (
           /* Fallback: decorative gradient with icon */
