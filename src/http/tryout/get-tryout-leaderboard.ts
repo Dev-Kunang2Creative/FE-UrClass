@@ -10,10 +10,11 @@ interface GetTryoutLeaderboardResponse {
 export const GetTryoutLeaderboardHandler = async (
   tryoutId: string,
   token: string,
+  targetInstance?: string,
 ): Promise<GetTryoutLeaderboardResponse> => {
   const { data } = await api.get<GetTryoutLeaderboardResponse>(
     `/tryouts/${tryoutId}/leaderboard`,
-    { headers: { Authorization: `Bearer ${token}` } },
+    { params: { target_instance: targetInstance || undefined }, headers: { Authorization: `Bearer ${token}` } },
   );
 
   return data;
@@ -23,14 +24,16 @@ export const useGetTryoutLeaderboard = ({
   tryoutId,
   token,
   options,
+  targetInstance,
 }: {
   tryoutId: string;
   token: string;
+  targetInstance?: string;
   options?: Partial<UseQueryOptions<GetTryoutLeaderboardResponse, AxiosError>>;
 }) => {
   return useQuery({
-    queryKey: ["get-tryout-leaderboard", tryoutId],
-    queryFn: () => GetTryoutLeaderboardHandler(tryoutId, token),
+    queryKey: ["get-tryout-leaderboard", tryoutId, token, targetInstance],
+    queryFn: () => GetTryoutLeaderboardHandler(tryoutId, token, targetInstance),
     enabled: !!tryoutId && !!token,
     ...options,
   });

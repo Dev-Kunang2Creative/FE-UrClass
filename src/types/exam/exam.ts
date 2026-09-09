@@ -7,6 +7,8 @@ export interface ExamOption {
 
 export interface ExamQuestion {
   id: string;
+  tryout_subtest_id?: string;
+  category?: string;
   question_type: "multiple_choice" | "essay";
   question_text: string;
   question_image: string | null;
@@ -49,6 +51,11 @@ export interface TryoutResultData {
   status: string;
   started_at: string | null;
   finished_at: string | null;
+  is_full_skd: boolean;
+  is_passed_skd: boolean | null;
+  skd_scores: SkdScores | null;
+  skd_passing_grades: SkdPassingGrades | null;
+  skd_subtests: Record<SkdSubtestCode, SkdSubtestResult> | null;
   summary: {
     total_questions: number;
     answered: number;
@@ -59,20 +66,61 @@ export interface TryoutResultData {
   score_result: {
     method: "simple" | "irt";
     is_ready: boolean;
+    /**
+     * Benar selama skor IRT belum final. Angkanya nyata - proporsi jawaban
+     * benar - tapi masih akan digantikan skor IRT setelah periode ditutup.
+     */
+    is_provisional?: boolean;
     raw_score: number;
     final_score: number;
+    max_score?: number;
     accuracy: number;
   };
+  /**
+   * Per-subtest scores. Optional because older cached responses predate it.
+   * CPNS is judged per threshold - one subtest below its passing grade fails
+   * the whole SKD - so the aggregate alone hides the deciding number.
+   */
+  per_subtest?: {
+    subtest_id: string;
+    name: string;
+    exam_type: string | null;
+    scheme: string;
+    total_questions: number;
+    answered: number;
+    correct: number;
+    raw_score: number;
+    max_score: number;
+  }[];
   irt_result: {
     is_ready: boolean;
     release_date: string | null;
     total_participants_calculated: number;
     raw_score: number;
     final_score: number;
+    /** Skor sementara berbasis jawaban benar, dipakai sebelum IRT final. */
+    provisional_score?: number;
   } | null;
 }
 
+export type SkdSubtestCode = "twk" | "tiu" | "tkp";
+
+export interface SkdScores {
+  twk: number;
+  tiu: number;
+  tkp: number;
+}
+
+export type SkdPassingGrades = SkdScores;
+
+export interface SkdSubtestResult {
+  score: number;
+  passing_grade: number;
+  is_passed: boolean;
+}
+
 export interface LeaderboardEntry {
+  is_dummy?: boolean;
   rank: number;
   user_id: string;
   user_name: string;
@@ -91,6 +139,10 @@ export interface LeaderboardEntry {
     raw_score: number;
     final_score: number;
   };
+  is_passed?: boolean;
+  twk_score?: number;
+  tiu_score?: number;
+  tkp_score?: number;
   proof_images?: string[];
   proof_image_urls?: string[];
 }
@@ -99,7 +151,16 @@ export interface TryoutLeaderboardData {
   tryout_id: string;
   tryout_title: string;
   use_irt: boolean;
-  leaderboard_basis: "attempt_number_1";
+  is_full_skd: boolean;
+  /** Peringkat memakai percobaan dengan skor tertinggi tiap peserta. */
+  leaderboard_basis: "best_attempt";
+  /**
+   * false selama tryout IRT masih berjalan: bobot tiap soal dihitung dari
+   * peserta yang sudah selesai, jadi skor dan peringkat masih bisa bergeser
+   * sampai periodenya ditutup.
+   */
+  is_final?: boolean;
+  release_date?: string | null;
   leaderboard: LeaderboardEntry[];
 }
 

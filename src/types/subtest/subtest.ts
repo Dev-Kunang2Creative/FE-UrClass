@@ -5,6 +5,13 @@ export interface Subtest {
   exam_type: "utbk" | "cpns";
   max_questions: number;
   questions_count?: number;
+  // Per-subtest scoring, configurable by an admin: score_wrong can be negative,
+  // which is the difference between "wrong answers cost you nothing" being true
+  // and being a guess. Sent as decimal strings by MySQL through Eloquent.
+  scoring_scheme?: string | null;
+  score_correct?: number | string | null;
+  score_wrong?: number | string | null;
+  score_empty?: number | string | null;
   created_at: Date;
   updated_at: Date;
 }

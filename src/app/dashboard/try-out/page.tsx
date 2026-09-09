@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import TryoutCardSkeleton from "@/components/molecules/card/TryoutCardSkeleton";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 const FILTER_OPTIONS = [
   "Semua Tryout",
@@ -37,29 +38,21 @@ export default function TryoutPage() {
 
   const [activeFilter, setActiveFilter] = useState("Semua Tryout");
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("Semua");
   const [sortBy, setSortBy] = useState("status");
   const [showRedeemDialog, setShowRedeemDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(9);
 
-  const {
-    data: tryoutsData,
-    isLoading: isTryoutsLoading,
-    isFetching: isTryoutsFetching,
-  } = useGetUserTryouts({
+  const { data: tryoutsData, isLoading: isTryoutsLoading } = useGetUserTryouts({
     token,
   });
 
   const tryouts = useMemo(() => tryoutsData?.data || [], [tryoutsData]);
 
-  const {
-    data: historyData,
-    isLoading: isHistoryLoading,
-    isFetching: isHistoryFetching,
-  } = useGetHistoryTryout({
-    token,
-  });
+  const { data: historyData, isLoading: isHistoryLoading } =
+    useGetHistoryTryout({
+      token,
+    });
 
   const enrolledTryoutIds = useMemo(
     () => new Set(historyData?.data?.map((t) => t.id) || []),
@@ -70,12 +63,13 @@ export default function TryoutPage() {
     [historyData],
   );
 
+  // isFetching used to be in here, which meant every background refetch - and
+  // React Query refetches on window focus by default - replaced the whole grid
+  // with skeletons and then put it back. Coming back to the tab made the page
+  // visibly flash. isLoading is only true when there is no data to show yet,
+  // which is the only time a skeleton is the honest thing to render.
   const isPageLoading =
-    sessionStatus === "loading" ||
-    isTryoutsLoading ||
-    isTryoutsFetching ||
-    isHistoryLoading ||
-    isHistoryFetching;
+    sessionStatus === "loading" || isTryoutsLoading || isHistoryLoading;
 
   const getStatusOrder = (item: { startDate: string; endDate: string }) => {
     const start = item.startDate ? new Date(item.startDate).getTime() : 0;
@@ -90,8 +84,6 @@ export default function TryoutPage() {
       .filter(
         (item) =>
           item.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          (categoryFilter === "Semua" ||
-            item.category?.toUpperCase() === categoryFilter.toUpperCase()) &&
           (activeFilter === "Semua Tryout" ||
             (activeFilter === "Tryout Premium" && item.type === "Premium") ||
             (activeFilter === "Tryout Gratis" && item.type === "Gratis") ||
@@ -109,14 +101,7 @@ export default function TryoutPage() {
 
         return getStatusOrder(a) - getStatusOrder(b);
       });
-  }, [
-    tryouts,
-    searchQuery,
-    categoryFilter,
-    activeFilter,
-    enrolledTryoutIds,
-    sortBy,
-  ]);
+  }, [tryouts, searchQuery, activeFilter, enrolledTryoutIds, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -132,11 +117,6 @@ export default function TryoutPage() {
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
-    setCurrentPage(1);
-  };
-
-  const handleCategoryFilterChange = (filter: string) => {
-    setCategoryFilter(filter);
     setCurrentPage(1);
   };
 
@@ -163,33 +143,39 @@ export default function TryoutPage() {
             >
               <ChevronLeft className="w-6 h-6" />
             </Link>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+            <h1 className="text-xl font-black tracking-tight text-slate-900 md:text-2xl">
               Daftar Tryout {isCpns ? "CPNS & Kedinasan" : "UTBK - SNBT"}
             </h1>
           </div>
-          <p className="text-gray-600 text-sm pl-9">
+          <p className="pl-9 text-sm text-slate-600">
             {isCpns
               ? "Sobat UrClass, latih kemampuan CAT SKD (TWK, TIU, TKP) dengan standar penilaian resmi."
               : "Sobat UrClass, tingkatkan skor tryoutmu dan persiapkan diri menghadapi seleksi masuk PTN."}
           </p>
         </div>
 
-        {/* Buttons */}
-        <div className="flex items-center gap-2">
+        <Mascot
+          pose="ayobelajar"
+          decorative
+          sizes="110px"
+          className="order-last h-20 w-auto shrink-0 sm:order-none md:h-24"
+        />
+
+        {/* Buttons. Both were off-palette: the access-code button branched on
+            isCpns to pick between hardcoded orange and blue, and Riwayat TO
+            was a green that belongs to neither track. Primary action takes
+            the track colour, the secondary one is outlined. */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setShowRedeemDialog(true)}
-            className={`flex items-center gap-2 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit ${
-              isCpns
-                ? "bg-amber-700 hover:bg-amber-800"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
+            className="flex w-fit items-center gap-2 rounded-xl border-2 border-slate-900 bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:brightness-95 active:translate-y-0.5"
           >
             <KeyRound className="w-4 h-4" />
             <span>Kode Akses</span>
           </button>
           <Link
             href="/dashboard/try-out/riwayat"
-            className="flex items-center gap-2 bg-[#3C8D60] hover:bg-[#327851] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors w-fit md:mt-0"
+            className="flex w-fit items-center gap-2 rounded-xl border-2 border-slate-900 bg-white px-4 py-2 text-sm font-bold text-slate-900 transition-all hover:bg-track-tint active:translate-y-0.5"
           >
             <History className="w-4 h-4" />
             <span>Riwayat TO</span>
@@ -201,7 +187,7 @@ export default function TryoutPage() {
       <div className="space-y-4 pt-2">
         {/* Search Bar */}
         <div className="relative w-full max-w-xl">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 w-5 h-5 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder={
@@ -211,61 +197,31 @@ export default function TryoutPage() {
             }
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className={`w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all shadow-sm ${
-              isCpns
-                ? "focus:ring-amber-600/20 focus:border-amber-600"
-                : "focus:ring-blue-600/20 focus:border-blue-600"
-            }`}
+            className="w-full rounded-xl border-2 border-slate-900 bg-white py-3 pl-11 pr-4 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring/30"
           />
         </div>
 
-        {/* Filter Buttons */}
+        {/* Chips and the sort control on one row. The jenis select is gone: it
+            offered SKD/SKB/Kedinasan and UTBK/SNBP/UM against tryouts.category,
+            a free-text column that in practice holds one value per track, so
+            every option but the first filtered everything away. */}
         <div className="flex flex-wrap items-center gap-2 md:gap-3">
           {FILTER_OPTIONS.map((filter) => (
             <button
               key={filter}
               onClick={() => handleFilterChange(filter)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`rounded-full border-2 border-slate-900 px-4 py-1.5 text-sm font-bold transition-colors ${
                 activeFilter === filter
-                  ? isCpns
-                    ? "bg-amber-700 text-white"
-                    : "bg-blue-600 text-white"
-                  : "bg-[#EAEFF4] text-[#5A6A80] hover:bg-gray-200"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-white text-slate-700 hover:bg-track-tint"
               }`}
             >
               {filter}
             </button>
           ))}
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <Select
-            value={categoryFilter}
-            onValueChange={handleCategoryFilterChange}
-          >
-            <SelectTrigger className="h-10 w-full bg-white sm:w-36">
-              <SelectValue placeholder="Jenis TO" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Semua">Semua Jenis</SelectItem>
-              {isCpns ? (
-                <>
-                  <SelectItem value="SKD">SKD</SelectItem>
-                  <SelectItem value="SKB">SKB</SelectItem>
-                  <SelectItem value="Kedinasan">Kedinasan</SelectItem>
-                </>
-              ) : (
-                <>
-                  <SelectItem value="UTBK">UTBK</SelectItem>
-                  <SelectItem value="SNBP">SNBP</SelectItem>
-                  <SelectItem value="UM">UM</SelectItem>
-                </>
-              )}
-            </SelectContent>
-          </Select>
 
           <Select value={sortBy} onValueChange={handleSortChange}>
-            <SelectTrigger className="h-10 w-full bg-white sm:w-48">
+            <SelectTrigger className="ml-auto h-9 w-full rounded-full border-2 border-slate-900 bg-white px-4 text-sm font-bold sm:w-48">
               <SelectValue placeholder="Urutkan" />
             </SelectTrigger>
             <SelectContent>
@@ -306,6 +262,10 @@ export default function TryoutPage() {
                     historyMap.get(item.id)?.hasAttempted ||
                     false
                   }
+                  // Without this the card cannot tell an unfinished session
+                  // from a finished one, so someone mid-exam was offered
+                  // "Kerjakan Ulang" - a restart - instead of "Lanjutkan".
+                  sessionStatus={item.sessionStatus}
                 />
               ))}
             </div>
@@ -316,13 +276,20 @@ export default function TryoutPage() {
               perPage={itemsPerPage}
               perPageOptions={PER_PAGE_OPTIONS}
               itemLabel="tryout"
+              layout="stacked"
               onPageChange={setCurrentPage}
               onPerPageChange={handleItemsPerPageChange}
             />
           </>
         ) : (
-          <div className="w-full py-12 flex flex-col items-center justify-center text-gray-500">
-            <p>Tidak ada tryout yang ditemukan.</p>
+          <div className="flex w-full flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-300 bg-white/60 py-12 text-center">
+            <Mascot pose="berfikir" decorative sizes="112px" className="h-28 w-auto" />
+            <p className="text-sm font-bold text-slate-700">
+              Tidak ada tryout yang cocok
+            </p>
+            <p className="max-w-sm text-xs text-slate-500">
+              Coba hapus kata pencarian atau ganti filternya.
+            </p>
           </div>
         )}
       </div>

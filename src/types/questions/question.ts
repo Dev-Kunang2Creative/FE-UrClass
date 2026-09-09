@@ -5,6 +5,13 @@ export interface QuestionOption {
   id: string;
   option_key: string;
   option_text: string;
+  /**
+   * Bobot opsi. Hanya berarti pada subtes berskema option_weight (TKP SKD),
+   * tempat setiap opsi bernilai 1-5. Dikirim sebagai string desimal oleh MySQL
+   * lewat Eloquent.
+   */
+  score?: number | string | null;
+  is_correct?: boolean;
 }
 
 export interface Question {
@@ -22,6 +29,11 @@ export interface Question {
   difficulty: string;
   is_active: boolean;
   user_answers_count?: number;
+  /**
+   * Ditandai server untuk soal option_weight yang bobotnya belum sah - misalnya
+   * soal lama yang diimpor sebelum kolom bobot ada.
+   */
+  needs_option_weight?: boolean;
   options: QuestionOption[];
   subtest: Subtest;
   creator: User;

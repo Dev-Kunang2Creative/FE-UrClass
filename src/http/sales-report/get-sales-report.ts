@@ -3,7 +3,7 @@ import type { AxiosError } from "axios";
 import { api } from "@/lib/axios";
 
 export interface SalesReportRow {
-  type: "tryout" | "kelas";
+  type: "tryout";
   product_name: string;
   year: number;
   month: number;
@@ -14,22 +14,16 @@ export interface SalesReportRow {
   total_sales: number;
 }
 
-export interface SalesReportSummaryDetail {
-  total_sales: number;
-  total_item_sold: number;
-  order_count: number;
-  amunisi_revenue: number;
-  developer_revenue: number;
-}
-
+/**
+ * Tidak ada lagi pecahan per jenis produk: fitur kelas sudah dihapus, sehingga
+ * paket tiket tryout adalah satu-satunya yang dijual dan angka totalnya sudah
+ * merupakan angka tryout.
+ */
 export interface SalesReportSummary {
   total_sales: number;
   total_item_sold: number;
   order_count: number;
-  total_amunisi_revenue: number;
-  total_developer_revenue: number;
-  tryout: SalesReportSummaryDetail;
-  kelas: SalesReportSummaryDetail;
+  average_order_value: number;
 }
 
 export interface SalesReportResponse {

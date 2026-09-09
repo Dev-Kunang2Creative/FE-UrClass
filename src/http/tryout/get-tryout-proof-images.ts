@@ -14,6 +14,13 @@ export interface TryoutProofItem {
   } | null;
   proof_images: string[];
   proof_image_urls: string[];
+  /**
+   * Bukti beserta syarat yang dijawabnya. `title` null untuk pendaftaran lama
+   * yang masuk sebelum syarat punya judul - urutannya satu-satunya yang
+   * tersimpan waktu itu, jadi antarmuka jatuh ke penomoran biasa daripada
+   * menebak syarat mana yang berlaku saat itu.
+   */
+  proof_items: { title: string | null; url: string }[];
 }
 
 export interface GetTryoutProofImagesResponse {

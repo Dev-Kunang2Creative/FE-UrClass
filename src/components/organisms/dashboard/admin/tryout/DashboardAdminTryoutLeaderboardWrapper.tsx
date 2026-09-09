@@ -3,6 +3,9 @@
 import { useGetTryoutLeaderboard } from "@/http/tryout/get-tryout-leaderboard";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { api } from "@/lib/axios";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/utils/get-error-message";
 import type { LeaderboardEntry } from "@/types/exam/exam";
 import {
   Card,
@@ -45,6 +48,8 @@ import {
   BarChart2,
   Images,
   ExternalLink,
+  RotateCcw,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { formatJakartaDateTime } from "@/utils/date-time";
@@ -174,11 +179,15 @@ function StatPip({
 function LeaderboardTableRow({
   entry,
   tryoutId,
+  isFullSkd,
   onViewProof,
+  onDeleteDummy,
 }: {
   entry: LeaderboardEntry;
   tryoutId: string;
+  isFullSkd: boolean;
   onViewProof: (entry: LeaderboardEntry) => void;
+  onDeleteDummy: (entry: LeaderboardEntry) => void;
 }) {
   const rankStyle = getRankStyle(entry.rank);
   const finishedAt = entry.finished_at
@@ -240,6 +249,37 @@ function LeaderboardTableRow({
           </div>
         </div>
       </TableCell>
+
+      {isFullSkd && (
+        <TableCell className="text-center">
+          <Badge
+            variant="outline"
+            title={entry.is_passed ? "Lulus passing grade" : "Tidak lulus passing grade"}
+            className={cn(
+              "min-w-9 justify-center font-bold",
+              entry.is_passed
+                ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                : "border-red-300 bg-red-50 text-red-700",
+            )}
+          >
+            {entry.is_passed ? "P" : "TL"}
+          </Badge>
+        </TableCell>
+      )}
+
+      {isFullSkd && (
+        <>
+          <TableCell className="text-center font-semibold tabular-nums">
+            {entry.twk_score ?? 0}
+          </TableCell>
+          <TableCell className="text-center font-semibold tabular-nums">
+            {entry.tiu_score ?? 0}
+          </TableCell>
+          <TableCell className="text-center font-semibold tabular-nums">
+            {entry.tkp_score ?? 0}
+          </TableCell>
+        </>
+      )}
 
       {/* Total Soal */}
       <TableCell className="text-center">
@@ -309,6 +349,7 @@ function LeaderboardTableRow({
       {/* Aksi */}
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
+          {entry.is_dummy && <Button type="button" variant="destructive" size="icon" aria-label={`Hapus peserta dummy ${entry.user_name}`} onClick={() => onDeleteDummy(entry)}><Trash2 /></Button>}
           {(entry.proof_image_urls?.length ?? 0) > 0 && (
             <Button
               type="button"
@@ -495,8 +536,10 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
 }: DashboardAdminTryoutLeaderboardWrapperProps) {
   const { data: session } = useSession();
   const [selectedProofEntry, setSelectedProofEntry] = useState<LeaderboardEntry | null>(null);
+  const [dummyDihapus, setDummyDihapus] = useState<LeaderboardEntry | null>(null);
+  const [menghapus, setMenghapus] = useState(false);
 
-  const { data, isPending } = useGetTryoutLeaderboard({
+  const { data, isPending, isError, refetch } = useGetTryoutLeaderboard({
     token: session?.access_token ?? "",
     tryoutId,
   });
@@ -516,9 +559,31 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
     );
   }
 
+  if (isError) {
+    return (
+      <section className="space-y-4">
+        <SectionHeader />
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-14 text-center">
+            <XCircle className="mb-3 size-9 text-red-600" />
+            <h3 className="font-semibold text-foreground">Hasil tryout gagal dimuat</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Periksa koneksi, lalu coba ambil kembali data peserta.
+            </p>
+            <Button type="button" variant="outline" className="mt-4 min-h-11" onClick={() => refetch()}>
+              <RotateCcw className="size-4" />
+              Coba Lagi
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+    );
+  }
+
   const leaderboard = data?.data.leaderboard ?? [];
   const tryoutTitle = data?.data.tryout_title;
   const leaderboardBasis = data?.data.leaderboard_basis;
+  const isFullSkd = data?.data.is_full_skd === true;
 
   if (leaderboard.length === 0) {
     return (
@@ -529,7 +594,7 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
     );
   }
 
-  const maxScore = leaderboard[0]?.score.final_score ?? 0;
+  const maxScore = Math.max(...leaderboard.map((entry) => entry.score.final_score));
   const avgScore =
     leaderboard.reduce((s, e) => s + e.score.final_score, 0) /
     leaderboard.length;
@@ -570,9 +635,7 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
       {leaderboardBasis && (
         <p className="text-xs text-muted-foreground bg-muted inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full">
           <BarChart2 className="w-3 h-3" />
-          {leaderboardBasis === "attempt_number_1"
-            ? "Peringkat berdasarkan percobaan ke-1"
-            : "Peringkat berdasarkan skor terbaik"}
+          Peringkat berdasarkan skor terbaik tiap peserta
         </p>
       )}
 
@@ -582,7 +645,9 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
           <div>
             <CardTitle className="text-base">Hasil Tryout Peserta</CardTitle>
             <CardDescription>
-              Daftar hasil tryout berdasarkan skor
+              {isFullSkd
+                ? "Peserta lulus PG didahulukan, lalu diurutkan berdasarkan total, TKP, TIU, TWK, dan waktu selesai."
+                : "Daftar hasil tryout berdasarkan skor"}
             </CardDescription>
           </div>
           <Badge variant="secondary" className="shrink-0 text-xs">
@@ -591,11 +656,15 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
         </CardHeader>
 
         <CardContent className="p-0 overflow-x-auto">
-          <Table className="min-w-[900px] w-full">
+          <Table className={cn("w-full", isFullSkd ? "min-w-[1200px]" : "min-w-[900px]")}>
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
                 <TableHead className="w-[60px] text-center">#</TableHead>
                 <TableHead>Peserta</TableHead>
+                {isFullSkd && <TableHead className="text-center">Status</TableHead>}
+                {isFullSkd && <TableHead className="text-center">TWK</TableHead>}
+                {isFullSkd && <TableHead className="text-center">TIU</TableHead>}
+                {isFullSkd && <TableHead className="text-center">TKP</TableHead>}
                 <TableHead className="text-center">Total Soal</TableHead>
                 <TableHead className="text-center">Dijawab</TableHead>
                 <TableHead className="text-center">Tdk Dijawab</TableHead>
@@ -612,7 +681,9 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
                   key={`${entry.user_id}-${entry.attempt_number}-${index}`}
                   entry={entry}
                   tryoutId={tryoutId}
+                  isFullSkd={isFullSkd}
                   onViewProof={setSelectedProofEntry}
+                  onDeleteDummy={setDummyDihapus}
                 />
               ))}
             </TableBody>
@@ -620,6 +691,22 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
         </CardContent>
       </Card>
 
+      <Dialog open={!!dummyDihapus} onOpenChange={(open) => { if (!open && !menghapus) setDummyDihapus(null); }}>
+        <DialogContent><DialogHeader><DialogTitle>Hapus peserta dummy?</DialogTitle>
+          <DialogDescription>Hapus peserta dummy {dummyDihapus?.user_name} dari leaderboard ini? Akun dummy beserta sesi dan jawabannya akan dihapus.</DialogDescription>
+        </DialogHeader><div className="flex flex-wrap justify-end gap-2">
+          <Button variant="outline" disabled={menghapus} onClick={() => setDummyDihapus(null)}>Batal</Button>
+          <Button variant="destructive" disabled={menghapus} onClick={async () => {
+            if (!dummyDihapus) return;
+            setMenghapus(true);
+            try {
+              await api.delete(`/admin/tryouts/${tryoutId}/leaderboard/dummy/${dummyDihapus.user_id}`, { headers: { Authorization: `Bearer ${session?.access_token}` } });
+              setDummyDihapus(null); toast.success('Peserta dummy berhasil dihapus.'); await refetch();
+            } catch (error) { toast.error(getErrorMessage(error, 'Peserta dummy gagal dihapus.')); }
+            finally { setMenghapus(false); }
+          }}>{menghapus ? 'Menghapus…' : 'Hapus Peserta Dummy'}</Button>
+        </div></DialogContent>
+      </Dialog>
       <ProofImagesDialog
         entry={selectedProofEntry}
         open={!!selectedProofEntry}

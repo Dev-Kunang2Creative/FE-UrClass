@@ -27,11 +27,14 @@ import { getErrorMessage } from "@/utils/get-error-message";
 import { useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import {
+  scoringSchemes,
   subtestSchema,
   SubtestType,
 } from "@/validators/subtest/subtest-validator";
+import SubtestScoringFields from "./SubtestScoringFields";
 import { useGetDetailSubtest } from "@/http/subtest/get-detail-subtest";
 import { useUpdateSubtest } from "@/http/subtest/update-subtest";
+import { useGetSubtestCategories } from "@/http/subtest-category/get-subtest-categories";
 
 interface FormUpdateSubtestProps {
   subtestId: string;
@@ -57,8 +60,19 @@ export default function FormUpdateSubtest({
       category: "",
       exam_type: "utbk",
       max_questions: 15,
+      scoring_scheme: "right_wrong",
+      score_correct: 1,
+      score_wrong: 0,
+      score_empty: 0,
     },
   });
+
+  const selectedExamType = form.watch("exam_type");
+  const { data: categoryData, isPending: isLoadingCategories } = useGetSubtestCategories({
+    token: session?.access_token as string,
+    examType: selectedExamType,
+  });
+  const categories = categoryData?.data ?? [];
 
   useEffect(() => {
     if (!defaultData) return;
@@ -68,6 +82,20 @@ export default function FormUpdateSubtest({
       category: defaultData.category ?? "",
       exam_type: defaultData.exam_type ?? "utbk",
       max_questions: defaultData.max_questions ?? 15,
+      // Dikirim MySQL sebagai string desimal ("5.00"), jadi diangkakan dulu -
+      // kalau tidak, input number-nya kosong dan menyimpan ulang subtes akan
+      // menghapus konfigurasi nilainya.
+      // Dicocokkan, bukan sekadar di-cast: baris lama bisa saja menyimpan
+      // "irt", skema yang tidak ditawarkan lagi, dan nilai di luar daftar akan
+      // membuat select-nya tampil kosong.
+      scoring_scheme: scoringSchemes.includes(
+        defaultData.scoring_scheme as (typeof scoringSchemes)[number],
+      )
+        ? (defaultData.scoring_scheme as SubtestType["scoring_scheme"])
+        : "right_wrong",
+      score_correct: Number(defaultData.score_correct ?? 1),
+      score_wrong: Number(defaultData.score_wrong ?? 0),
+      score_empty: Number(defaultData.score_empty ?? 0),
     });
   }, [defaultData, form]);
 
@@ -134,23 +162,26 @@ export default function FormUpdateSubtest({
 
             <Controller
               control={form.control}
-              name="category"
+              name="exam_type"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>
-                    Kategori <span className="text-red-500">*</span>
+                    Jenis Ujian <span className="text-red-500">*</span>
                   </FieldLabel>
                   <Select
                     key={field.value}
                     value={field.value}
-                    onValueChange={field.onChange}
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                      form.setValue("category", "", { shouldValidate: true });
+                    }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
+                      <SelectValue placeholder="Pilih jenis ujian" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="TPS">TPS</SelectItem>
-                      <SelectItem value="Literasi">Literasi</SelectItem>
+                      <SelectItem value="utbk">UTBK</SelectItem>
+                      <SelectItem value="cpns">CPNS</SelectItem>
                     </SelectContent>
                   </Select>
                   {fieldState.error && (
@@ -162,23 +193,34 @@ export default function FormUpdateSubtest({
 
             <Controller
               control={form.control}
-              name="exam_type"
+              name="category"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>
-                    Jenis Ujian <span className="text-red-500">*</span>
+                    Kategori <span className="text-red-500">*</span>
                   </FieldLabel>
                   <Select
-                    key={field.value}
-                    value={field.value}
+                    key={`${field.value}-${categories.length}`}
+                    value={field.value || undefined}
                     onValueChange={field.onChange}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih jenis ujian" />
+                      <SelectValue
+                        placeholder={
+                          isLoadingCategories
+                            ? "Memuat kategori..."
+                            : categories.length === 0
+                              ? "Belum ada kategori"
+                              : "Pilih kategori"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="utbk">UTBK</SelectItem>
-                      <SelectItem value="cpns">CPNS</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.code}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {fieldState.error && (
@@ -210,6 +252,8 @@ export default function FormUpdateSubtest({
                 </Field>
               )}
             />
+
+            <SubtestScoringFields form={form} />
           </FieldGroup>
 
           <div className="flex justify-end">

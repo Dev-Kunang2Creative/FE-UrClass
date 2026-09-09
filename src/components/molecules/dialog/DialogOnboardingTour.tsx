@@ -7,13 +7,11 @@ import { KATEGORI_CONFIG } from "@/lib/kategori";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
-  Compass,
   Settings,
   Sparkles,
   Award,
@@ -23,7 +21,6 @@ import {
   BookOpenCheck,
   Landmark,
 } from "lucide-react";
-import Image from "next/image";
 
 interface DialogOnboardingTourProps {
   open?: boolean;
@@ -37,32 +34,30 @@ export default function DialogOnboardingTour({
   const { data: session } = useSession();
   const { kategori } = useKategori();
   const config = KATEGORI_CONFIG[kategori];
-  const userId = session?.user?.id || "guest";
-
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const isControlled = externalOpen !== undefined;
+  const isOpen = externalOpen ?? internalOpen;
 
   useEffect(() => {
-    if (externalOpen !== undefined) {
-      setIsOpen(externalOpen);
-      return;
-    }
-
-    if (session?.user?.id) {
+    if (!isControlled && session?.user?.id) {
       const storageKey = `urclass_tour_seen_${session.user.id}`;
       const seen = localStorage.getItem(storageKey);
       if (!seen) {
-        setIsOpen(true);
+        const frame = requestAnimationFrame(() => setInternalOpen(true));
+        return () => cancelAnimationFrame(frame);
       }
     }
-  }, [session?.user?.id, externalOpen]);
+  }, [session?.user?.id, isControlled]);
 
   const handleClose = () => {
     if (session?.user?.id) {
       const storageKey = `urclass_tour_seen_${session.user.id}`;
       localStorage.setItem(storageKey, "true");
     }
-    setIsOpen(false);
+    if (!isControlled) {
+      setInternalOpen(false);
+    }
     externalOnOpenChange?.(false);
   };
 
@@ -73,7 +68,7 @@ export default function DialogOnboardingTour({
       badgeClass: config.theme.badge,
       description: `Akunmu saat ini berada dalam Mode ${config.label}. Seluruh bank soal, simulasi tryout, paket pembelian, dan analitik performa diatur khusus untuk jalur persiapan ini.`,
       icon: kategori === "cpns" ? Landmark : BookOpenCheck,
-      iconBg: kategori === "cpns" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800",
+      iconBg: kategori === "cpns" ? "bg-orange-100 text-orange-800" : "bg-blue-100 text-blue-800",
       highlight: "Kamu siap memulai persiapan intensif meraih target impianmu!",
     },
     {
@@ -114,7 +109,7 @@ export default function DialogOnboardingTour({
         {/* Top Header Banner */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white text-center relative">
           <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 mb-3">
-            <StepIcon className="w-8 h-8 text-amber-300" />
+            <StepIcon className="w-8 h-8 text-orange-300" />
           </div>
           <DialogTitle className="text-xl sm:text-2xl font-black text-white tracking-tight">
             {current.title}
@@ -133,7 +128,7 @@ export default function DialogOnboardingTour({
           </DialogDescription>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <Sparkles className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
             <p className="text-xs sm:text-sm font-medium text-slate-800">
               {current.highlight}
             </p>
@@ -193,7 +188,7 @@ export default function DialogOnboardingTour({
             <Button
               type="button"
               onClick={handleClose}
-              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-[2px_2px_0px_0px_#0f172a]"
+              className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-[2px_2px_0px_0px_#0f172a]"
             >
               <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
               <span>Mulai Belajar! 🚀</span>

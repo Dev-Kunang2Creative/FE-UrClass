@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 type KategoriId = Kategori;
 
@@ -45,7 +46,7 @@ const CATEGORY_ITEMS: Array<{
     id: "cpns",
     title: "Tryout CPNS - SKD",
     badge: "JALUR ASN & KEDINASAN",
-    badgeClass: "bg-amber-100 text-amber-900 border-amber-300",
+    badgeClass: "bg-orange-100 text-orange-900 border-orange-300",
     description: "Fokus latihan CAT SKD meliputi TWK, TIU, dan TKP dengan sistem bobot nilai akurat.",
     features: [
       "Simulasi CAT BKN realistis",
@@ -53,10 +54,10 @@ const CATEGORY_ITEMS: Array<{
       "Ranking 3 level (Nasional/Daerah/Instansi)",
     ],
     icon: Landmark,
-    iconBg: "bg-amber-50 border-2 border-amber-200",
-    iconColor: "text-amber-700",
-    btnClass: "bg-amber-700 hover:bg-amber-800 text-white shadow-[2px_2px_0px_0px_#1e293b]",
-    hoverBorder: "hover:border-amber-700",
+    iconBg: "bg-orange-50 border-2 border-orange-200",
+    iconColor: "text-orange-700",
+    btnClass: "bg-orange-800 hover:bg-orange-800 text-white shadow-[2px_2px_0px_0px_#1e293b]",
+    hoverBorder: "hover:border-orange-700",
   },
 ];
 
@@ -102,6 +103,9 @@ export default function PilihKategoriWrapper() {
             priority
             className="h-20 sm:h-24 w-auto object-contain"
           />
+          {/* First screen after signing in, so the mascot introduces itself
+              here rather than only turning up later. */}
+          <Mascot pose="hai" sizes="120px" className="h-28 w-auto sm:h-32" />
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Selamat Datang, {userName}!

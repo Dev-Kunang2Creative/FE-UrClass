@@ -27,29 +27,32 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard,
-  Users,
   Book,
-  ShoppingCart,
   BookCopy,
-  BookOpen,
   BookKey,
+  BookOpen,
   FileClock,
-  Home,
-  Shield,
-  GraduationCap,
-  TrendingUp,
   Gift,
-  LifeBuoy,
-  Ticket,
+  Home,
   Images,
-  Settings,
+  Landmark,
+  Bot,
+  Layers,
+  LayoutDashboard,
+  LifeBuoy,
+  Shield,
+  ShoppingCart,
+  Ticket,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import { SidebarUser } from "./SidebarUser";
 import { DASHBOARD_MENU } from "@/constants/dashboard-menu";
 
 import { useKategori } from "@/hooks/useKategori";
+import { useTickets } from "@/hooks/useTickets";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
+import { isRouteActive } from "@/lib/navigation";
 
 interface SidebarWrapperProps {
   session: Session;
@@ -60,6 +63,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
   const [waModalOpen, setWaModalOpen] = useState(false);
   const { kategori } = useKategori();
   const config = KATEGORI_CONFIG[kategori];
+  const { ticketCount } = useTickets();
 
   const role = session?.user.role as keyof typeof DASHBOARD_MENU;
 
@@ -69,12 +73,12 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
 
   const activeMenuClass =
     kategori === "cpns"
-      ? "bg-amber-50 text-amber-900 font-bold border border-amber-300 shadow-sm"
+      ? "bg-orange-50 text-orange-900 font-bold border border-orange-300 shadow-sm"
       : "bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-sm";
 
   const buttonClass = (href: string) =>
     `hover:bg-primary/10 hover:text-primary dark:hover:bg-slate-900 ${
-      pathname.startsWith(href)
+      isRouteActive(pathname, href)
         ? "bg-primary/10 text-primary dark:bg-slate-800"
         : ""
     }`;
@@ -152,6 +156,17 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
+                      className={buttonClass("/dashboard/admin/subtest-category")}
+                    >
+                      <Link href="/dashboard/admin/subtest-category">
+                        <Layers />
+                        <span>Kategori Subtes</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
                       className={buttonClass("/dashboard/admin/try-out")}
                     >
                       <Link href="/dashboard/admin/try-out">
@@ -167,7 +182,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     >
                       <Link href="/dashboard/admin/bukti-follow">
                         <Images />
-                        <span>Bukti Follow</span>
+                        <span>Syarat & Bukti</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -226,6 +241,33 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
+                      className={buttonClass("/dashboard/admin/instansi")}
+                    >
+                      <Link href="/dashboard/admin/instansi">
+                        <Landmark />
+                        <span>Instansi & Formasi</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className={buttonClass("/dashboard/admin/kritik-saran")}>
+                      <Link href="/dashboard/admin/kritik-saran"><FileClock /><span>Kritik &amp; Saran Peserta</span></Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className={buttonClass("/dashboard/admin/ai")}
+                    >
+                      <Link href="/dashboard/admin/ai">
+                        <Bot />
+                        <span>Asisten AI</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
                       className={buttonClass("/dashboard/admin/transactions")}
                     >
                       <Link href="/dashboard/admin/transactions">
@@ -267,7 +309,9 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
           <>
             <SidebarGroup className="p-0 py-3">
               <SidebarGroupContent>
-                <SidebarMenu className="gap-1.5 px-3">
+                {/* id dipakai panduan awal (TourGuideOverlay) untuk menyorot
+                    menu ini satu per satu. */}
+                <SidebarMenu id="sidebar-nav" className="gap-1.5 px-3">
                   <SidebarMenuItem className="w-full relative">
                     <SidebarMenuButton
                       asChild
@@ -288,12 +332,12 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     <SidebarMenuButton
                       asChild
                       className={`h-10.5 justify-start px-3.5 rounded-xl transition-all w-full flex items-center ${
-                        pathname.startsWith("/dashboard/try-out")
+                        isRouteActive(pathname, "/dashboard/try-out")
                           ? activeMenuClass
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      <Link href="/dashboard/try-out" className="flex items-center w-full gap-3 font-medium text-sm">
+                      <Link id="sidebar-menu-tryout" href="/dashboard/try-out" className="flex items-center w-full gap-3 font-medium text-sm">
                         <BookOpen className="w-4.5 h-4.5 shrink-0" />
                         <span>Try Out</span>
                       </Link>
@@ -304,12 +348,12 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     <SidebarMenuButton
                       asChild
                       className={`h-10.5 justify-start px-3.5 rounded-xl transition-all w-full flex items-center ${
-                        pathname.startsWith("/dashboard/pembelian")
+                        isRouteActive(pathname, "/dashboard/pembelian")
                           ? activeMenuClass
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      <Link href="/dashboard/pembelian" className="flex items-center w-full gap-3 font-medium text-sm">
+                      <Link id="sidebar-menu-paket" href="/dashboard/pembelian" className="flex items-center w-full gap-3 font-medium text-sm">
                         <ShoppingCart className="w-4.5 h-4.5 shrink-0" />
                         <span>Pembelian Paket</span>
                       </Link>
@@ -320,20 +364,33 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                     <SidebarMenuButton
                       asChild
                       className={`h-10.5 justify-start px-3.5 rounded-xl transition-all w-full flex items-center ${
-                        pathname.startsWith("/dashboard/tiket")
+                        isRouteActive(pathname, "/dashboard/tiket")
                           ? activeMenuClass
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      <Link href="/dashboard/tiket/riwayat" className="flex items-center w-full gap-3 font-medium text-sm">
+                      <Link id="sidebar-menu-tiket" href="/dashboard/tiket/riwayat" className="flex items-center w-full gap-3 font-medium text-sm">
                         <Ticket className="w-4.5 h-4.5 shrink-0" />
                         <span>Riwayat Tiket</span>
+                        {/* The balance itself, not just a way to the ledger.
+                            On desktop there is no top bar, so without this the
+                            count appeared only on the dashboard home. */}
+                        <span
+                          className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-xs font-black ${
+                            ticketCount > 0
+                              ? "bg-track-tint text-primary"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {ticketCount}
+                        </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
                   <SidebarMenuItem className="w-full relative">
                     <SidebarMenuButton
+                      id="sidebar-menu-bantuan"
                       className="h-10.5 justify-start px-3.5 rounded-xl transition-all w-full flex items-center text-slate-600 hover:bg-slate-100 hover:text-slate-900 cursor-pointer font-medium text-sm"
                       onClick={() => setWaModalOpen(true)}
                     >
@@ -360,7 +417,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <LifeBuoy className="w-5 h-5 text-blue-600" />
+              <LifeBuoy className="w-5 h-5 text-primary" />
               Pusat Bantuan
             </DialogTitle>
             <DialogDescription>

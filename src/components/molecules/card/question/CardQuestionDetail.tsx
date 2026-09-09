@@ -175,7 +175,7 @@ export default function CardQuestionDetail({
             <div className="flex items-center gap-2">
               <Info className="w-4 h-4 text-primary" />
               <span className="font-medium text-muted-foreground uppercase tracking-widest">
-                Pembahasan
+                Kunci Jawaban &amp; Pembahasan
               </span>
             </div>
             <Badge className="rounded-full bg-muted text-muted-foreground border-0">
@@ -185,14 +185,18 @@ export default function CardQuestionDetail({
           <RichTextRenderer
             html={data?.discussion}
             className="text-foreground"
-            fallback="Pembahasan belum tersedia untuk soal ini."
+            fallback={
+              data?.discussion_image_url
+                ? undefined
+                : "Pembahasan belum tersedia untuk soal ini."
+            }
           />
         </div>
 
         {data?.discussion_image && data?.discussion_image_url && (
           <div className="flex flex-col gap-2">
             <span className="font-medium text-muted-foreground uppercase tracking-widest">
-              Gambar Pembahasan
+              Gambar Kunci Jawaban / Pembahasan
             </span>
             <Image
               src={data.discussion_image_url}

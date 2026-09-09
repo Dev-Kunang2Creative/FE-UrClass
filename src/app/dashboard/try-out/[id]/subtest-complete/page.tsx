@@ -6,6 +6,7 @@ import { Clock, FileText, PartyPopper } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useGetUserTryoutDetail } from "@/http/tryout/get-user-tryout-detail";
 import type { SubtestByTryout } from "@/types/subtest/subtest";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 function SubtestCompleteContent({ tryoutId }: { tryoutId: string }) {
   const router = useRouter();
@@ -48,27 +49,39 @@ function SubtestCompleteContent({ tryoutId }: { tryoutId: string }) {
   if (isLoading || !completedSubtest) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
       </div>
     );
   }
 
   return (
     <div className="w-full max-w-3xl mx-auto animate-in fade-in duration-500 py-12 px-4">
-      <div className="bg-gradient-to-r from-[#3B9245] to-[#4CAF50] rounded-2xl p-8 text-center text-white mb-8 shadow-lg">
-        <h1 className="text-2xl font-bold mb-2">
-          Subtest {completedSubtest.name} Selesai
-        </h1>
-        <p className="text-white/80 text-sm">
-          {isLastSubtest
-            ? "Semua subtest telah selesai dikerjakan."
-            : "Selanjutnya kamu akan mengerjakan subtest berikutnya."}
-        </p>
+      {/* Was a #3B9245 to #4CAF50 gradient - a green belonging to neither
+          track - on the screen a reader sees between every subtest. */}
+      <div className="mb-8 flex items-center gap-4 rounded-3xl border-2 border-slate-900 bg-primary p-6 text-primary-foreground shadow-[5px_5px_0px_0px_#0f172a]">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-black tracking-tight sm:text-2xl">
+            Subtest {completedSubtest.name} selesai
+          </h1>
+          <p className="mt-1 text-sm text-primary-foreground/80">
+            {isLastSubtest
+              ? "Semua subtest telah selesai dikerjakan."
+              : "Selanjutnya kamu akan mengerjakan subtest berikutnya."}
+          </p>
+        </div>
+        {/* A thumbs-up rather than a celebration: this is a beat between
+            subtests, not the finish line. */}
+        <Mascot
+          pose="sip1"
+          decorative
+          sizes="120px"
+          className="h-24 w-auto shrink-0"
+        />
       </div>
 
       {!isLastSubtest && nextSubtest ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center space-y-6">
-          <h2 className="text-xl font-bold text-blue-600">{nextSubtest.name}</h2>
+          <h2 className="text-xl font-bold text-primary">{nextSubtest.name}</h2>
 
           <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
             <div className="flex items-center gap-1.5">
@@ -87,7 +100,7 @@ function SubtestCompleteContent({ tryoutId }: { tryoutId: string }) {
 
           <button
             onClick={handleStartNext}
-            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base rounded-xl transition-colors shadow-[0_4px_0_0_#1e3a8a] active:shadow-none active:translate-y-1"
+            className="w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold text-base rounded-xl transition-colors shadow-[0_4px_0_0_#0f172a] active:shadow-none active:translate-y-1"
           >
             Mulai Subtest Berikutnya
           </button>
@@ -121,7 +134,7 @@ export default function SubtestCompletePage({
   const { id: tryoutId } = use(params);
 
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" /></div>}>
       <SubtestCompleteContent tryoutId={tryoutId} />
     </Suspense>
   );

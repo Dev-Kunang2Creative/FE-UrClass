@@ -158,3 +158,229 @@ body {
     background-attachment: fixed;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Per-track theme.
+
+   The track used to be styled with literal Tailwind classes in a handful of
+   components, which is why CPNS still felt blue: --primary is what the 14
+   shadcn primitives read, and it never changed. Buttons, focus rings,
+   checkboxes, tabs and every chart stayed blue while only the six hand-themed
+   components went amber.
+
+   Driving the variables instead means the whole surface re-themes at once, and
+   there is one place to change rather than thirteen.
+
+   Set by data-track on the dashboard wrapper (server-rendered from the
+   session, so there is no hydration flash).
+
+   Contrast against white was measured, not guessed:
+     UTBK  #004aab  8.18:1
+     CPNS  #c14100  5.21:1
+   Both clear WCAG AA for body text. The brighter oranges you might reach for
+   first - #ff6900 at 2.89:1 and #f54900 at 3.59:1 - cannot carry white text,
+   so the bright tone is confined to --track-accent, which is only ever used on
+   light surfaces with dark text.
+   --------------------------------------------------------------------------- */
+
+[data-track="utbk"] {
+  --primary: oklch(0.4348 0.1683 258.97);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.546 0.245 262.881);
+  --sidebar-primary: oklch(0.4348 0.1683 258.97);
+  --sidebar-ring: oklch(0.546 0.245 262.881);
+
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+
+  /* Bright tone for badges and highlights on light surfaces only. */
+  --track-accent: oklch(0.623 0.214 259.815);
+  --track-tint: oklch(0.968 0.017 254);
+  --track-border: oklch(0.882 0.059 254);
+}
+
+[data-track="cpns"] {
+  --primary: oklch(0.55 0.18 45);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.646 0.222 41.116);
+  --sidebar-primary: oklch(0.55 0.18 45);
+  --sidebar-ring: oklch(0.646 0.222 41.116);
+
+  --chart-1: oklch(0.82 0.09 60);
+  --chart-2: oklch(0.72 0.16 52);
+  --chart-3: oklch(0.646 0.222 41.116);
+  --chart-4: oklch(0.553 0.195 38.402);
+  --chart-5: oklch(0.47 0.16 35);
+
+  --track-accent: oklch(0.646 0.222 41.116);
+  --track-tint: oklch(0.971 0.021 55);
+  --track-border: oklch(0.885 0.062 55);
+}
+
+/* Exposed to Tailwind so the track tokens are usable as bg-track-tint,
+   border-track-border, text-track-accent. */
+@theme inline {
+  --color-track-accent: var(--track-accent);
+  --color-track-tint: var(--track-tint);
+  --color-track-border: var(--track-border);
+}
+
+/* Background texture differs per track. Same shape language, different
+   surface - one of the levers that actually changes the impression without
+   touching radius or type. */
+[data-track="utbk"] .track-surface {
+  background-color: var(--track-tint);
+  background-image: radial-gradient(
+    color-mix(in oklch, var(--track-accent) 18%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+}
+
+[data-track="cpns"] .track-surface {
+  background-color: var(--track-tint);
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--track-accent) 10%, transparent) 0 1px,
+    transparent 1px 11px
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   Maskot asisten belajar.
+
+   Bergerak terus-menerus supaya terbaca sebagai sesuatu yang bisa diklik -
+   maskot yang diam di sudut layar terbaca sebagai hiasan, dan peserta yang
+   tidak tahu ia bisa diklik tidak akan pernah mengkliknya.
+
+   Dua lapis gerakan, dan sengaja dua: ayunan halus yang tidak pernah berhenti
+   membuatnya terasa hidup tanpa menuntut perhatian, sementara sapaan yang
+   muncul sesekali menarik mata sekali lalu berhenti. Satu lapis saja gagal di
+   salah satu sisi - gerakan besar terus-menerus jadi gangguan di halaman yang
+   dipakai untuk belajar, dan gerakan halus saja tidak pernah tertangkap mata.
+   --------------------------------------------------------------------------- */
+
+@keyframes maskot-ayun {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(-1.5deg);
+  }
+}
+
+/* Sapaan: miring-tegak-miring, lalu diam sepanjang sisa siklus. Bagian diam
+   itu yang membuatnya terasa sebagai sapaan sesekali, bukan getaran. */
+@keyframes maskot-sapa {
+  0%,
+  62%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  66% {
+    transform: rotate(-9deg) scale(1.04);
+  }
+  70% {
+    transform: rotate(7deg) scale(1.04);
+  }
+  74% {
+    transform: rotate(-6deg) scale(1.03);
+  }
+  78% {
+    transform: rotate(4deg) scale(1.02);
+  }
+  82% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes gelembung-muncul {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.maskot-ayun {
+  animation: maskot-ayun 3.4s ease-in-out infinite;
+}
+
+.maskot-sapa {
+  /* Siklusnya panjang supaya sapaannya jarang: yang sering diulang berhenti
+     menarik perhatian, dan mulai mengganggu. */
+  animation: maskot-sapa 7s ease-in-out infinite;
+  transform-origin: 50% 85%;
+}
+
+.gelembung-muncul {
+  animation: gelembung-muncul 0.35s ease-out both;
+}
+
+/* Dihormati tanpa kompromi: gerakan yang tidak bisa dihentikan adalah hambatan
+   nyata bagi sebagian orang, dan maskot yang bergoyang bukan hal yang layak
+   ditukar dengan itu. */
+@media (prefers-reduced-motion: reduce) {
+  .maskot-ayun,
+  .maskot-sapa,
+  .gelembung-muncul {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Peta node pemakaian langsung.
+
+   Permukaan gelap yang berdiri sendiri, bukan tema halaman yang berubah: ini
+   permukaan visualisasi - seperti grafik atau peta - dan latar gelap membuat
+   garis yang menyala terbaca sebagai lalu lintas. Garis oranye yang sama di
+   atas putih hanya terlihat sebagai garis.
+   --------------------------------------------------------------------------- */
+
+/* Lalu lintas mengalir dari pengguna ke pusat. Dash yang bergerak, bukan garis
+   yang berkedip: kedipan menarik perhatian ke dirinya sendiri, sementara arah
+   alirannya justru yang berarti - ia menunjukkan permintaan sedang berjalan. */
+@keyframes aliran-node {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+.aliran-node {
+  stroke-dasharray: 4 8;
+  animation: aliran-node 0.9s linear infinite;
+}
+
+/* Denyut di sekeliling node yang sedang menunggu jawaban. */
+@keyframes denyut-node {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+.denyut-node {
+  animation: denyut-node 1.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aliran-node,
+  .denyut-node {
+    animation: none;
+  }
+
+  .aliran-node {
+    stroke-dasharray: none;
+  }
+}

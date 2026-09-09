@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { Subtest } from "@/types/subtest/subtest";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -33,6 +34,29 @@ export const subtestColumns = (
         {row.original.name}
       </p>
     ),
+  },
+  {
+    /* Kolom "Kategori" berisi TPS/Literasi, yang tidak memberi tahu jalurnya
+       sama sekali - TWK, TIU, dan TKP semuanya tertulis "TPS" padahal itu
+       subtes CPNS. Jalurnya sekarang punya kolom sendiri, berwarna sesuai
+       tema tiap jalur. */
+    id: "exam_type",
+    header: "Jalur",
+    cell: ({ row }) => {
+      const isCpns = row.original.exam_type === "cpns";
+
+      return (
+        <Badge
+          className={
+            isCpns
+              ? "bg-orange-100 text-orange-900 hover:bg-orange-100 border border-orange-300 text-xs font-bold"
+              : "bg-blue-100 text-blue-900 hover:bg-blue-100 border border-blue-300 text-xs font-bold"
+          }
+        >
+          {isCpns ? "CPNS" : "UTBK"}
+        </Badge>
+      );
+    },
   },
   {
     id: "category",

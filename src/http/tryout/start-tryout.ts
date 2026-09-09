@@ -6,6 +6,12 @@ import type { TryoutSession } from "@/types/exam/exam";
 export interface StartTryoutResponse {
   message: string;
   data: TryoutSession;
+  /**
+   * Terisi hanya ketika percobaan ini memotong tiket - yaitu pengulangan
+   * tryout premium. Percobaan pertama sudah dibayar saat mendaftar, dan sesi
+   * yang dilanjutkan tidak menagih apa pun.
+   */
+  ticket_balance_remaining?: number | null;
 }
 
 export const StartTryoutHandler = async (

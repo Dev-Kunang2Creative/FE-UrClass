@@ -19,8 +19,7 @@ import { useGetDetailSubtest } from "@/http/subtest/get-detail-subtest";
 import { Question } from "@/types/questions/question";
 import { useQueryClient } from "@tanstack/react-query";
 import DialogBulkImportQuestion from "@/components/molecules/dialog/DialogBulkImportQuestion";
-import DialogUpdateQuestionImages from "@/components/molecules/dialog/DialogUpdateQuestionImages";
-import { FileSpreadsheet, ImageUp, Plus } from "lucide-react";
+import { Plus, TriangleAlert, Upload } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
@@ -59,7 +58,6 @@ export default function DashboardadminSubtestDetailWrapper({
   const [isSelectedDeleteQuestion, setIsSelectedDeleteQuestion] =
     useState<Question | null>(null);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
-  const [isUpdateImagesOpen, setIsUpdateImagesOpen] = useState(false);
 
   const deleteQuestionHandler = (data: Question) => {
     setIsSelectedDeleteQuestion(data);
@@ -184,6 +182,27 @@ export default function DashboardadminSubtestDetailWrapper({
           </div>
         </CardContent>
       </Card>
+      {/* Bobot yang belum diisi tidak membuat apa pun gagal - hanya membuat
+          skor TKP peserta jauh lebih rendah dari seharusnya - jadi satu-satunya
+          tempat kondisi ini bisa terlihat adalah di sini. */}
+      {(question?.meta?.needs_option_weight_count ?? 0) > 0 && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-4">
+          <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-700" />
+          <div className="text-sm">
+            <p className="font-semibold text-amber-900">
+              {question?.meta?.needs_option_weight_count} soal belum punya bobot
+              opsi yang sah.
+            </p>
+            <p className="text-amber-800">
+              Subtes ini dinilai per bobot opsi, jadi setiap opsi harus bernilai
+              1-5 tanpa angka kembar. Soal yang belum diisi ditandai
+              &quot;Bobot belum diisi&quot; di daftar dan nilainya tidak akan
+              terhitung sebagaimana mestinya.
+            </p>
+          </div>
+        </div>
+      )}
+
       <Card>
         <CardContent>
           <div className="space-y-6">
@@ -204,25 +223,18 @@ export default function DashboardadminSubtestDetailWrapper({
               exportTitle={`laporan-soal-${data?.data.name ?? id}`}
               filterSummary={`Subtes: ${data?.data.name ?? "-"}; hasil: ${controls.rows.length}`}
             >
+                {/* Tinggi dan warnanya sengaja tidak menyamai tombol export di
+                    sebelahnya: ini mengunggah, bukan mengunduh, dan ikon panah
+                    ke atas yang membedakannya sekilas. */}
                 <Button
                   variant="outline"
-                  size="lg"
                   onClick={() => setIsBulkImportOpen(true)}
-                  className="border-green-200 text-green-700 hover:bg-green-50"
+                  className="border-slate-300 text-slate-700 hover:bg-slate-50"
                 >
-                  <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  Import Excel
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import Soal
                 </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => setIsUpdateImagesOpen(true)}
-                  className="border-amber-200 text-amber-700 hover:bg-amber-50"
-                >
-                  <ImageUp className="w-4 h-4 mr-2" />
-                  Perbaiki Gambar
-                </Button>
-                <Button asChild size={"lg"}>
+                <Button asChild>
                   <Link href={`/dashboard/admin/subtest/${id}/create`}>
                     <Plus /> Tambah Pertanyaan
                   </Link>
@@ -253,12 +265,6 @@ export default function DashboardadminSubtestDetailWrapper({
       <DialogBulkImportQuestion
         open={isBulkImportOpen}
         onOpenChange={setIsBulkImportOpen}
-        subtestId={id}
-      />
-
-      <DialogUpdateQuestionImages
-        open={isUpdateImagesOpen}
-        onOpenChange={setIsUpdateImagesOpen}
         subtestId={id}
       />
     </section>

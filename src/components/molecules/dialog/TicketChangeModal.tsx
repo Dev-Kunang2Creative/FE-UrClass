@@ -96,7 +96,7 @@ export default function TicketChangeModal() {
           <button
             type="button"
             onClick={() => setTicketChange(null)}
-            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700 cursor-pointer"
+            className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90 cursor-pointer"
           >
             Mengerti
           </button>

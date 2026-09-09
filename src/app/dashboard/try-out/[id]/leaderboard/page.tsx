@@ -1,8 +1,8 @@
 "use client";
 
-import { use } from "react";
+import { Fragment, use, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Medal, Trophy, Users } from "lucide-react";
+import { ChevronLeft, Clock, Medal, RotateCcw, Trophy, Users, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useKategori } from "@/hooks/useKategori";
 import { useGetTryoutLeaderboard } from "@/http/tryout/get-tryout-leaderboard";
@@ -20,14 +20,18 @@ export default function TryoutLeaderboardPage({
   const currentUserId = session?.user?.id || "";
   const { kategori } = useKategori();
   const isCpns = kategori === "cpns";
+  const [targetSama, setTargetSama] = useState(false);
+  const targetKedinasan = session?.user?.cpns_target_type === "kedinasan" ? session.user.target_university_1 : undefined;
 
-  const { data, isLoading } = useGetTryoutLeaderboard({
+  const { data, isLoading, isError, refetch } = useGetTryoutLeaderboard({
     tryoutId,
     token,
+    targetInstance: targetSama ? targetKedinasan : undefined,
   });
 
   const leaderboardData = data?.data;
   const entries = leaderboardData?.leaderboard ?? [];
+  const isFullSkd = leaderboardData?.is_full_skd === true;
 
   const myEntry = entries.find((e) => e.user_id === currentUserId);
 
@@ -36,7 +40,8 @@ export default function TryoutLeaderboardPage({
       <div className="flex items-center gap-2 mb-6">
         <Link
           href={`/dashboard/try-out/${tryoutId}/result`}
-          className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer text-gray-800"
+          aria-label="Kembali ke hasil tryout"
+          className="flex size-11 items-center justify-center rounded-full text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
         >
           <ChevronLeft className="w-6 h-6" />
         </Link>
@@ -46,7 +51,7 @@ export default function TryoutLeaderboardPage({
       <div
         className={`rounded-2xl p-6 md:p-8 text-white mb-6 shadow-lg ${
           isCpns
-            ? "bg-linear-to-br from-amber-700 via-amber-800 to-amber-950 border-2 border-amber-800"
+            ? "bg-linear-to-br from-orange-700 via-orange-800 to-orange-950 border-2 border-orange-800"
             : "bg-linear-to-br from-blue-600 to-blue-900 border-2 border-blue-700"
         }`}
       >
@@ -57,7 +62,7 @@ export default function TryoutLeaderboardPage({
               {leaderboardData?.tryout_title ?? "Tryout"}
             </h2>
             <p className="text-white/70 text-sm">
-              Peringkat dihitung dari percobaan pertama setiap peserta.
+              Peringkat memakai skor terbaik setiap peserta.
             </p>
           </div>
         </div>
@@ -71,6 +76,14 @@ export default function TryoutLeaderboardPage({
                 #{myEntry.rank}
               </p>
             </div>
+            {isFullSkd && (
+              <div>
+                <p className="text-xs text-white/70 mb-0.5">Status SKD</p>
+                <p className={`text-base font-black ${myEntry.is_passed ? "text-emerald-200" : "text-rose-200"}`}>
+                  {myEntry.is_passed ? "Lulus PG" : "Tidak Lulus"}
+                </p>
+              </div>
+            )}
             <div>
               <p className="text-xs text-white/60 mb-0.5">Skor</p>
               <p className="text-3xl font-extrabold">
@@ -87,26 +100,87 @@ export default function TryoutLeaderboardPage({
         )}
       </div>
 
+      {isCpns && targetKedinasan && <label className="mb-6 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm">
+        <input type="checkbox" checked={targetSama} onChange={(event) => setTargetSama(event.target.checked)} className="size-5 accent-primary" />
+        Target instansi yang sama: {targetKedinasan}
+      </label>}
+
+      {/* Angkanya nyata, hanya belum final. Menahan seluruh papan sampai periode
+          ditutup membuatnya kosong justru saat orang paling ingin melihatnya. */}
+      {leaderboardData?.is_final === false && (
+        <div className="mb-4 flex items-start gap-2.5 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+          <Clock className="mt-0.5 size-5 shrink-0 text-amber-700" />
+          <div className="text-sm">
+            <p className="font-bold text-amber-900">Peringkat masih sementara</p>
+            <p className="text-amber-800">
+              Skor tryout ini dihitung dengan IRT, jadi bobot tiap soal masih
+              bergeser selama peserta lain terus menyelesaikan pengerjaan.
+              Peringkat difinalkan setelah periode tryout ditutup
+              {leaderboardData?.release_date
+                ? ` pada ${formatJakartaDateTime(leaderboardData.release_date)}`
+                : ""}
+              .
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center p-10 text-slate-500">
             Memuat leaderboard...
           </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center justify-center gap-3 p-12 text-center">
+            <XCircle className="size-9 text-rose-700" />
+            <div>
+              <p className="font-bold text-slate-900">Leaderboard gagal dimuat</p>
+              <p className="text-sm text-slate-600">Periksa koneksi Anda, lalu coba lagi.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border-2 border-slate-900 bg-white px-4 text-sm font-bold text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+            >
+              <RotateCcw className="size-4" />
+              Coba Lagi
+            </button>
+          </div>
         ) : entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-4">
             <Users className="w-12 h-12 text-slate-300" />
-            <p>Belum ada peserta yang menyelesaikan attempt pertama.</p>
+            <p>Belum ada peserta yang menyelesaikan tryout ini.</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {entries.map((entry) => (
-              <LeaderboardRow
-                key={entry.user_id}
-                entry={entry}
-                isMe={entry.user_id === currentUserId}
-                isCpns={isCpns}
-              />
-            ))}
+            {entries.map((entry, index) => {
+              const showTierDivider =
+                isFullSkd &&
+                index > 0 &&
+                entries[index - 1]?.is_passed === true &&
+                entry.is_passed === false;
+
+              return (
+                <Fragment key={entry.user_id}>
+                  {showTierDivider && (
+                    <div
+                      role="separator"
+                      className="flex items-center gap-3 bg-slate-100 px-5 py-3 text-xs font-black text-slate-700"
+                    >
+                      <span className="h-px flex-1 bg-slate-300" />
+                      Peserta Belum Lulus Passing Grade
+                      <span className="h-px flex-1 bg-slate-300" />
+                    </div>
+                  )}
+                  <LeaderboardRow
+                    entry={entry}
+                    isMe={entry.user_id === currentUserId}
+                    isCpns={isCpns}
+                    isFullSkd={isFullSkd}
+                  />
+                </Fragment>
+              );
+            })}
           </div>
         )}
       </div>
@@ -118,10 +192,12 @@ function LeaderboardRow({
   entry,
   isMe,
   isCpns,
+  isFullSkd,
 }: {
   entry: LeaderboardEntry;
   isMe: boolean;
   isCpns: boolean;
+  isFullSkd: boolean;
 }) {
   const finishedAt = entry.finished_at
     ? formatJakartaDateTime(entry.finished_at, { month: "short" })
@@ -132,8 +208,8 @@ function LeaderboardRow({
       className={`grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto_auto] gap-4 items-center p-5 transition-colors ${
         isMe
           ? isCpns
-            ? "bg-amber-50/70 border-l-4 border-l-amber-700"
-            : "bg-blue-50 border-l-4 border-l-[#2563EB]"
+            ? "bg-orange-50/70"
+            : "bg-blue-50"
           : ""
       }`}
     >
@@ -141,7 +217,7 @@ function LeaderboardRow({
         className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
           isMe
             ? isCpns
-              ? "bg-amber-700 text-white"
+              ? "bg-orange-800 text-white"
               : "bg-blue-600 text-white"
             : "bg-slate-100 text-slate-700"
         }`}
@@ -164,10 +240,21 @@ function LeaderboardRow({
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <p className="font-bold text-slate-900 truncate">{entry.user_name}</p>
+          {isFullSkd && (
+            <span
+              className={`shrink-0 rounded-lg px-2 py-0.5 text-[0.65rem] font-black ${
+                entry.is_passed
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-rose-100 text-rose-800"
+              }`}
+            >
+              {entry.is_passed ? "Lulus PG" : "Tidak Lulus"}
+            </span>
+          )}
           {isMe && (
             <span
               className={`shrink-0 text-[0.65rem] font-bold text-white px-2 py-0.5 rounded-full ${
-                isCpns ? "bg-amber-700" : "bg-blue-600"
+                isCpns ? "bg-orange-700" : "bg-blue-600"
               }`}
             >
               Anda
@@ -175,7 +262,7 @@ function LeaderboardRow({
           )}
         </div>
         <p className="text-xs text-slate-500">
-          Attempt {entry.attempt_number} selesai {finishedAt}
+          Percobaan {entry.attempt_number} selesai {finishedAt}
         </p>
       </div>
 
@@ -190,7 +277,7 @@ function LeaderboardRow({
         <p className="text-xs text-slate-500">Skor</p>
         <p
           className={`text-xl font-bold ${
-            isCpns ? "text-amber-700" : "text-blue-600"
+            isCpns ? "text-orange-700" : "text-blue-600"
           }`}
         >
           {entry.score.final_score}

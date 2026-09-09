@@ -7,6 +7,7 @@ import { useFinishTryout } from "@/http/tryout/finish-tryout";
 import { useGetTryoutResult } from "@/http/tryout/get-tryout-result";
 import { Calendar, FileText, Clock, Trophy } from "lucide-react";
 import { formatJakartaDate } from "@/utils/date-time";
+import Mascot from "@/components/atoms/mascot/Mascot";
 
 export default function TryoutCompletePage({
   params,
@@ -89,24 +90,33 @@ export default function TryoutCompletePage({
   return (
     <div className="w-full max-w-3xl mx-auto animate-in fade-in duration-500 py-8 px-4">
       {/* Success Banner */}
-      <div className="bg-gradient-to-r from-[#3B9245] to-[#4CAF50] rounded-2xl p-8 text-center text-white mb-8 shadow-lg">
-        <h1 className="text-xl md:text-2xl font-bold mb-2">
-          Selamat! Pengerjaan Try Out Anda Berhasil Disubmit.
-        </h1>
-        <p className="text-white/80 text-sm">
-          Terima kasih telah mengerjakan. Anda selangkah lebih dekat ke universitas impian.
-        </p>
+      <div className="mb-8 flex items-center gap-4 rounded-3xl border-2 border-slate-900 bg-primary p-6 text-primary-foreground shadow-[5px_5px_0px_0px_#0f172a]">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-black tracking-tight md:text-2xl">
+            Selamat, tryout kamu berhasil dikumpulkan!
+          </h1>
+          <p className="mt-1 text-sm text-primary-foreground/80">
+            Terima kasih sudah mengerjakan sampai selesai. Satu langkah lagi
+            lebih dekat ke targetmu.
+          </p>
+        </div>
+        <Mascot
+          pose="yay"
+          decorative
+          sizes="130px"
+          className="h-28 w-auto shrink-0"
+        />
       </div>
 
       {/* Result Info Card */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8 space-y-6">
         {/* Result Info */}
         <div className="flex items-start gap-4">
-          <div className="w-16 h-16 shrink-0 bg-blue-50 rounded-xl flex items-center justify-center">
+          <div className="w-16 h-16 shrink-0 bg-track-tint rounded-xl flex items-center justify-center">
             {isSimpleScoreReady ? (
-              <Trophy className="w-8 h-8 text-blue-600" />
+              <Trophy className="w-8 h-8 text-primary" />
             ) : (
-              <Calendar className="w-8 h-8 text-blue-600" />
+              <Calendar className="w-8 h-8 text-primary" />
             )}
           </div>
           <div>
@@ -116,7 +126,7 @@ export default function TryoutCompletePage({
                 <p className="text-sm text-gray-600 mt-1">
                   Try Out ini tidak menggunakan IRT. Skor Anda sudah tersedia.
                 </p>
-                <p className="text-blue-600 font-bold text-2xl mt-2">
+                <p className="text-primary font-bold text-2xl mt-2">
                   {scoreResult.final_score}
                 </p>
               </>
@@ -125,7 +135,7 @@ export default function TryoutCompletePage({
                 <p className="text-sm text-gray-600 mt-1">
                   Nilai Try Out Anda sedang diproses. Hasil lengkap akan diumumkan pada:
                 </p>
-                <p className="text-blue-600 font-bold text-base mt-2">
+                <p className="text-primary font-bold text-base mt-2">
                   {releaseDateStr}
                 </p>
               </>
@@ -138,8 +148,8 @@ export default function TryoutCompletePage({
         {/* Stats */}
         <div className="flex items-center justify-center gap-8 md:gap-12">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-              <FileText className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-track-tint rounded-lg flex items-center justify-center">
+              <FileText className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-xs text-gray-500">Total Soal Dikerjakan:</p>
@@ -150,8 +160,8 @@ export default function TryoutCompletePage({
           <div className="w-px h-12 bg-gray-200" />
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Clock className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-track-tint rounded-lg flex items-center justify-center">
+              <Clock className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-xs text-gray-500">Waktu Pengerjaan:</p>
@@ -164,17 +174,19 @@ export default function TryoutCompletePage({
 
         {/* Action Button */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {isSimpleScoreReady && (
-            <Link
-              href={`/dashboard/try-out/${tryoutId}/result`}
-              className="block w-full py-4 bg-[#3B9245] hover:bg-[#317A3A] text-white font-bold text-base rounded-xl text-center transition-colors shadow-[0_4px_0_0_#2b6a32] active:shadow-none active:translate-y-1"
-            >
-              Lihat Hasil Lengkap
-            </Link>
-          )}
+          {/* Tidak lagi digantungkan pada skor IRT yang sudah final. Halaman
+              hasil tetap berisi rincian per subtest, ringkasan benar/salah, dan
+              jalan ke pembahasan - semuanya sudah ada sejak detik ini, dan
+              menyembunyikannya membuat orang berhenti di layar ucapan selamat. */}
+          <Link
+            href={`/dashboard/try-out/${tryoutId}/result`}
+            className="block w-full py-4 bg-[#3B9245] hover:bg-[#317A3A] text-white font-bold text-base rounded-xl text-center transition-colors shadow-[0_4px_0_0_#2b6a32] active:shadow-none active:translate-y-1"
+          >
+            Lihat Hasil Tryout
+          </Link>
           <Link
             href="/dashboard"
-            className="block w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base rounded-xl text-center transition-colors shadow-[0_4px_0_0_#1e3a8a] active:shadow-none active:translate-y-1"
+            className="block w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold text-base rounded-xl text-center transition-colors shadow-[0_4px_0_0_#0f172a] active:shadow-none active:translate-y-1"
           >
             Kembali ke Dashboard
           </Link>

@@ -3,10 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Package, Tag, Ticket } from "lucide-react";
-
-const STORAGE_BASE_URL =
-  process.env.NEXT_PUBLIC_STORAGE_URL ??
-  "https://dev-api.amunisiptn.com/storage";
+import { storageUrl } from "@/lib/storage";
 
 interface PackageCardProps {
   id: string;
@@ -29,14 +26,13 @@ export default function PackageCard({
   description,
   ticketAmount,
 }: PackageCardProps) {
-  const thumbnailSrc = thumbnail ? `${STORAGE_BASE_URL}/${thumbnail}` : null;
-
+  const thumbnailSrc = storageUrl(thumbnail);
   const isExternal = thumbnailSrc?.startsWith("http");
 
   return (
     <div className="flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all group">
       {/* Thumbnail / Header */}
-      <div className="relative w-full h-40 bg-blue-600">
+      <div className="relative w-full h-40 bg-primary">
         {thumbnailSrc ? (
           <Image
             src={thumbnailSrc}
@@ -47,7 +43,7 @@ export default function PackageCard({
           />
         ) : (
           /* Fallback: decorative gradient with icon */
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-blue-600 to-[#0065F0] gap-2">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary to-track-accent gap-2">
             <Package className="w-10 h-10 text-white/40" />
           </div>
         )}
@@ -69,9 +65,10 @@ export default function PackageCard({
 
       {/* Body */}
       <div className="flex flex-col p-4 gap-3 flex-1">
-        {/* Description */}
+        {/* Description - tiga baris, bukan dua: deskripsi paket sekarang
+            menyebut isi paketnya, dan dua baris memotongnya di tengah kalimat. */}
         {description && (
-          <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">
+          <p className="text-slate-500 text-xs line-clamp-3 leading-relaxed">
             {description}
           </p>
         )}
@@ -79,7 +76,7 @@ export default function PackageCard({
         {/* Ticket amount */}
         {ticketAmount != null && (
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-            <Ticket className="w-3.5 h-3.5 text-blue-600" />
+            <Ticket className="w-3.5 h-3.5 text-primary" />
             <span>{ticketAmount} tiket tryout</span>
           </div>
         )}
@@ -87,7 +84,7 @@ export default function PackageCard({
         {/* Pricing */}
         <div className="flex items-end justify-between mt-auto pt-1">
           <div className="flex flex-col">
-            <span className="font-bold text-xl text-blue-600">
+            <span className="font-bold text-xl text-primary">
               Rp{price.toLocaleString("id-ID")}
             </span>
             {originalPrice != null && (
@@ -97,7 +94,7 @@ export default function PackageCard({
             )}
           </div>
           {discountPercent != null && (
-            <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-1 rounded-md text-xs font-bold">
+            <div className="flex items-center gap-1 bg-track-tint text-primary px-2 py-1 rounded-md text-xs font-bold">
               <Tag className="w-3 h-3" />
               Hemat {discountPercent}%
             </div>
@@ -107,7 +104,7 @@ export default function PackageCard({
         {/* CTA Button */}
         <Link
           href={`/dashboard/pembelian/${id}`}
-          className="w-full flex justify-center items-center py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-[#002F75] text-white font-semibold rounded-lg transition-colors text-sm shadow-sm mt-1"
+          className="w-full flex justify-center items-center py-2.5 bg-primary hover:bg-primary/90 active:brightness-90 text-primary-foreground font-semibold rounded-lg transition-colors text-sm shadow-sm mt-1"
         >
           Beli Paket
         </Link>

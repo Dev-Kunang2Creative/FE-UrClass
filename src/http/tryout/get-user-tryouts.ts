@@ -19,6 +19,13 @@ export interface UserTryoutData {
   isEnrolled: boolean;
   hasAttempted: boolean;
   attemptCount: number;
+  /**
+   * Raw session state. hasAttempted below collapses this into a boolean, which
+   * loses the difference between "finished" and "walked away mid-exam" - the
+   * one distinction a dashboard needs to offer a way back in.
+   */
+  sessionStatus: NonNullable<Tryout["user_session_status"]> | "not_started";
+  startedAt: string | null;
 }
 
 function mapTryoutBEtoFE(tryout: Tryout): UserTryoutData {
@@ -39,6 +46,8 @@ function mapTryoutBEtoFE(tryout: Tryout): UserTryoutData {
     isEnrolled: Boolean(tryout.user_is_enrolled),
     hasAttempted: attemptCount > 0 || (!!tryout.user_session_status && tryout.user_session_status !== "not_started"),
     attemptCount,
+    sessionStatus: tryout.user_session_status ?? "not_started",
+    startedAt: tryout.user_started_at ? String(tryout.user_started_at) : null,
   };
 }
 

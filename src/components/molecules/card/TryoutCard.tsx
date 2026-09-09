@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Radio, Calendar, Clock, Users } from "lucide-react";
 import Link from "next/link";
-import { getTryoutButtonState, TRYOUT_BUTTON_CLASS } from "@/utils/tryout-button-state";
-import { formatJakartaDate } from "@/utils/date-time";
+import {
+  getTryoutButtonState,
+  TRYOUT_BUTTON_CLASS,
+} from "@/utils/tryout-button-state";
+import { PENDING_PILL, PHASE_PILL } from "@/lib/tryout-schedule";
+import { useSchedule } from "@/hooks/useSchedule";
+import { useKategori } from "@/hooks/useKategori";
+import { KATEGORI_CONFIG } from "@/lib/kategori";
 
 interface TryoutCardProps {
   id: number | string;
@@ -18,8 +23,26 @@ interface TryoutCardProps {
   participantsCount?: number;
   isEnrolled?: boolean;
   hasAttempted?: boolean;
+  sessionStatus?: "not_started" | "in_progress" | "finished" | "expired";
 }
 
+/**
+ * Restyled to the dashboard language: hard border, offset shadow, track
+ * colour. It used to be a soft-shadowed white card belonging to a different
+ * design system than the page it sat on.
+ *
+ * The header image mattered most. With no thumbnail on a tryout - which is
+ * every seeded one - it fell back to /images/background/bg_to.png: a stock
+ * study-abroad advert carrying another company phone number and address,
+ * rendered full width on every card and bright blue on a CPNS page. The
+ * fallback is now a track-coloured masthead; a real uploaded thumbnail is
+ * still shown as-is.
+ *
+ * The countdown lost its green pill. White on #83CC75 is roughly 2:1, and
+ * green belongs to neither track - it reads as text now, red only when a
+ * running tryout has under a day left, the same urgency rule the dashboard
+ * uses for deadlines.
+ */
 export default function TryoutCard({
   id,
   title,
@@ -31,146 +54,136 @@ export default function TryoutCard({
   participantsCount = 0,
   isEnrolled = false,
   hasAttempted = false,
+  sessionStatus,
 }: TryoutCardProps) {
-  const buttonState = getTryoutButtonState({ isEnrolled, hasAttempted });
-  const buttonHref = isEnrolled ? `/dashboard/try-out/${id}/start` : `/dashboard/try-out/${id}`;
+  const { kategori } = useKategori();
+  const config = KATEGORI_CONFIG[kategori];
+  const TrackIcon = config.icon;
 
-  const [statusText, setStatusText] = useState("Menghitung...");
-  const [statusTheme, setStatusTheme] = useState("bg-gray-400"); // for the left tag
-  const [iconVariant, setIconVariant] = useState(<Radio className="w-3.5 h-3.5" />); // default icon
-  const [countdownText, setCountdownText] = useState("");
-  const [countdownTheme, setCountdownTheme] = useState("bg-gray-300"); // for the right tag
-  const [dateRangeText, setDateRangeText] = useState("");
+  const buttonState = getTryoutButtonState({
+    isEnrolled,
+    hasAttempted,
+    sessionStatus,
+    isFree: type === "Gratis",
+  });
+  // Resume and start share /start on purpose: the backend reuses an unfinished
+  // session rather than opening a new attempt, while /exam would default to
+  // subtest 0 and pull someone back to the beginning of a tryout in progress.
+  const buttonHref = isEnrolled
+    ? `/dashboard/try-out/${id}/start`
+    : `/dashboard/try-out/${id}`;
 
-  const thumbnailSrc = imageUrl || "/images/background/bg_to.png";
   const isExternal = imageUrl?.startsWith("http");
+  const countdown = useSchedule(startDate, endDate);
 
-  useEffect(() => {
-    const updateStatus = () => {
-      const now = new Date().getTime();
-      const phaseStart = new Date(startDate).getTime();
-      const phaseEnd = new Date(endDate).getTime();
-
-      const formatDate = (date: Date) => {
-        return formatJakartaDate(date, { day: "2-digit", month: "long", year: "numeric" });
-      };
-
-      setDateRangeText(`${formatDate(new Date(phaseStart))} - ${formatDate(new Date(phaseEnd))}`);
-
-      if (now >= phaseStart && now <= phaseEnd) {
-        setStatusText("Berlangsung");
-        setStatusTheme("bg-[#E54D4D]");
-        setIconVariant(<Radio className="w-3.5 h-3.5" />);
-        setCountdownTheme("bg-[#83CC75]");
-        
-        // Calculate countdown to end of current phase
-        const distance = phaseEnd - now;
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        setCountdownText(`${days} hr, ${hours} j ${minutes} m, ${seconds} dtk`);
-        
-      } else if (now < phaseStart) {
-        setStatusText("Akan Datang");
-        setStatusTheme("bg-[#F59E0B]"); // amber/orange
-        setIconVariant(<Clock className="w-3.5 h-3.5" />);
-        setCountdownTheme("bg-[#83CC75]"); // fixed to specified green
-
-        // Calculate countdown to start of phase
-        const distance = phaseStart - now;
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        setCountdownText(`Mulai dlm ${days} hr, ${hours} j ${minutes} m, ${seconds} dtk`);
-      } else {
-        setStatusText("Selesai");
-        setStatusTheme("bg-[#6B7280]"); // gray
-        setIconVariant(<Clock className="w-3.5 h-3.5" />);
-        setCountdownTheme("bg-[#9CA3AF]");
-        setCountdownText("Tryout berakhir");
-      }
-    };
-
-    updateStatus();
-    const intervalId = setInterval(updateStatus, 1000);
-    return () => clearInterval(intervalId);
-  }, [startDate, endDate]);
+  const pill = countdown ? PHASE_PILL[countdown.phase] : PENDING_PILL;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
-      {/* Background Image Header */}
-      <div className="relative hidden sm:block w-full h-40">
-        <Image
-          src={thumbnailSrc}
-          alt={title}
-          fill
-          className="object-cover"
-          unoptimized={!!isExternal}
-        />
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex gap-2">
-          <span className="bg-white/30 backdrop-blur-sm border border-white/40 text-white text-xs px-3 py-1 rounded-full font-medium">
-            {category || "-"}
-          </span>
-          <span className="bg-white/30 backdrop-blur-sm border border-white/40 text-white text-xs px-3 py-1 rounded-full font-medium">
-            {type}
-          </span>
-        </div>
+    <article className="flex flex-col overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_#0f172a] transition-all hover:-translate-y-0.5 hover:shadow-[7px_7px_0px_0px_#0f172a]">
+      {/* The banner an admin uploaded, at banner height and on every screen.
+          It used to be hidden below sm, so on a phone - where most of this is
+          read - the uploaded artwork never appeared at all. Both branches share
+          a height so a grid mixing tryouts with and without artwork stays
+          even. */}
+      <div className="relative h-36 w-full shrink-0 overflow-hidden border-b-2 border-slate-900 sm:h-40">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={`Banner ${title}`}
+            fill
+            className="object-cover"
+            unoptimized={!!isExternal}
+          />
+        ) : (
+          /* No upload on this tryout. Deliberately not a stock photo: the
+             fallback here used to be a study-abroad advert belonging to
+             another company. A track-coloured panel says nothing untrue. */
+          <div className="flex h-full w-full flex-col justify-center gap-1 bg-primary px-5">
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-[0.13]"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 12px)",
+              }}
+            />
+            <TrackIcon
+              className="pointer-events-none absolute -bottom-8 -right-6 size-36 text-white/10"
+              aria-hidden
+            />
+            <TrackIcon
+              className="relative size-7 text-primary-foreground"
+              aria-hidden
+            />
+            <span className="relative truncate text-xs font-black uppercase tracking-[0.18em] text-primary-foreground">
+              {config.full}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Content */}
-      <div className="p-4 md:p-5 flex flex-col flex-1">
-        <div className="mb-3 flex gap-2 sm:hidden">
-          <span className="bg-blue-50 border border-blue-100 text-blue-600 text-xs px-3 py-1 rounded-full font-semibold">
+      <div className="flex flex-1 flex-col p-4 md:p-5">
+        <div className="mb-3 flex flex-wrap gap-2">
+          <span className="rounded-full border-2 border-slate-900 bg-track-tint px-2.5 py-0.5 text-[11px] font-bold text-slate-900">
             {category || "-"}
           </span>
-          <span className={`text-xs px-3 py-1 rounded-full font-semibold ${type === "Gratis" ? "bg-green-50 border border-green-100 text-green-700" : "bg-amber-50 border border-amber-100 text-amber-700"}`}>
+          <span
+            className={`rounded-full border-2 border-slate-900 px-2.5 py-0.5 text-[11px] font-bold ${
+              type === "Gratis"
+                ? "bg-white text-slate-900"
+                : "bg-slate-900 text-white"
+            }`}
+          >
             {type}
           </span>
         </div>
-        <h3 className="font-bold text-gray-900 text-[17px] mb-3 line-clamp-1">
+
+        <h3 className="mb-3 line-clamp-2 text-[17px] font-black leading-snug tracking-tight text-slate-900">
           {title}
         </h3>
 
-        {/* Status Badges */}
-        <div className="flex items-stretch gap-2 mb-4">
-          <div className={`${statusTheme} text-white flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium min-w-max`}>
-            {iconVariant}
-            <span>{statusText}</span>
-          </div>
-          <div className={`${countdownTheme} text-white flex items-center justify-center px-2 py-1.5 rounded-lg text-[11px] font-medium flex-1 text-center line-clamp-1`}>
-            {countdownText || "Memuat..."}
-          </div>
+        <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-lg border-2 border-slate-900 px-2.5 py-1 text-[11px] font-bold ${pill.className}`}
+          >
+            {countdown?.phase === "running" ? (
+              <Radio className="size-3.5" aria-hidden />
+            ) : (
+              <Clock className="size-3.5" aria-hidden />
+            )}
+            {pill.text}
+          </span>
+          <span
+            className={`text-[11px] font-semibold ${
+              countdown?.urgent ? "text-red-600" : "text-slate-500"
+            }`}
+          >
+            {countdown?.label ?? "Menghitung waktu..."}
+          </span>
         </div>
 
-        <hr className="border-gray-100 mb-4" />
-
-        {/* Details List */}
-        <div className="space-y-2 mb-5">
+        <div className="mb-5 space-y-2 border-t-2 border-dashed border-slate-200 pt-3">
           <div className="flex items-center gap-2">
-            <Calendar className="w-3.75 h-3.75 text-gray-400" />
-            <span className="text-gray-600 text-xs font-medium">
-              {dateRangeText}
+            <Calendar className="size-3.5 shrink-0 text-slate-400" aria-hidden />
+            <span className="text-xs font-medium text-slate-600">
+              {countdown?.dateRange ?? "-"}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Users className="w-3.75 h-3.75 text-gray-400" />
-            <span className="text-gray-600 text-xs font-medium">
+            <Users className="size-3.5 shrink-0 text-slate-400" aria-hidden />
+            <span className="text-xs font-medium text-slate-600">
               {participantsCount.toLocaleString("id-ID")} peserta
             </span>
           </div>
         </div>
 
-        {/* Button */}
         <Link
           href={buttonHref}
-          className={`w-full transition-colors py-2.5 rounded-lg text-sm font-semibold mt-auto flex justify-center items-center ${TRYOUT_BUTTON_CLASS[buttonState.variant]}`}
+          className={`mt-auto flex w-full items-center justify-center rounded-xl border-2 border-slate-900 py-2.5 text-sm font-bold transition-all active:translate-y-0.5 ${TRYOUT_BUTTON_CLASS[buttonState.variant]}`}
         >
           {buttonState.label}
         </Link>
       </div>
-    </div>
+    </article>
   );
 }

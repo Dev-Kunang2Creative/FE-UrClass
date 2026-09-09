@@ -26,7 +26,6 @@ export const CreatePackageHandler = async (
   formData.append("ticket_amount", String(body.ticket_amount));
   formData.append("currency", body.currency ?? "IDR");
   formData.append("is_active", body.is_active ? "1" : "0");
-  formData.append("kategori", body.kategori ?? "utbk");
   if (body.thumbnail instanceof File)
     formData.append("thumbnail", body.thumbnail);
 

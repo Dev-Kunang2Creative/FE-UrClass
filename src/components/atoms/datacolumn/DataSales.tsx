@@ -101,28 +101,13 @@ export const salesColumns: (
           />
         </div>
       ),
-      cell: ({ row }) => {
-        const type = row.original.type;
-        return (
-          <div
-            className="px-4 font-medium flex flex-col gap-1 items-start"
-            suppressHydrationWarning
-          >
-            <span>{row.getValue("product_name")}</span>
-            {type && (
-              <span
-                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                  type === "tryout"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-orange-100 text-orange-700"
-                }`}
-              >
-                {type === "tryout" ? "TRYOUT" : "KELAS"}
-              </span>
-            )}
-          </div>
-        );
-      },
+      // Lencana TRYOUT/KELAS dihapus bersama fitur kelas: kalau semua baris
+      // berjenis sama, lencananya cuma mengulang hal yang sama di tiap baris.
+      cell: ({ row }) => (
+        <div className="px-4 font-medium" suppressHydrationWarning>
+          {row.getValue("product_name")}
+        </div>
+      ),
     },
     {
       accessorKey: "average_price",

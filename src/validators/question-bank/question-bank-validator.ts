@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalQuestionImageSchema } from "@/validators/questions/image-validator";
 
 const optionKeys = ["A", "B", "C", "D", "E"] as const;
 
@@ -15,11 +16,11 @@ export const questionBankSchema = z
 
     question_text: z.string().min(1, "Soal wajib diisi"),
 
-    question_image: z.instanceof(File).optional().nullable(),
+    question_image: optionalQuestionImageSchema,
 
     discussion: z.string().optional(),
 
-    discussion_image: z.instanceof(File).optional().nullable(),
+    discussion_image: optionalQuestionImageSchema,
 
     correct_answer: z.enum(optionKeys, {
       message: "Jawaban benar harus A-E",

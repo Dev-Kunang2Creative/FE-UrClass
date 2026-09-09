@@ -139,7 +139,8 @@ export default function DashboardAdminPackageWrapper() {
               exportTitle="laporan-paket"
               filterSummary={`Total hasil: ${controls.rows.length}`}
             >
-              <Button size={"lg"} asChild>
+              {/* Ukuran bawaan, menyamai tombol export di sebelahnya. */}
+              <Button asChild>
                 <Link href="/dashboard/admin/packages/create">
                   <Plus /> Tambah Paket
                 </Link>
