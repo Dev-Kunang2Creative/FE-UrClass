@@ -11,8 +11,15 @@ import {
 import { DataTable } from "@/components/molecules/datatable/DataTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { useGetAllSubtest } from "@/http/subtest/get-all-subtest";
+import {
+  exportSubtestPdfHandler,
+  useExportSubtestExcel,
+  streamPdfInTab,
+  triggerBlobDownload,
+} from "@/http/question-bank/export-subtest";
 import { Subtest } from "@/types/subtest/subtest";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 const questionBankExportColumns: AdminExportColumn<Subtest>[] = [
   { header: "Nama Bank Soal", accessor: (row) => row.name },
@@ -34,6 +41,55 @@ export default function DashboardAdminQuestionBankWrapper() {
   const { data, isPending } = useGetAllSubtest({
     token: session?.access_token as string,
   });
+
+  const { mutate: exportExcel } = useExportSubtestExcel({
+    onSuccess: (blob, variables) => {
+      const slug = (variables.subtestName || "bank-soal")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      const date = new Date().toISOString().split("T")[0];
+      triggerBlobDownload(
+        blob,
+        `soal-${slug}-${date}.xlsx`,
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      );
+      toast.success("Lembar soal Excel berhasil diunduh!");
+    },
+    onError: (error) => {
+      toast.error("Gagal mengunduh Excel!", {
+        description: error.response?.data?.message || "Terjadi kesalahan saat mengekspor Excel.",
+      });
+    },
+  });
+
+  const handleExportPdf = (subtest: Subtest) => {
+    if (!session?.access_token) return;
+    toast.info(`Membuka stream naskah PDF ${subtest.name}...`);
+    streamPdfInTab(
+      () => exportSubtestPdfHandler(subtest.id, session.access_token),
+      subtest.name,
+    )
+      .then(() => {
+        toast.success("Naskah soal PDF berhasil dimuat di tab baru!");
+      })
+      .catch((error) => {
+        toast.error("Gagal memuat PDF!", {
+          description: error?.response?.data?.message || "Terjadi kesalahan saat membuat dokumen PDF.",
+        });
+      });
+  };
+
+  const handleExportExcel = (subtest: Subtest) => {
+    if (!session?.access_token) return;
+    toast.info(`Memproses lembar soal Excel ${subtest.name}...`);
+    exportExcel({
+      subtestId: subtest.id,
+      token: session.access_token,
+      subtestName: subtest.name,
+    });
+  };
+
   const bankRows = data?.data ?? [];
   const categoryOptions = Array.from(new Set(bankRows.map((item) => item.category).filter(Boolean)))
     .sort((a, b) => a.localeCompare(b, "id-ID"))
@@ -74,11 +130,14 @@ export default function DashboardAdminQuestionBankWrapper() {
               hasActiveControls={controls.hasActiveControls}
               rows={controls.rows}
               exportColumns={questionBankExportColumns}
-              exportTitle="laporan-bank-soal"
-              filterSummary={`Total hasil: ${controls.rows.length}`}
+              exportTitle="rekap-bank-soal"
+              filterSummary={`Total bank soal: ${controls.rows.length}`}
             />
             <DataTable
-              columns={questionBankColumns}
+              columns={questionBankColumns({
+                onExportPdf: handleExportPdf,
+                onExportExcel: handleExportExcel,
+              })}
               data={controls.rows}
               isLoading={isPending}
             />
