@@ -22,10 +22,12 @@ import {
 } from "@/components/ui/field";
 import { getErrorMessage } from "@/utils/get-error-message";
 import TurnstileWidget from "@/components/atoms/turnstile/TurnstileWidget";
+import DialogTurnstileHelp from "@/components/molecules/dialog/DialogTurnstileHelp";
 
 export default function FormAuthRegister() {
   const [isLoading, setIsLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string>("");
+  const [isTurnstileHelpOpen, setIsTurnstileHelpOpen] = useState(false);
   const form = useForm<RegisterType>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -164,12 +166,17 @@ export default function FormAuthRegister() {
         onSuccess={(token) => setTurnstileToken(token)}
         onError={() => setTurnstileToken("")}
         onExpire={() => setTurnstileToken("")}
+        onHelpRequested={() => setIsTurnstileHelpOpen(true)}
       />
       <div>
         <Button type="submit" className="w-full font-bold" disabled={isLoading}>
           {isLoading ? "Loading..." : "Daftar Akun"}
         </Button>
       </div>
+      <DialogTurnstileHelp
+        open={isTurnstileHelpOpen}
+        onOpenChange={setIsTurnstileHelpOpen}
+      />
     </form>
   );
 }
