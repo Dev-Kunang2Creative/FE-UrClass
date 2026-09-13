@@ -60,6 +60,11 @@ const SERVER_FIELDS: FieldPath<UpdateProfileType>[] = [
   "target_major_1",
   "target_university_2",
   "target_major_2",
+  "cpns_target_type",
+  "target_instansi_1",
+  "target_formasi_1",
+  "target_instansi_2",
+  "target_formasi_2",
 ];
 
 function Section({
@@ -126,9 +131,10 @@ export default function FormCompleteProfile({
    * menuju instansi dan formasi. Meminta keduanya berarti meminta salah satu
    * diisi asal-asalan, jadi yang muncul hanya yang dipilih.
    */
-  const [cpnsTarget, setCpnsTarget] = useState<CpnsTargetType>(
-    session?.user?.cpns_target_type === "umum" ? "umum" : "kedinasan",
-  );
+  const initialCpnsTarget: CpnsTargetType =
+    session?.user?.cpns_target_type === "umum" ? "umum" : "kedinasan";
+
+  const [cpnsTarget, setCpnsTarget] = useState<CpnsTargetType>(initialCpnsTarget);
 
   // Target berbentuk sekolah + program studi: UTBK memakai PTN, CPNS jalur
   // kedinasan memakai sekolah kedinasan. Bentuknya sama, jadi bagian form dan
@@ -186,7 +192,8 @@ export default function FormCompleteProfile({
       target_major_1: session?.user?.target_major_1 || "",
       target_university_2: session?.user?.target_university_2 || "",
       target_major_2: session?.user?.target_major_2 || "",
-      cpns_target_type: session?.user?.cpns_target_type ?? undefined,
+      cpns_target_type:
+        session?.user?.cpns_target_type || (isCpns && !isAdmin ? initialCpnsTarget : undefined),
       target_instansi_1: session?.user?.target_instansi_1 || "",
       target_formasi_1: session?.user?.target_formasi_1 || "",
       target_instansi_2: session?.user?.target_instansi_2 || "",
@@ -333,7 +340,11 @@ export default function FormCompleteProfile({
     setIsLoading(true);
 
     try {
-      await updateProfileApiHandler(session.access_token, body);
+      const payload: UpdateProfileType = {
+        ...body,
+        ...(isCpns && !isAdmin ? { cpns_target_type: cpnsTarget } : {}),
+      };
+      await updateProfileApiHandler(session.access_token, payload);
 
       // No argument on purpose. The session callback refetches /auth/me, and
       // the server has already accepted the write, so it returns exactly what
@@ -716,6 +727,12 @@ export default function FormCompleteProfile({
                         onChange={() => {
                           setCpnsTarget(value);
                           field.onChange(value);
+                          form.setValue("cpns_target_type", value, { shouldValidate: true });
+                          if (value === "kedinasan") {
+                            form.clearErrors(["target_instansi_1", "target_formasi_1"]);
+                          } else {
+                            form.clearErrors(["target_university_1", "target_major_1"]);
+                          }
                         }}
                       />
                       <span

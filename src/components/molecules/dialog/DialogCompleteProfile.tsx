@@ -29,10 +29,10 @@ export default function DialogCompleteProfile({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={true}
-        className="w-full max-w-[420px] p-0 bg-white border border-border max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-2xl sm:max-w-2xl p-0 bg-white border-2 border-slate-900 shadow-[6px_6px_0px_0px_#0f172a] rounded-3xl max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
-        <div className="px-8 pt-8 pb-2 flex flex-col items-center text-center gap-3">
+        <div className="px-6 sm:px-10 pt-8 pb-3 flex flex-col items-center text-center gap-3">
           <Image
             src="/images/logo/urclass.png"
             alt="UrClass"
@@ -41,17 +41,17 @@ export default function DialogCompleteProfile({
             className="h-12 w-auto object-contain"
           />
           <DialogHeader className="space-y-1">
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight">
               Selamat Datang di UrClass
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
+            <DialogDescription className="text-sm text-slate-600">
               Lengkapi data dirimu dengan mengisi form di bawah ini!
             </DialogDescription>
           </DialogHeader>
         </div>
 
         {/* Form */}
-        <div className="px-8 pb-8 pt-3">
+        <div className="px-6 sm:px-10 pb-8 pt-3">
           <FormCompleteProfile onSuccess={() => onOpenChange(false)} />
         </div>
       </DialogContent>

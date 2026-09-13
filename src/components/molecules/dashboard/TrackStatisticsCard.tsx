@@ -153,6 +153,55 @@ export default function TrackStatisticsCard({
           </div>
         )}
 
+        {/* Target CPNS / Kedinasan Info Card */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-gradient-to-br from-orange-50/80 to-amber-50/60 rounded-2xl border-2 border-orange-200 p-4 flex items-start gap-3.5">
+            <div className="p-2.5 rounded-xl bg-orange-700 text-white shadow-sm shrink-0">
+              <Target className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-orange-800 block">
+                {user?.cpns_target_type === "umum"
+                  ? "Target Instansi Pilihan 1"
+                  : "Target Sekolah Kedinasan 1"}
+              </span>
+              <h4 className="text-sm font-bold text-slate-900 truncate mt-0.5">
+                {(user?.cpns_target_type === "umum"
+                  ? user?.target_instansi_1
+                  : user?.target_university_1) || "Belum ditentukan"}
+              </h4>
+              <p className="text-xs text-slate-600 truncate">
+                {(user?.cpns_target_type === "umum"
+                  ? user?.target_formasi_1
+                  : user?.target_major_1) || "Atur di profil"}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-amber-50/80 to-yellow-50/60 rounded-2xl border-2 border-amber-200 p-4 flex items-start gap-3.5">
+            <div className="p-2.5 rounded-xl bg-amber-600 text-white shadow-sm shrink-0">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
+                {user?.cpns_target_type === "umum"
+                  ? "Target Instansi Pilihan 2"
+                  : "Target Sekolah Kedinasan 2"}
+              </span>
+              <h4 className="text-sm font-bold text-slate-900 truncate mt-0.5">
+                {(user?.cpns_target_type === "umum"
+                  ? user?.target_instansi_2
+                  : user?.target_university_2) || "Pilihan alternatif"}
+              </h4>
+              <p className="text-xs text-slate-600 truncate">
+                {(user?.cpns_target_type === "umum"
+                  ? user?.target_formasi_2
+                  : user?.target_major_2) || "Atur di profil"}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* 3 Subtest Passing Grade Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
           {cpnsSubtests.map((sub) => {
@@ -223,6 +272,13 @@ export default function TrackStatisticsCard({
   // UTBK Specific Calculations
   const utbkSubtests = config.subtests;
 
+  // If the user set a Kedinasan target in CPNS mode, don't show it as a PTN target in UTBK
+  const isKedinasanTarget = user?.cpns_target_type === "kedinasan";
+  const ptnTarget1 = !isKedinasanTarget ? user?.target_university_1 : null;
+  const ptnMajor1 = !isKedinasanTarget ? user?.target_major_1 : null;
+  const ptnTarget2 = !isKedinasanTarget ? user?.target_university_2 : null;
+  const ptnMajor2 = !isKedinasanTarget ? user?.target_major_2 : null;
+
   return (
     <div
       id="dashboard-stats-card"
@@ -267,27 +323,27 @@ export default function TrackStatisticsCard({
               Target Pilihan 1
             </span>
             <h4 className="text-sm font-bold text-slate-900 truncate mt-0.5">
-              {user?.target_university_1 || "Belum ditentukan"}
+              {ptnTarget1 || "Belum ditentukan"}
             </h4>
             <p className="text-xs text-slate-600 truncate">
-              {user?.target_major_1 || "Atur jurusan di profil"}
+              {ptnMajor1 || (isKedinasanTarget ? "Atur target PTN di profil" : "Atur jurusan di profil")}
             </p>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-indigo-50/80 to-purple-50/60 rounded-2xl border-2 border-indigo-200 p-4 flex items-start gap-3.5">
-          <div className="p-2.5 rounded-xl bg-indigo-600 text-white shadow-sm shrink-0">
+        <div className="bg-gradient-to-br from-sky-50/80 to-blue-50/60 rounded-2xl border-2 border-sky-200 p-4 flex items-start gap-3.5">
+          <div className="p-2.5 rounded-xl bg-sky-700 text-white shadow-sm shrink-0">
             <Building2 className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700 block">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-sky-800 block">
               Target Pilihan 2
             </span>
             <h4 className="text-sm font-bold text-slate-900 truncate mt-0.5">
-              {user?.target_university_2 || "Pilihan alternatif"}
+              {ptnTarget2 || "Pilihan alternatif"}
             </h4>
             <p className="text-xs text-slate-600 truncate">
-              {user?.target_major_2 || "Atur jurusan di profil"}
+              {ptnMajor2 || (isKedinasanTarget ? "Atur target PTN di profil" : "Atur jurusan di profil")}
             </p>
           </div>
         </div>

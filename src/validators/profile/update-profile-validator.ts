@@ -84,7 +84,12 @@ export function makeUpdateProfileSchema(
       target_university_2: z.string().optional(),
       target_major_2: z.string().nullish(),
 
-      cpns_target_type: z.enum(cpnsTargetTypes).optional().nullable(),
+      cpns_target_type:
+        cpnsTarget !== null && !isAdmin
+          ? z.enum(cpnsTargetTypes, {
+              message: "Pilih dulu tujuanmu: sekolah kedinasan atau CPNS umum.",
+            })
+          : z.enum(cpnsTargetTypes).optional().nullable(),
       target_instansi_1: requiredWhen(umum, "Instansi tujuan harus diisi"),
       target_formasi_1: requiredWhen(
         umum && formasiOpen,

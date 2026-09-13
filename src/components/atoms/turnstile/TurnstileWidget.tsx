@@ -43,6 +43,15 @@ export default function TurnstileWidget({
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
+  const onExpireRef = useRef(onExpire);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+    onExpireRef.current = onExpire;
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -61,13 +70,13 @@ export default function TurnstileWidget({
         const id = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           callback: (token: string) => {
-            if (isMounted) onSuccess(token);
+            if (isMounted) onSuccessRef.current(token);
           },
           "error-callback": () => {
-            if (isMounted && onError) onError();
+            if (isMounted && onErrorRef.current) onErrorRef.current();
           },
           "expired-callback": () => {
-            if (isMounted && onExpire) onExpire();
+            if (isMounted && onExpireRef.current) onExpireRef.current();
           },
           theme,
           size: "normal",
@@ -119,7 +128,7 @@ export default function TurnstileWidget({
         widgetIdRef.current = null;
       }
     };
-  }, [siteKey, theme, onSuccess, onError, onExpire]);
+  }, [siteKey, theme]);
 
   return (
     <div className={`flex justify-center my-3 ${className}`}>
