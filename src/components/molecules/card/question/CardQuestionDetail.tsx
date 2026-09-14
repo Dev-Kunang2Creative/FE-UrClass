@@ -155,14 +155,23 @@ export default function CardQuestionDetail({
                     >
                       {option.option_key}
                     </span>
-                    <RichTextRenderer
-                      html={option.option_text}
-                      className={cn(
-                        isCorrect
-                          ? "font-medium text-emerald-800 dark:text-emerald-300"
-                          : "text-foreground",
+                    <div className="min-w-0 space-y-2">
+                      <RichTextRenderer
+                        html={option.option_text}
+                        className={cn(
+                          isCorrect
+                            ? "font-medium text-emerald-800 dark:text-emerald-300"
+                            : "text-foreground",
+                        )}
+                      />
+                      {option.image_url && (
+                        <img
+                          src={option.image_url}
+                          alt={`Gambar opsi ${option.option_key}`}
+                          className="max-h-40 w-auto max-w-full rounded-md border object-contain"
+                        />
                       )}
-                    />
+                    </div>
                   </div>
                 );
               })}

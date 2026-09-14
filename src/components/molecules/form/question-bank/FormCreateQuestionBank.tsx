@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/command";
 
 import { Check, ChevronsUpDown, Plus, Trash2 } from "lucide-react";
+import OptionImageField from "@/components/molecules/form/questions/OptionImageField";
 
 import { cn } from "@/lib/utils";
 
@@ -363,16 +364,42 @@ export default function FormCreateQuestionBank() {
 
               {fields.map((item, index) => (
                 <div key={item.id} className="grid grid-cols-[1fr_auto] gap-3">
-                  <Controller
-                    control={form.control}
-                    name={`options.${index}.option_text`}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        placeholder={`Opsi ${optionKeys[index]}`}
-                      />
-                    )}
-                  />
+                  <div className="min-w-0 space-y-2">
+                    <Controller
+                      control={form.control}
+                      name={`options.${index}.option_text`}
+                      render={({ field, fieldState }) => (
+                        <>
+                          <Input
+                            {...field}
+                            placeholder={`Opsi ${optionKeys[index]}`}
+                          />
+                          {fieldState.error && (
+                            <p className="text-sm text-destructive">
+                              {fieldState.error.message}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    />
+
+                    <OptionImageField
+                      optionKey={optionKeys[index]}
+                      file={form.watch(`options.${index}.image`) ?? null}
+                      imageUrl={null}
+                      deleted={false}
+                      onPick={(berkas) =>
+                        form.setValue(`options.${index}.image`, berkas, {
+                          shouldValidate: true,
+                        })
+                      }
+                      onClear={() =>
+                        form.setValue(`options.${index}.image`, null, {
+                          shouldValidate: true,
+                        })
+                      }
+                    />
+                  </div>
 
                   <Button
                     type="button"

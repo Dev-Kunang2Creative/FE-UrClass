@@ -43,6 +43,10 @@ export const createQuestionBankHandler = async (
   body.options.forEach((option, index) => {
     formData.append(`options[${index}][option_key]`, option.option_key);
     formData.append(`options[${index}][option_text]`, option.option_text);
+
+    if (option.image instanceof File) {
+      formData.append(`options[${index}][image]`, option.image);
+    }
   });
 
   const { data } = await api.post(`/admin/subtests/${body.subtest_id}/questions`, formData, {

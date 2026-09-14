@@ -5,6 +5,8 @@ export interface QuestionOption {
   id: string;
   option_key: string;
   option_text: string;
+  /** Gambar opsi yang sudah tersimpan, melengkapi teksnya. */
+  image_url?: string | null;
   /**
    * Bobot opsi. Hanya berarti pada subtes berskema option_weight (TKP SKD),
    * tempat setiap opsi bernilai 1-5. Dikirim sebagai string desimal oleh MySQL

@@ -3,12 +3,26 @@ import { optionalQuestionImageSchema } from "@/validators/questions/image-valida
 
 const optionKeys = ["A", "B", "C", "D", "E"] as const;
 
-export const questionOptionSchema = z.object({
-  option_key: z.enum(optionKeys, {
-    message: "Option key harus A, B, C, D, atau E",
-  }),
-  option_text: z.string().min(1, "Isi opsi wajib diisi"),
-});
+export const questionOptionSchema = z
+  .object({
+    option_key: z.enum(optionKeys, {
+      message: "Option key harus A, B, C, D, atau E",
+    }),
+    option_text: z.string(),
+    /** Gambar opsi; melengkapi teksnya, bukan menggantikan. */
+    image: optionalQuestionImageSchema,
+  })
+  .superRefine((option, ctx) => {
+    // Boleh bergambar saja, bertulisan saja, atau keduanya - yang tidak boleh
+    // adalah kosong sama sekali.
+    if (option.option_text.trim() === "" && !(option.image instanceof File)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Isi opsi dengan teks atau gambar",
+        path: ["option_text"],
+      });
+    }
+  });
 
 export const questionBankSchema = z
   .object({

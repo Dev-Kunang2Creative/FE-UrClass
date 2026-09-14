@@ -204,6 +204,16 @@ export default function QuestionView({
                       html={option.option_text}
                       className={`pt-1 ${textClass}`}
                     />
+                    {/* Di bawah teksnya: opsi bergambar sering tidak bertulisan
+                        sama sekali, dan kalau begitu RichTextRenderer tidak
+                        merender apa pun sehingga gambarnya naik sendiri. */}
+                    {option.image_url && (
+                      <img
+                        src={option.image_url}
+                        alt={`Pilihan ${visualOptionKey}`}
+                        className="mt-2 max-h-56 w-auto max-w-full rounded-lg object-contain"
+                      />
+                    )}
                     {isReviewMode && (isCorrectAnswer || isUserWrongAnswer) && (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {isCorrectAnswer && (

@@ -37,6 +37,7 @@ import { useSession } from "next-auth/react";
 import { stripHtmlToPreviewText } from "@/utils/rich-text";
 import { useGetDetailSubtest } from "@/http/subtest/get-detail-subtest";
 import { OPTION_WEIGHT_SCHEME, OptionWeightHint, OptionWeightSelect } from "./OptionWeight";
+import OptionImageField from "./OptionImageField";
 
 interface FormEditQuestionProps {
   subtestId: string;
@@ -125,6 +126,13 @@ export default function FormEditQuestion({
       defaultData.options?.map((opt) => ({
         option_key: isOptionKey(opt.option_key) ? opt.option_key : "A",
         option_text: opt.option_text ?? "",
+        // Gambar yang sudah tersimpan. `image` tetap null sampai admin memilih
+        // berkas baru, dan `delete_image` false sampai ia melepasnya - kalau
+        // salah satunya ikut terisi di sini, membuka form lalu menyimpannya
+        // tanpa mengubah apa pun akan menghapus gambar yang ada.
+        image: null,
+        image_url: opt.image_url ?? null,
+        delete_image: false,
         // Dikirim sebagai string desimal ("5.00"). Bobot 0 berarti soal lama
         // yang belum punya bobot, jadi dibiarkan kosong agar diisi ulang, bukan
         // ditampilkan sebagai angka yang seolah-olah sudah benar.
@@ -345,16 +353,44 @@ export default function FormEditQuestion({
                           : "grid-cols-[minmax(0,1fr)_auto]"
                       }`}
                     >
-                      <Controller
-                        control={form.control}
-                        name={`options.${index}.option_text`}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            placeholder={`Opsi ${optionKeys[index]}`}
-                          />
-                        )}
-                      />
+                      <div className="min-w-0 space-y-2">
+                        <Controller
+                          control={form.control}
+                          name={`options.${index}.option_text`}
+                          render={({ field, fieldState }) => (
+                            <>
+                              <Input
+                                {...field}
+                                placeholder={`Opsi ${optionKeys[index]}`}
+                              />
+                              {fieldState.error && (
+                                <p className="text-sm text-destructive">
+                                  {fieldState.error.message}
+                                </p>
+                              )}
+                            </>
+                          )}
+                        />
+
+                        <OptionImageField
+                          optionKey={optionKeys[index]}
+                          file={form.watch(`options.${index}.image`) ?? null}
+                          imageUrl={form.watch(`options.${index}.image_url`) ?? null}
+                          deleted={form.watch(`options.${index}.delete_image`) ?? false}
+                          onPick={(berkas) => {
+                            form.setValue(`options.${index}.image`, berkas, {
+                              shouldValidate: true,
+                            });
+                            form.setValue(`options.${index}.delete_image`, false);
+                          }}
+                          onClear={() => {
+                            form.setValue(`options.${index}.image`, null, {
+                              shouldValidate: true,
+                            });
+                            form.setValue(`options.${index}.delete_image`, true);
+                          }}
+                        />
+                      </div>
 
                       {weighted && (
                         <Controller

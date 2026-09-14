@@ -7,14 +7,38 @@ const optionKeys = ["A", "B", "C", "D", "E"] as const;
 export const OPTION_WEIGHT_MIN = 1;
 export const OPTION_WEIGHT_MAX = 5;
 
-export const questionOptionSchema = z.object({
-  option_key: z.enum(optionKeys, {
-    message: "Option key harus A, B, C, D, atau E",
-  }),
-  option_text: z.string().min(1, "Isi opsi wajib diisi"),
-  /** Hanya dipakai subtes berskema option_weight. */
-  score: z.number().optional().nullable(),
-});
+export const questionOptionSchema = z
+  .object({
+    option_key: z.enum(optionKeys, {
+      message: "Option key harus A, B, C, D, atau E",
+    }),
+    option_text: z.string(),
+    /**
+     * Gambar opsi. Berkas baru yang diunggah di form ini; `image_url` adalah
+     * gambar yang sudah tersimpan sebelumnya, dan `delete_image` melepasnya.
+     */
+    image: optionalQuestionImageSchema,
+    image_url: z.string().optional().nullable(),
+    delete_image: z.boolean().optional(),
+    /** Hanya dipakai subtes berskema option_weight. */
+    score: z.number().optional().nullable(),
+  })
+  .superRefine((option, ctx) => {
+    // Sebuah opsi boleh bergambar saja, bertulisan saja, atau keduanya - yang
+    // tidak boleh adalah kosong sama sekali. Memaksa teks selalu terisi berarti
+    // soal bergambar harus diberi teks basa-basi seperti "A" atau "gambar 1".
+    const adaGambar =
+      option.image instanceof File ||
+      (!!option.image_url && !option.delete_image);
+
+    if (option.option_text.trim() === "" && !adaGambar) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Isi opsi dengan teks atau gambar",
+        path: ["option_text"],
+      });
+    }
+  });
 
 /**
  * Aturan soal, berbeda menurut skema penilaian subtesnya.

@@ -5,6 +5,8 @@ export interface QuestionBankOption {
   id: string;
   option_key: string;
   option_text: string;
+  /** Gambar opsi yang sudah tersimpan, melengkapi teksnya. */
+  image_url?: string | null;
 }
 
 export interface QuestionBank {

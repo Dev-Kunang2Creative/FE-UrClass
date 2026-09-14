@@ -3,6 +3,11 @@ export interface ExamOption {
   id: string;
   option_key: string; // A, B, C, D, E
   option_text: string;
+  /**
+   * Gambar opsi, kalau ada. Melengkapi teksnya, bukan menggantikan - sebuah
+   * opsi boleh bergambar saja, bertulisan saja, atau keduanya.
+   */
+  image_url?: string | null;
 }
 
 export interface ExamQuestion {

@@ -55,6 +55,17 @@ export const updateQuestionHandler = async (
       formData.append(`options[${index}][option_key]`, option.option_key);
       formData.append(`options[${index}][option_text]`, option.option_text);
 
+      // Gambar opsi. Tanpa berkas baru, backend mempertahankan gambar lama -
+      // jadi melepasnya butuh penanda tersendiri, bukan sekadar tidak
+      // mengirim apa-apa.
+      if (option.image instanceof File) {
+        formData.append(`options[${index}][image]`, option.image);
+      }
+
+      if (option.delete_image) {
+        formData.append(`options[${index}][delete_image]`, "1");
+      }
+
       // Bobot per opsi (TKP SKD). Subtes benar/salah tidak mengirimnya sama
       // sekali, dan di sana backend tetap memakai kredit benar/salah.
       if (option.score != null) {
