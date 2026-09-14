@@ -177,7 +177,8 @@ export default function DialogBulkImportQuestion({
             Import Soal
           </DialogTitle>
           <DialogDescription>
-            Upload file Excel (.xlsx atau .xls). Gambar soal dan pembahasan bisa diembed langsung ke cell.
+            Upload file Excel (.xlsx atau .xls). Gambar soal, pembahasan, dan
+            tiap opsi jawaban bisa ditempel langsung di selnya.
           </DialogDescription>
         </DialogHeader>
 
@@ -199,12 +200,32 @@ export default function DialogBulkImportQuestion({
             </div>
             {!weighted && (
               <p className="mt-2 text-blue-900 font-medium bg-blue-100/60 p-2 rounded-lg">
-                Penting: Untuk soal Pilihan Ganda, Opsi A, B, C, D, dan E wajib terisi semua (5 pilihan). Kunci Jawaban diisi salah satu (A/B/C/D/E). Untuk soal esai, kosongkan kunci dan opsi.
+                Penting: Untuk soal Pilihan Ganda, Opsi A, B, C, D, dan E wajib
+                terisi semua — boleh berupa teks, gambar, atau keduanya. Kunci
+                Jawaban diisi salah satu (A/B/C/D/E). Untuk soal esai, kosongkan
+                kunci dan opsi.
               </p>
             )}
-            <p className="mt-2 text-blue-600 italic">
-              Embed gambar: Insert → Pictures → Place in Cell (Kolom A untuk soal, Kolom J untuk pembahasan). Format didukung: JPG, PNG, WebP.
-            </p>
+            {/* Dua cara menyisipkan gambar di Excel disimpan dengan format
+                berbeda, dan yang "Place in Cell" tidak terbaca saat impor -
+                gambarnya hilang tanpa pesan galat. Petunjuk ini dulu justru
+                menyebut cara yang salah. */}
+            <div className="mt-2 space-y-1 rounded-lg bg-blue-100/60 p-2 text-blue-900">
+              <p className="font-medium">Cara menempel gambar</p>
+              <p>
+                Insert → Pictures → <strong>Place over Cells</strong>, lalu geser
+                gambarnya sampai sudut kiri-atasnya berada di dalam sel tujuan.
+              </p>
+              <p>
+                <strong>Jangan</strong> pakai “Place in Cell” — Excel
+                menyimpannya dengan cara berbeda yang tidak terbaca saat impor,
+                dan gambarnya hilang tanpa pesan galat.
+              </p>
+              <p>
+                Sel yang menerima gambar: Kolom A (soal), Kolom J (pembahasan),
+                dan Kolom C–G (opsi A–E). Format: JPG, PNG, WebP.
+              </p>
+            </div>
           </div>
 
           {weighted && (
