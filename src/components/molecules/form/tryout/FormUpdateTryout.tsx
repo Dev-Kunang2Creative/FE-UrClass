@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 import { tryoutSchema, TryoutType } from "@/validators/tryout/tryout-validator";
 import { useUpdateTryout } from "@/http/tryout/update-tryout";
+import type { Tryout } from "@/types/tryout/tryout";
 import { useGetDetailTryout } from "@/http/tryout/get-detail-tryout";
 
 import {
@@ -50,6 +51,31 @@ interface FormEditTryoutProps {
   tryoutId: string;
 }
 
+/** Durasi SKD CPNS sesuai ketentuan resmi; admin bebas mengubahnya. */
+const DURASI_SKD_DEFAULT = 100;
+
+/**
+ * Durasi yang sedang berlaku untuk sebuah tryout CPNS.
+ *
+ * Tryout yang dibuat sebelum kolom duration_minutes ada masih berjalan dengan
+ * penjumlahan durasi tiap subtesnya. Menampilkan penjumlahan itu - bukan 100 -
+ * berarti admin melihat batas waktu yang benar-benar dipakai peserta, dan
+ * menyimpan form tanpa menyentuh kolomnya tidak diam-diam mengubah durasi
+ * tryout yang sudah jalan.
+ */
+const durasiTersimpan = (tryout: Tryout): number => {
+  if (tryout.duration_minutes != null) return tryout.duration_minutes;
+
+  const jumlahSubtes = (tryout.tryout_subtests ?? []).reduce(
+    (total, entry) => total + (entry.duration_minutes || 0),
+    0,
+  );
+
+  // Tryout lama yang subtesnya belum diisi menjumlahkan nol, dan nol bukan
+  // durasi yang bisa disimpan - jatuh ke bawaannya.
+  return jumlahSubtes || DURASI_SKD_DEFAULT;
+};
+
 export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
   const { data: session } = useSession();
   const [preview, setPreview] = useState<string | null>(null);
@@ -74,6 +100,7 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
       description: "",
       category: "UTBK",
       kategori: "utbk",
+      duration_minutes: null,
       start_date: "",
       end_date: "",
       is_published: false,
@@ -99,6 +126,10 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
       description: defaultData.description ?? "",
       category: categoryFor(defaultData.kategori),
       kategori: defaultData.kategori === "cpns" ? "cpns" : "utbk",
+      duration_minutes:
+        defaultData.kategori === "cpns"
+          ? durasiTersimpan(defaultData)
+          : null,
       start_date: formatDate(defaultData.start_date),
       end_date: formatDate(defaultData.end_date),
       is_published: defaultData.is_published ?? false,
@@ -112,6 +143,7 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
   }, [defaultData, form]);
 
   const image = form.watch("image");
+  const kategori = form.watch("kategori");
   useEffect(() => {
     if (image instanceof File) {
       const url = URL.createObjectURL(image);
@@ -220,6 +252,14 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
                       field.onChange(val);
                       // Kategori adalah cermin jalurnya, bukan pilihan terpisah.
                       form.setValue("category", val === "cpns" ? "CPNS" : "UTBK");
+                      // Durasi hanya milik CPNS. UTBK dikerjakan subtes per
+                      // subtes, waktunya ditetapkan di masing-masing subtes.
+                      form.setValue(
+                        "duration_minutes",
+                        val === "cpns"
+                          ? (defaultData ? durasiTersimpan(defaultData) : DURASI_SKD_DEFAULT)
+                          : null,
+                      );
                     }}
                     value={field.value ?? "utbk"}
                   >
@@ -242,6 +282,46 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
                 </Field>
               )}
             />
+
+            {kategori === "cpns" && (
+              <Controller
+                control={form.control}
+                name="duration_minutes"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>
+                      Durasi Ujian (menit){" "}
+                      <span className="text-red-500">*</span>
+                    </FieldLabel>
+
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={600}
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? null : e.target.valueAsNumber,
+                        )
+                      }
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
+
+                    <FieldDescription>
+                      Satu waktu untuk seluruh SKD; peserta bebas berpindah
+                      subtes selama waktunya belum habis.
+                    </FieldDescription>
+
+                    {fieldState.error && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            )}
 
             <Controller
               control={form.control}

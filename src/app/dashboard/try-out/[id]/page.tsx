@@ -25,7 +25,7 @@ import { useSchedule } from "@/hooks/useSchedule";
 import Mascot from "@/components/atoms/mascot/Mascot";
 import { PENDING_PILL, PHASE_PILL } from "@/lib/tryout-schedule";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
-import { groupSubtests, summariseSubtests } from "@/lib/tryout-subtests";
+import { examDuration, groupSubtests, summariseSubtests } from "@/lib/tryout-subtests";
 
 export default function TryoutDetailPage({
   params,
@@ -104,7 +104,8 @@ export default function TryoutDetailPage({
   );
 
   const totalQuestions = subtests.reduce((sum, s) => sum + s.questions, 0);
-  const totalDuration = subtests.reduce((sum, s) => sum + s.duration, 0);
+  // CPNS memakai satu durasi di level tryout; UTBK menjumlahkan subtesnya.
+  const totalDuration = examDuration(tryout, subtests);
 
   // Shared with the pre-exam instructions, so the same tryout cannot be
   // described two ways on two consecutive screens.
@@ -488,12 +489,17 @@ export default function TryoutDetailPage({
                       </span>{" "}
                       soal
                     </p>
-                    <p>
-                      <span className="font-bold text-slate-900">
-                        {group.duration}
-                      </span>{" "}
-                      menit
-                    </p>
+                    {/* Tidak ada jatah waktu per bagian di CPNS: satu waktu
+                        untuk seluruh SKD, jadi menampilkan menit per kelompok
+                        menjanjikan pembagian yang tidak pernah diberlakukan. */}
+                    {kategori !== "cpns" && (
+                      <p>
+                        <span className="font-bold text-slate-900">
+                          {group.duration}
+                        </span>{" "}
+                        menit
+                      </p>
+                    )}
                   </div>
                   <ul className="space-y-1 text-xs text-slate-600">
                     {group.items.map((item) => (

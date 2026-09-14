@@ -54,11 +54,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 interface FormCreateSubtestTryoutProps {
   tryoutId: string;
   setOpen: (open: boolean) => void;
+  /**
+   * Menyembunyikan kolom durasi untuk tryout CPNS.
+   *
+   * Durasi SKD adalah satu angka di level tryout dan seluruh subtesnya
+   * dikerjakan dalam satu waktu, jadi angka per subtes tidak berpengaruh apa
+   * pun di jalur ini. Kolomnya tetap dikirim karena API masih mewajibkannya -
+   * dan masih benar-benar dipakai UTBK, yang dikerjakan subtes per subtes.
+   */
+  isCpns?: boolean;
 }
 
 export default function FormCreateSubtestTryout({
   tryoutId,
   setOpen,
+  isCpns = false,
 }: FormCreateSubtestTryoutProps) {
   const { data: session, status } = useSession();
 
@@ -212,11 +222,14 @@ export default function FormCreateSubtestTryout({
                     )}
                   />
 
-                  {/* DURATION */}
+                  {/* DURATION - hanya UTBK; lihat catatan di isCpns */}
                   <Controller
                     control={form.control}
                     name={`subtests.${index}.duration_minutes`}
-                    render={({ field, fieldState }) => (
+                    render={({ field, fieldState }) =>
+                      isCpns ? (
+                        <></>
+                      ) : (
                       <Field
                         data-invalid={fieldState.invalid}
                         className="w-full md:flex-1"
@@ -235,7 +248,8 @@ export default function FormCreateSubtestTryout({
                           <FieldError errors={[fieldState.error]} />
                         )}
                       </Field>
-                    )}
+                      )
+                    }
                   />
 
                   {/* STATUS */}

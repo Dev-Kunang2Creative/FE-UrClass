@@ -10,6 +10,7 @@ import { useKategori } from "@/hooks/useKategori";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
 import {
   describeScoring,
+  examDuration,
   groupSubtests,
   summariseSubtests,
 } from "@/lib/tryout-subtests";
@@ -63,7 +64,8 @@ export default function TryoutStartPage({
   );
 
   const totalQuestions = allSubtests.reduce((s, t) => s + t.questions, 0);
-  const totalDuration = allSubtests.reduce((s, t) => s + t.duration, 0);
+  // CPNS memakai satu durasi di level tryout; UTBK menjumlahkan subtesnya.
+  const totalDuration = examDuration(tryout, allSubtests);
 
   // Same grouping and the same labels as the detail page, so a CPNS reader is
   // not told "Tes Potensi Skolastik" on one screen and "SKD" on the next.
@@ -275,8 +277,10 @@ export default function TryoutStartPage({
                         >
                           <span className="shrink-0 text-primary">&bull;</span>
                           <span className="min-w-0 break-words">
-                            {item.name} : {item.questions} soal ({item.duration}{" "}
-                            mnt)
+                            {item.name} : {item.questions} soal
+                            {/* Satu waktu untuk seluruh SKD, jadi menit per
+                                subtes tidak berlaku di jalur CPNS. */}
+                            {isCpns ? "" : ` (${item.duration} mnt)`}
                           </span>
                         </li>
                       ))}

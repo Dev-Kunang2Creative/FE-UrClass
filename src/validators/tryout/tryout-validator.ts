@@ -48,6 +48,33 @@ export const tryoutSchema = z.object({
   kategori: z.enum(["utbk", "cpns"], {
     message: "Jalur harus UTBK atau CPNS",
   }),
+
+  /**
+   * Durasi seluruh ujian CPNS, dalam menit - satu angka, bukan penjumlahan
+   * durasi tiap subtes. Peserta SKD mengerjakan semua soal dalam satu waktu
+   * dan bebas berpindah bagian, jadi tidak ada waktu terpisah per subtes yang
+   * perlu diisi.
+   *
+   * Kosong untuk UTBK, yang memang dikerjakan subtes per subtes dengan
+   * waktunya masing-masing.
+   */
+  duration_minutes: z
+    .number({ message: "Durasi harus berupa angka" })
+    .int("Durasi harus bilangan bulat")
+    .min(1, "Durasi minimal 1 menit")
+    .max(600, "Durasi maksimal 600 menit")
+    .nullable()
+    .optional(),
+}).superRefine((value, ctx) => {
+  // Wajib hanya di jalur CPNS: di sanalah satu-satunya angka yang menentukan
+  // batas waktu ujian, jadi membiarkannya kosong berarti tryout tanpa timer.
+  if (value.kategori === "cpns" && value.duration_minutes == null) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["duration_minutes"],
+      message: "Durasi tryout CPNS wajib diisi",
+    });
+  }
 });
 
 export type TryoutType = z.infer<typeof tryoutSchema>;

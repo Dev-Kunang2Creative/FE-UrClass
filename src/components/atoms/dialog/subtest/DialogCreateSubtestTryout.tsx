@@ -10,12 +10,15 @@ interface DialogCreateSubtestTryoutProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   tryoutId: string;
+  /** Durasi per subtes tidak berlaku di CPNS; lihat FormCreateSubtestTryout. */
+  isCpns?: boolean;
 }
 
 export default function DialogCreateSubtestTryout({
   open,
   setOpen,
   tryoutId,
+  isCpns,
 }: DialogCreateSubtestTryoutProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -23,7 +26,11 @@ export default function DialogCreateSubtestTryout({
         <DialogHeader>
           <DialogTitle>Tambah Subtes ke Tryout</DialogTitle>
         </DialogHeader>
-        <FormCreateSubtestTryout tryoutId={tryoutId} setOpen={setOpen} />
+        <FormCreateSubtestTryout
+          tryoutId={tryoutId}
+          setOpen={setOpen}
+          isCpns={isCpns}
+        />
       </DialogContent>
     </Dialog>
   );

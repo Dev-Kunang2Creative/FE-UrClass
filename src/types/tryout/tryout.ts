@@ -14,6 +14,9 @@ export interface Tryout {
   creator: User;
   category: string;
   kategori?: "utbk" | "cpns" | null;
+  // Durasi seluruh ujian CPNS dalam menit. Null untuk UTBK, yang waktunya
+  // ditetapkan per subtes.
+  duration_minutes?: number | null;
   start_date: Date | null;
   end_date: Date | null;
   image_url: string | null;

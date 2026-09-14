@@ -95,6 +95,28 @@ export function summariseSubtests(
 }
 
 /**
+ * Berapa menit yang benar-benar dihitung mundur untuk sebuah tryout.
+ *
+ * CPNS memakai satu angka di level tryout: seluruh SKD dikerjakan dalam satu
+ * waktu dan peserta bebas berpindah bagian, jadi durasi tiap subtes tidak
+ * pernah dipakai. UTBK - dan tryout CPNS yang dibuat sebelum kolom itu ada -
+ * jatuh kembali ke penjumlahan durasi subtesnya, sama seperti yang dipakai
+ * `TryoutSession::batasWaktuCpns` di backend.
+ *
+ * Dipakai halaman detail dan layar instruksi supaya angka yang dijanjikan ke
+ * peserta sama dengan angka yang dihitung mundur saat ujian berjalan.
+ */
+export function examDuration(
+  tryout: { duration_minutes?: number | null } | undefined | null,
+  subtests: SubtestSummary[],
+): number {
+  return (
+    tryout?.duration_minutes ??
+    subtests.reduce((total, subtest) => total + subtest.duration, 0)
+  );
+}
+
+/**
  * What the scoring actually does to a wrong or blank answer, for this tryout.
  *
  * ScoringService reads score_correct, score_wrong and score_empty off each

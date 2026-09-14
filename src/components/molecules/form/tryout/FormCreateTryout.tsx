@@ -42,6 +42,9 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { id } from "date-fns/locale";
 
+/** Durasi SKD CPNS sesuai ketentuan resmi; admin bebas mengubahnya. */
+const DURASI_SKD_DEFAULT = 100;
+
 export default function FormCreateTryout() {
   const form = useForm<TryoutType>({
     resolver: zodResolver(tryoutSchema),
@@ -50,6 +53,7 @@ export default function FormCreateTryout() {
       description: "",
       category: "UTBK",
       kategori: "utbk",
+      duration_minutes: null,
       start_date: "",
       end_date: "",
       is_published: false,
@@ -64,6 +68,7 @@ export default function FormCreateTryout() {
   const [preview, setPreview] = useState<string | null>(null);
 
   const image = form.watch("image");
+  const kategori = form.watch("kategori");
 
   useEffect(() => {
     if (image instanceof File) {
@@ -153,6 +158,12 @@ export default function FormCreateTryout() {
                       field.onChange(val);
                       // Kategori adalah cermin jalurnya, bukan pilihan terpisah.
                       form.setValue("category", val === "cpns" ? "CPNS" : "UTBK");
+                      // Durasi hanya milik CPNS. UTBK dikerjakan subtes per
+                      // subtes, waktunya ditetapkan di masing-masing subtes.
+                      form.setValue(
+                        "duration_minutes",
+                        val === "cpns" ? DURASI_SKD_DEFAULT : null,
+                      );
                     }}
                     value={field.value ?? "utbk"}
                   >
@@ -176,6 +187,46 @@ export default function FormCreateTryout() {
                 </Field>
               )}
             />
+
+            {kategori === "cpns" && (
+              <Controller
+                control={form.control}
+                name="duration_minutes"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>
+                      Durasi Ujian (menit){" "}
+                      <span className="text-red-500">*</span>
+                    </FieldLabel>
+
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={600}
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? null : e.target.valueAsNumber,
+                        )
+                      }
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
+
+                    <FieldDescription>
+                      Satu waktu untuk seluruh SKD; peserta bebas berpindah
+                      subtes selama waktunya belum habis.
+                    </FieldDescription>
+
+                    {fieldState.error && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            )}
 
             <Controller
               control={form.control}

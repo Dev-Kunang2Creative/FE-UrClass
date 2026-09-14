@@ -16,11 +16,22 @@ import { Badge } from "@/components/ui/badge";
 
 interface SubtestTryoutColumnsProps {
   deleteHandler: (data: SubtestByTryout) => void;
+  /**
+   * Menyembunyikan kolom durasi untuk tryout CPNS.
+   *
+   * Durasi SKD ditetapkan satu angka di level tryout dan seluruh subtesnya
+   * dikerjakan dalam satu waktu, jadi angka per subtes tidak pernah dipakai
+   * saat ujian berjalan. Menampilkannya berarti menyuguhkan angka yang tidak
+   * berlaku - dan cepat atau lambat memancing pertanyaan kenapa mengubahnya
+   * tidak mengubah apa pun.
+   */
+  isCpns?: boolean;
 }
 
 export const subtestTryoutColumns = (
   props: SubtestTryoutColumnsProps,
-): ColumnDef<SubtestByTryout>[] => [
+): ColumnDef<SubtestByTryout>[] =>
+  ([
   {
     id: "index",
     header: "No",
@@ -132,4 +143,6 @@ export const subtestTryoutColumns = (
       );
     },
   },
-];
+  ] as ColumnDef<SubtestByTryout>[]).filter(
+    (column) => !(props.isCpns && column.id === "duration_minutes"),
+  );

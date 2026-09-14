@@ -42,6 +42,10 @@ export const CreateTryoutHandler = async (
     formData.append("kategori", body.kategori);
   }
 
+  if (body.duration_minutes != null) {
+    formData.append("duration_minutes", String(body.duration_minutes));
+  }
+
   if (body.is_published !== undefined) {
     formData.append("is_published", body.is_published ? "1" : "0");
   }

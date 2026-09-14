@@ -54,6 +54,15 @@ export default function CardAuthLogin() {
         <div className="space-y-4">
           <FormAuthLogin />
 
+          <div className="text-right">
+            <Link
+              href="/forgot-password"
+              className="text-xs font-semibold text-slate-500 hover:text-primary underline underline-offset-2"
+            >
+              Lupa password?
+            </Link>
+          </div>
+
           <div className="flex items-center gap-3 py-1">
             <Separator className="flex-1 bg-slate-200" />
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">

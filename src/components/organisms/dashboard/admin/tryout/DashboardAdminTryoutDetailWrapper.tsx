@@ -101,6 +101,8 @@ export default function DashboardAdminTryoutDetailWrapper({
     },
   });
 
+  const isCpns = data?.data.kategori === "cpns";
+
   const { data: subtest, isPending: isPendingSubtest } = useGetSubtestByTryout({
     id,
     token: session?.access_token as string,
@@ -138,6 +140,19 @@ export default function DashboardAdminTryoutDetailWrapper({
                 {data?.data.is_published ? "Dipublish" : "Draft"}
               </Badge>
             </div>
+            {/* Satu-satunya angka waktu yang berlaku di CPNS, dan sejak durasi
+                per subtes disembunyikan, satu-satunya tempat admin bisa
+                melihatnya dari halaman ini. */}
+            {isCpns && (
+              <div className="flex flex-col gap-1">
+                <h3 className="text-muted-foreground">Durasi Ujian</h3>
+                <span className="font-medium">
+                  {data?.data.duration_minutes
+                    ? `${data.data.duration_minutes} menit`
+                    : "Belum diatur"}
+                </span>
+              </div>
+            )}
             <div className="flex flex-col gap-1">
               <h3 className="text-muted-foreground">Dibuat Oleh</h3>
               <span className="font-medium">{data?.data.creator.name}</span>
@@ -247,6 +262,7 @@ export default function DashboardAdminTryoutDetailWrapper({
             <DataTable
               columns={subtestTryoutColumns({
                 deleteHandler: handleDeleteClick,
+                isCpns,
               })}
               data={subtest?.data ?? []}
               isLoading={isPendingSubtest}
@@ -259,6 +275,7 @@ export default function DashboardAdminTryoutDetailWrapper({
         open={isDialogOpen}
         setOpen={setIsDialogOpen}
         tryoutId={id}
+        isCpns={isCpns}
       />
 
       <AlertDialogDeleteSubtest
