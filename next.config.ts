@@ -59,9 +59,9 @@ const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://app.sandbox.midtrans.com https://app.midtrans.com https://api.midtrans.com;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  img-src 'self' blob: data: http://127.0.0.1:8000 http://localhost:8000 https://*.amunisiptn.com https://prod-api.urclass.id https://dev-api.urclass.id https://api.urclass.id https://*.googleusercontent.com${apiCsp};
+  img-src 'self' blob: data: http://127.0.0.1:8000 http://localhost:8000 http://127.0.0.1:8800 http://localhost:8800 https://*.amunisiptn.com https://prod-api.urclass.id https://dev-api.urclass.id https://api.urclass.id https://*.googleusercontent.com${apiCsp};
   font-src 'self' https://fonts.gstatic.com data:;
-  connect-src 'self' http://127.0.0.1:8000 http://localhost:8000 https://challenges.cloudflare.com https://*.amunisiptn.com https://prod-api.urclass.id https://dev-api.urclass.id https://api.urclass.id https://app.sandbox.midtrans.com https://app.midtrans.com https://api.midtrans.com https://api-sekolah-indonesia.vercel.app${apiCsp};
+  connect-src 'self' http://127.0.0.1:8000 http://localhost:8000 http://127.0.0.1:8800 http://localhost:8800 https://challenges.cloudflare.com https://*.amunisiptn.com https://prod-api.urclass.id https://dev-api.urclass.id https://api.urclass.id https://app.sandbox.midtrans.com https://app.midtrans.com https://api.midtrans.com https://api-sekolah-indonesia.vercel.app${apiCsp};
   frame-src 'self' https://challenges.cloudflare.com https://app.sandbox.midtrans.com https://app.midtrans.com https://accounts.google.com;
   frame-ancestors 'self';
   object-src 'none';
@@ -115,6 +115,18 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "localhost",
         port: "8000",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "8800",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8800",
         pathname: "/storage/**",
       },
       {

@@ -45,6 +45,7 @@ import {
   Ticket,
   TrendingUp,
   Users,
+  MessageSquareQuote,
 } from "lucide-react";
 import { SidebarUser } from "./SidebarUser";
 import { DASHBOARD_MENU } from "@/constants/dashboard-menu";
@@ -252,6 +253,17 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild className={buttonClass("/dashboard/admin/kritik-saran")}>
                       <Link href="/dashboard/admin/kritik-saran"><FileClock /><span>Kritik &amp; Saran Peserta</span></Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className={buttonClass("/dashboard/admin/testimonials")}
+                    >
+                      <Link href="/dashboard/admin/testimonials">
+                        <MessageSquareQuote />
+                        <span>Testimoni</span>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
