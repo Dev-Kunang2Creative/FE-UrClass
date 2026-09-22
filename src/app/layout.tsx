@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
 import GlobalProvider from "@/components/providers/GlobalProvider";
-import Script from "next/script";
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -90,19 +89,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const midtransUrl =
-    process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true"
-      ? "https://app.midtrans.com/snap/snap.js"
-      : "https://app.sandbox.midtrans.com/snap/snap.js";
-
+  // snap.js tidak lagi dimuat di sini. Lingkungannya ditentukan backend yang
+  // menerbitkan tokennya dan dikirim bersama token itu, lalu dimuat saat
+  // pembayaran dimulai - lihat src/lib/midtrans-snap.ts. Memuatnya di layout
+  // berarti menebak lingkungan sebelum ada token yang perlu dibayar, dan
+  // tebakan itulah yang menghasilkan "Transaksi tidak ditemukan".
   return (
     <html lang="id">
       <body className={`${rubik.variable} antialiased font-rubik`}>
-        <Script
-          src={midtransUrl}
-          data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
-          strategy="afterInteractive"
-        />
         <GlobalProvider>{children}</GlobalProvider>
       </body>
     </html>

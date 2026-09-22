@@ -11,6 +11,7 @@ import { useVerifyPayment } from "@/http/pembelian/verify-payment";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/get-error-message";
+import { loadSnap } from "@/lib/midtrans-snap";
 import { notifyTicketBalanceUpdated } from "@/hooks/useTickets";
 
 type PaymentState = "idle" | "loading" | "success" | "pending" | "error";
@@ -37,7 +38,7 @@ export default function DetailPaketPage() {
   const createOrderMutation = useCreateOrder({
     token,
     options: {
-      onSuccess: (res) => {
+      onSuccess: async (res) => {
         const snapToken = res.snap_token;
 
         if (!snapToken) {
@@ -46,8 +47,14 @@ export default function DetailPaketPage() {
           return;
         }
 
-        if (typeof window === "undefined" || !window.snap) {
-          toast.error("Midtrans Snap belum siap, coba refresh halaman.");
+        // snap.js dimuat dari lingkungan yang menerbitkan token ini, bukan dari
+        // tebakan frontend. Dua sumber yang berbeda menghasilkan "Transaksi
+        // tidak ditemukan" atas token yang sebenarnya sah.
+        let snap: Window["snap"];
+        try {
+          snap = await loadSnap(res.snap);
+        } catch {
+          toast.error("Gagal memuat halaman pembayaran. Periksa koneksimu lalu coba lagi.");
           setPaymentState("idle");
           return;
         }
@@ -55,7 +62,7 @@ export default function DetailPaketPage() {
         currentOrderId.current = res.data.id;
         paymentCompleted.current = false;
 
-        window.snap.pay(snapToken, {
+        snap.pay(snapToken, {
           onSuccess: () => {
             paymentCompleted.current = true;
             if (currentOrderId.current) {

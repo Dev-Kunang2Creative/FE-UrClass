@@ -62,4 +62,15 @@ export interface CreateOrderResponse {
   message: string;
   data: OrderBE;
   snap_token: string;
+  /**
+   * Lingkungan Snap yang menerbitkan token di atas, dari backend.
+   *
+   * Opsional supaya frontend baru tetap jalan di atas backend yang belum
+   * mengirimnya - saat itu terjadi, loadSnap jatuh kembali ke variabel
+   * NEXT_PUBLIC_ seperti perilaku lama.
+   */
+  snap?: {
+    is_production: boolean;
+    client_key: string;
+  };
 }
