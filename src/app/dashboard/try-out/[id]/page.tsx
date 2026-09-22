@@ -3,7 +3,7 @@
 import { useState, use } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, FileText, Clock, Ticket, Upload, X, ExternalLink, Calendar, Users, Radio, ListChecks, Gauge, Shuffle } from "lucide-react";
+import { ChevronLeft, FileText, Clock, Ticket, Calendar, Users, Radio, ListChecks, Gauge, Shuffle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,8 +15,6 @@ import {
   wrongTrackFrom,
 } from "@/http/tryout/get-user-tryout-detail";
 import { useGetHistoryTryout } from "@/http/tryout/get-history-tryout";
-import { useGetProofRequirements } from "@/http/proof-requirements/proof-requirements";
-import { proofIconOf } from "@/lib/proof-icons";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/get-error-message";
 import { getTryoutButtonState, TRYOUT_BUTTON_CLASS } from "@/utils/tryout-button-state";
@@ -46,8 +44,6 @@ export default function TryoutDetailPage({
   // Bukti disimpan per id syarat, bukan sebagai array berurutan: slotnya bisa
   // diisi dalam urutan apa pun, dan yang dikirim ke server harus tetap tahu
   // gambar mana menjawab syarat mana.
-  const [proofFiles, setProofFiles] = useState<Record<string, File>>({});
-  const [proofPreviews, setProofPreviews] = useState<Record<string, string>>({});
 
   const {
     data: tryoutDetail,
@@ -63,8 +59,6 @@ export default function TryoutDetailPage({
 
   // Satu slot unggahan untuk satu syarat. Server memvalidasi dengan daftar yang
   // sama, jadi tombol daftar tidak boleh aktif sebelum semua slot terisi.
-  const { data: proofData } = useGetProofRequirements({ token });
-  const proofRequirements = proofData?.data ?? [];
   const tryout = tryoutDetail?.data;
   const schedule = useSchedule(
     tryout?.start_date ? String(tryout.start_date) : null,
@@ -117,9 +111,7 @@ export default function TryoutDetailPage({
     options: {
       onSuccess: () => {
         setShowEnrollDialog(false);
-        setProofFiles({});
-        setProofPreviews({});
-        toast.success(isFree ? "Berhasil mendaftar tryout!" : "Tiket berhasil digunakan! Kamu terdaftar untuk tryout ini.");
+        toast.success("Tiket berhasil digunakan! Kamu terdaftar untuk tryout ini.");
         updateSession();
         queryClient.invalidateQueries({ queryKey: ["get-user-tryouts"] });
         queryClient.invalidateQueries({ queryKey: ["get-user-tryout-detail", tryoutId] });
@@ -133,66 +125,12 @@ export default function TryoutDetailPage({
     },
   });
 
+  // Dialog ini tinggal melayani jalur tiket; pendaftaran gratis beserta
+  // unggahan syaratnya pindah ke halaman /daftar.
   const handleEnroll = () => {
-    enrollMutation.mutate({
-      tryoutId,
-      proofs: isFree ? proofFiles : undefined,
-    });
+    enrollMutation.mutate({ tryoutId });
   };
 
-  const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-  const MAX_FILE_SIZE_MB = 2;
-
-  // Semua syarat aktif harus terisi. Aturannya sama di server, jadi tombol
-  // daftar dikunci sampai terpenuhi daripada membiarkan peserta mengirim lalu
-  // menerima 422.
-  const missingProofs = proofRequirements.filter((item) => !proofFiles[item.id]);
-  const proofsComplete = proofRequirements.length > 0 && missingProofs.length === 0;
-
-  const handleProofChange = (
-    requirementId: string,
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error("Format gambar tidak didukung. Gunakan JPG, PNG, atau WebP.");
-      return;
-    }
-
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      toast.error(`Ukuran gambar melebihi batas ${MAX_FILE_SIZE_MB}MB.`);
-      return;
-    }
-
-    // Satu slot menampung satu gambar: memilih ulang menggantikan yang lama,
-    // bukan menumpuk. Itu yang diharapkan dari slot berlabel.
-    setProofFiles((current) => ({ ...current, [requirementId]: file }));
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProofPreviews((current) => ({
-        ...current,
-        [requirementId]: reader.result as string,
-      }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const removeProof = (requirementId: string) => {
-    setProofFiles((current) => {
-      const next = { ...current };
-      delete next[requirementId];
-      return next;
-    });
-    setProofPreviews((current) => {
-      const next = { ...current };
-      delete next[requirementId];
-      return next;
-    });
-  };
 
   if (sessionStatus === "loading" || isLoading || historyLoading) {
     return (
@@ -452,7 +390,13 @@ export default function TryoutDetailPage({
               )
             ) : (
               <button
-                onClick={() => setShowEnrollDialog(true)}
+                onClick={() =>
+                  // Pendaftaran gratis punya halamannya sendiri: syaratnya
+                  // bisa bertambah dan isinya tidak muat di dalam modal.
+                  isFree
+                    ? router.push(`/dashboard/try-out/${tryoutId}/daftar`)
+                    : setShowEnrollDialog(true)
+                }
                 className="w-full rounded-xl border-2 border-slate-900 bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-[0_4px_0_0_#0f172a] transition-all hover:brightness-95 active:translate-y-1 active:shadow-none"
               >
                 {isFree ? "Daftar Tryout (Gratis)" : "Daftar Tryout (1 Tiket)"}
@@ -576,136 +520,21 @@ export default function TryoutDetailPage({
         <DialogContent showCloseButton={false} className="sm:max-w-md p-0 rounded-2xl overflow-hidden">
           <div className="bg-primary p-6 text-white text-center">
             <DialogTitle className="text-xl font-bold text-white">
-              {isFree ? "Daftar Tryout Gratis" : "Gunakan Tiket"}
+              Gunakan Tiket
             </DialogTitle>
             <DialogDescription className="text-white/80 text-sm mt-1">
-              {isFree
-                ? "Penuhi syarat berikut untuk mendaftar"
-                : `Kamu akan menggunakan 1 tiket. Sisa tiket: ${ticketCount}`
-              }
+              {`Kamu akan menggunakan 1 tiket. Sisa tiket: ${ticketCount}`}
             </DialogDescription>
           </div>
 
           <div className="p-6 space-y-5">
-            {isFree ? (
-              <>
-                <div className="space-y-3">
-                  {/* Slot, judul, dan instruksinya seluruhnya dari server -
-                      tidak ada yang ditulis di sini. Server memvalidasi dengan
-                      daftar yang sama, jadi teks yang ditulis tangan pasti akan
-                      menyimpang begitu syaratnya diubah admin. */}
-                  <div>
-                    <label className="font-semibold text-gray-800 text-sm block">
-                      Syarat pendaftaran
-                    </label>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {proofRequirements.length > 0
-                        ? `Penuhi ${proofRequirements.length} syarat berikut, lalu unggah tangkapan layarnya di masing-masing slot.`
-                        : "Memuat syarat pendaftaran..."}
-                    </p>
-                  </div>
-
-                  {proofRequirements.map((requirement, index) => {
-                    const { Icon, className } = proofIconOf(requirement.icon);
-                    const preview = proofPreviews[requirement.id];
-
-                    return (
-                      <div
-                        key={requirement.id}
-                        className={`rounded-xl border-2 p-3 transition-colors ${
-                          preview
-                            ? "border-green-400 bg-green-50/50"
-                            : "border-gray-200 bg-white"
-                        }`}
-                      >
-                        <div className="flex items-start gap-2.5">
-                          <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-600">
-                            {index + 1}
-                          </span>
-
-                          <div className="min-w-0 flex-1 space-y-1">
-                            <p className="flex items-center gap-1.5 text-sm font-semibold text-gray-800">
-                              <Icon className={`size-4 shrink-0 ${className}`} />
-                              <span className="min-w-0">{requirement.title}</span>
-                            </p>
-
-                            {requirement.instruction && (
-                              <p className="text-xs leading-relaxed text-gray-500">
-                                {requirement.instruction}
-                              </p>
-                            )}
-
-                            {requirement.link_url && (
-                              <a
-                                href={requirement.link_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-pink-200 bg-pink-50 px-2.5 py-1 text-xs font-semibold text-pink-700 transition-colors hover:bg-pink-100"
-                              >
-                                {requirement.link_label || "Buka tautan"}
-                                <ExternalLink className="size-3 shrink-0" />
-                              </a>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="mt-2.5">
-                          {preview ? (
-                            <div className="relative overflow-hidden rounded-lg border border-green-300">
-                              <img
-                                src={preview}
-                                alt={`Bukti untuk ${requirement.title}`}
-                                className="h-28 w-full object-cover"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeProof(requirement.id)}
-                                className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-red-500 text-white transition-colors hover:bg-red-600"
-                                aria-label={`Hapus bukti untuk ${requirement.title}`}
-                              >
-                                <X className="size-3.5" />
-                              </button>
-                            </div>
-                          ) : (
-                            <label className="flex h-20 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition-colors hover:border-primary hover:bg-gray-50">
-                              <Upload className="mb-1 size-5 text-gray-400" />
-                              <span className="text-xs font-medium text-gray-500">
-                                Unggah tangkapan layar
-                              </span>
-                              <span className="mt-0.5 text-[11px] text-gray-400">
-                                JPG, PNG, WebP — maks 2MB
-                              </span>
-                              <input
-                                type="file"
-                                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                                className="hidden"
-                                onChange={(event) => handleProofChange(requirement.id, event)}
-                              />
-                            </label>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Menyebut syarat mana yang belum, bukan hanya "belum
-                      lengkap": dengan tiga slot, peserta perlu tahu yang mana. */}
-                  {proofRequirements.length > 0 && missingProofs.length > 0 && (
-                    <p className="text-xs text-amber-700">
-                      Belum diunggah: {missingProofs.map((item) => item.title).join(", ")}.
-                    </p>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
-                <Ticket className="w-6 h-6 text-amber-600 shrink-0" />
-                <div>
-                  <p className="font-semibold text-gray-800 text-sm">1 Tiket akan digunakan</p>
-                  <p className="text-xs text-gray-500">Sisa tiket kamu: <strong>{ticketCount}</strong></p>
-                </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+              <Ticket className="w-6 h-6 text-amber-600 shrink-0" />
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">1 Tiket akan digunakan</p>
+                <p className="text-xs text-gray-500">Sisa tiket kamu: <strong>{ticketCount}</strong></p>
               </div>
-            )}
+            </div>
 
             <div className="flex gap-3">
               <button
@@ -716,20 +545,14 @@ export default function TryoutDetailPage({
               </button>
               <button
                 onClick={handleEnroll}
-                disabled={
-                  enrollMutation.isPending || 
-                  (isFree && !proofsComplete) || 
-                  (!isFree && (ticketCount || 0) < 1)
-                }
+                disabled={enrollMutation.isPending || (ticketCount || 0) < 1}
                 className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
               >
-                {enrollMutation.isPending 
-                  ? "Memproses..." 
-                  : isFree 
-                    ? "Daftar Sekarang" 
-                    : (!isFree && (ticketCount || 0) < 1)
-                      ? "Tiket Tidak Cukup"
-                      : "Gunakan Tiket"}
+                {enrollMutation.isPending
+                  ? "Memproses..."
+                  : (ticketCount || 0) < 1
+                    ? "Tiket Tidak Cukup"
+                    : "Gunakan Tiket"}
               </button>
             </div>
           </div>
