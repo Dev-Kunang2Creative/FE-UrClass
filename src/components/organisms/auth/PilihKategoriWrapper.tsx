@@ -9,12 +9,23 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import Mascot from "@/components/atoms/mascot/Mascot";
+import { useGetTrackCards } from "@/http/track-cards/get-track-cards";
 
 type KategoriId = Kategori;
 
+/**
+ * Bagian kartu yang tidak dikelola admin: ikon, warna, dan teks cadangan.
+ *
+ * Teksnya datang dari `GET /api/track-cards` supaya bisa diubah dari panel
+ * admin. Nilai di sini tetap ada sebagai yang tampil selagi permintaan itu
+ * berjalan - isinya sama persis dengan bawaan di server, jadi peserta tidak
+ * melihat kartu kosong lalu berkedip berganti isi.
+ */
 const CATEGORY_ITEMS: Array<{
   id: KategoriId;
   title: string;
+  /** Teks tombol. Terpisah dari judul, yang terlalu panjang untuk satu tombol. */
+  cta: string;
   badge: string;
   badgeClass: string;
   description: string;
@@ -28,7 +39,8 @@ const CATEGORY_ITEMS: Array<{
   {
     id: "utbk",
     title: "Tryout UTBK - SNBT",
-    badge: "JALUR PTN & GAP YEAR",
+    cta: "Masuk ke Tryout UTBK",
+    badge: "PTN & GAP YEAR",
     badgeClass: "bg-blue-100 text-blue-800 border-blue-300",
     description: "Fokus latihan TPS, Literasi Bahasa Indonesia, Bahasa Inggris, dan Penalaran Matematika.",
     features: [
@@ -44,10 +56,14 @@ const CATEGORY_ITEMS: Array<{
   },
   {
     id: "cpns",
-    title: "Tryout CPNS - SKD",
-    badge: "JALUR ASN & KEDINASAN",
+    // Satu jalur, dua tujuan. Menyebut CPNS saja membuat calon peserta sekolah
+    // kedinasan mengira jalur ini bukan untuk mereka, padahal SKD yang
+    // dilatihkan sama persis dan sub-jalurnya memang dipilih di profil.
+    title: "Tryout Sekolah Kedinasan & CPNS",
+    cta: "Masuk ke Tryout Kedinasan & CPNS",
+    badge: "KEDINASAN & ASN",
     badgeClass: "bg-orange-100 text-orange-900 border-orange-300",
-    description: "Fokus latihan CAT SKD meliputi TWK, TIU, dan TKP dengan sistem bobot nilai akurat.",
+    description: "Fokus latihan CAT SKD - TWK, TIU, dan TKP - untuk seleksi sekolah kedinasan maupun CPNS umum, dengan sistem bobot nilai akurat.",
     features: [
       "Simulasi CAT BKN realistis",
       "Sistem penilaian bobot TKP 1-5",
@@ -65,6 +81,14 @@ export default function PilihKategoriWrapper() {
   const router = useRouter();
   const { data: session, status, update } = useSession();
   const [loadingCategory, setLoadingCategory] = useState<KategoriId | null>(null);
+
+  // Teks dari server ditimpakan di atas cadangannya; ikon dan warnanya tetap
+  // dari kode, karena itu bagian sistem desain, bukan isi yang dikelola admin.
+  const { data: kartuServer } = useGetTrackCards();
+  const items = CATEGORY_ITEMS.map((item) => {
+    const dariServer = kartuServer?.find((kartu) => kartu.kategori === item.id);
+    return dariServer ? { ...item, ...dariServer } : item;
+  });
 
   const handlePilih = async (id: KategoriId) => {
     if (!session?.access_token) return;
@@ -118,7 +142,7 @@ export default function PilihKategoriWrapper() {
 
         {/* 2 Category Selection Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {CATEGORY_ITEMS.map((item) => {
+          {items.map((item) => {
             const Icon = item.icon;
             const isLoading = loadingCategory === item.id;
 
@@ -172,7 +196,7 @@ export default function PilihKategoriWrapper() {
                       </>
                     ) : (
                       <>
-                        <span>Masuk ke {item.title}</span>
+                        <span>{item.cta}</span>
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}

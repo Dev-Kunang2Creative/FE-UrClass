@@ -34,6 +34,17 @@ import {
 } from "@/http/reference/get-sekolah";
 import { useKategori } from "@/hooks/useKategori";
 import { PROVINCES, citiesOf, cityBelongsTo } from "@/lib/wilayah";
+import {
+  KELAS_SMA,
+  bacaJenjangTersimpan,
+  butuhJurusan,
+  butuhKelas,
+  jenjangOptions,
+} from "@/lib/jenjang";
+import {
+  bagianSetelahKodeNegara,
+  keBentukInternasional,
+} from "@/lib/input-rules";
 
 interface FormCompleteProfileProps {
   onSuccess: () => void;
@@ -52,6 +63,7 @@ const SERVER_FIELDS: FieldPath<UpdateProfileType>[] = [
   "phone_number",
   "school_origin",
   "grade_level",
+  "education_major",
   "birth_date",
   "gender",
   "province",
@@ -131,8 +143,21 @@ export default function FormCompleteProfile({
    * menuju instansi dan formasi. Meminta keduanya berarti meminta salah satu
    * diisi asal-asalan, jadi yang muncul hanya yang dipilih.
    */
+  /**
+   * Sub-jalur CPNS yang berlaku saat form dibuka.
+   *
+   * Kalau kolomnya kosong, sub-jalurnya disimpulkan dari target yang sudah
+   * terisi: instansi hanya pernah diisi pelamar CPNS umum. Tanpa ini, kolom
+   * kosong jatuh ke "kedinasan" dan menyembunyikan bagian instansi - sehingga
+   * peserta melihat instansi yang sudah diisinya lenyap, padahal masih utuh
+   * tersimpan. Itu pernah terjadi pada akun yang pindah jalur bolak-balik, dan
+   * penyimpulan di sini memulihkannya tanpa perlu menyentuh datanya.
+   */
   const initialCpnsTarget: CpnsTargetType =
-    session?.user?.cpns_target_type === "umum" ? "umum" : "kedinasan";
+    session?.user?.cpns_target_type === "umum" ||
+    (!session?.user?.cpns_target_type && !!session?.user?.target_instansi_1)
+      ? "umum"
+      : "kedinasan";
 
   const [cpnsTarget, setCpnsTarget] = useState<CpnsTargetType>(initialCpnsTarget);
 
@@ -177,12 +202,15 @@ export default function FormCompleteProfile({
     resolver: zodResolver(schema),
     defaultValues: {
       name: session?.user?.name || "",
-      phone_number: session?.user?.phone_number || "",
-      grade_level:
-        session?.user?.grade_level === "Gap Year" ? "Gap Year" : "SMA/SMK",
-      class_level: session?.user?.grade_level?.includes("Kelas ")
-        ? `Kelas ${session?.user?.grade_level?.split("Kelas ")[1]}`
-        : "Kelas 12",
+      // Nomor lama tersimpan sebagai "08..."; dibakukan saat dimuat supaya
+      // membuka form lalu menyimpannya tidak berubah jadi galat validasi.
+      phone_number: keBentukInternasional(session?.user?.phone_number),
+      // Kolomnya menampung "SMA/SMK Kelas 12" sebagai satu string, jadi
+      // dipisahkan lagi di sini - sekaligus memetakan "Gap Year" milik akun
+      // CPNS lama ke istilah yang dipakai jalur itu sekarang.
+      grade_level: bacaJenjangTersimpan(session?.user?.grade_level, kategori).jenjang,
+      class_level: bacaJenjangTersimpan(session?.user?.grade_level, kategori).kelas,
+      education_major: session?.user?.education_major || "",
       school_origin: session?.user?.school_origin || "",
       gender: session?.user?.gender === "P" ? "P" : "L",
       birth_date: session?.user?.birth_date?.slice(0, 10) || "",
@@ -193,7 +221,8 @@ export default function FormCompleteProfile({
       target_university_2: session?.user?.target_university_2 || "",
       target_major_2: session?.user?.target_major_2 || "",
       cpns_target_type:
-        session?.user?.cpns_target_type || (isCpns && !isAdmin ? initialCpnsTarget : undefined),
+        session?.user?.cpns_target_type ||
+        (isCpns && !isAdmin ? initialCpnsTarget : undefined),
       target_instansi_1: session?.user?.target_instansi_1 || "",
       target_formasi_1: session?.user?.target_formasi_1 || "",
       target_instansi_2: session?.user?.target_instansi_2 || "",
@@ -214,11 +243,8 @@ export default function FormCompleteProfile({
   const [uniId1, setUniId1] = useState<string | null>(null);
   const [uniId2, setUniId2] = useState<string | null>(null);
   const [instansiSearch1, setInstansiSearch1] = useState("");
-  const [instansiSearch2, setInstansiSearch2] = useState("");
   const [formasiSearch1, setFormasiSearch1] = useState("");
-  const [formasiSearch2, setFormasiSearch2] = useState("");
   const [instansiId1, setInstansiId1] = useState<string | null>(null);
-  const [instansiId2, setInstansiId2] = useState<string | null>(null);
 
   const schools = useSearchSekolah({ search: schoolSearch });
 
@@ -227,22 +253,11 @@ export default function FormCompleteProfile({
     token,
     enabled: showFormasiTargets,
   });
-  const instansi2 = useSearchInstansi({
-    search: instansiSearch2,
-    token,
-    enabled: showFormasiTargets,
-  });
   // Instansi belum dipilih berarti mencari lintas instansi, supaya peserta yang
   // hanya tahu nama jabatannya tetap bisa mulai dari sana.
   const formasi1 = useFormasi({
     instansiId: instansiId1,
     search: formasiSearch1,
-    token,
-    enabled: showFormasiTargets && formasiOpen,
-  });
-  const formasi2 = useFormasi({
-    instansiId: instansiId2,
-    search: formasiSearch2,
     token,
     enabled: showFormasiTargets && formasiOpen,
   });
@@ -295,8 +310,11 @@ export default function FormCompleteProfile({
     (list ?? []).map((item) => ({
       id: item.id,
       label: item.nama,
+      // Sekolah kedinasan tidak memakai program studi di UrClass, dan
+      // barisnya selalu berbunyi "0 program studi" - angka yang tidak
+      // menjelaskan apa pun dan hanya menyita satu baris tiap pilihan.
       hint:
-        item.program_studi_count != null
+        !isCpns && item.program_studi_count != null
           ? `${item.program_studi_count} program studi`
           : undefined,
     }));
@@ -343,6 +361,14 @@ export default function FormCompleteProfile({
       const payload: UpdateProfileType = {
         ...body,
         ...(isCpns && !isAdmin ? { cpns_target_type: cpnsTarget } : {}),
+        // Jalur CPNS tidak punya kolom program studi lagi. Nilai lama masih
+        // bisa terbawa dari masa peserta ini berjalur UTBK, jadi dikosongkan
+        // di sini - kalau tidak, ia tersimpan diam-diam tanpa pernah terlihat
+        // di layar mana pun.
+        ...(isCpns ? { target_major_1: "", target_major_2: "" } : {}),
+        // Instansi dan formasi hanya satu sekarang; nilai slot kedua bisa
+        // terbawa dari isian sebelumnya dan tidak punya kolom lagi di layar.
+        ...(isCpns ? { target_instansi_2: "", target_formasi_2: "" } : {}),
       };
       await updateProfileApiHandler(session.access_token, payload);
 
@@ -390,7 +416,7 @@ export default function FormCompleteProfile({
     }
   };
 
-  const isGapYear = form.watch("grade_level") === "Gap Year";
+  const jenjangDipilih = form.watch("grade_level") ?? "";
 
   return (
     <form className="space-y-7" onSubmit={form.handleSubmit(onSubmit)}>
@@ -431,12 +457,29 @@ export default function FormCompleteProfile({
                   <FieldLabel htmlFor="phone_number">
                     Nomor HP <Required />
                   </FieldLabel>
-                  <Input
-                    {...field}
-                    id="phone_number"
-                    inputMode="tel"
-                    placeholder="08xxxxxxxxxx"
-                  />
+                  {/* Prefiks +62 ditampilkan sebagai bagian kolom, bukan
+                      sesuatu yang harus diketik peserta. Nilai yang disimpan
+                      form tetap bentuk baku "+62...", jadi validator dan server
+                      melihat hal yang sama dengan yang terlihat di layar. */}
+                  <div className="flex items-stretch">
+                    <span className="flex select-none items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground">
+                      +62
+                    </span>
+                    <Input
+                      id="phone_number"
+                      inputMode="numeric"
+                      autoComplete="tel-national"
+                      className="rounded-l-none"
+                      placeholder="81234567890"
+                      name={field.name}
+                      ref={field.ref}
+                      onBlur={field.onBlur}
+                      value={bagianSetelahKodeNegara(field.value)}
+                      onChange={(event) =>
+                        field.onChange(keBentukInternasional(event.target.value))
+                      }
+                    />
+                  </div>
                   {fieldState.error && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
@@ -573,8 +616,12 @@ export default function FormCompleteProfile({
                   <FieldLabel>
                     Jenjang <Required />
                   </FieldLabel>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["SMA/SMK", "Gap Year"].map((level) => (
+                  {/* Daftarnya berbeda menurut jalur: UTBK memakai "Gap Year",
+                      CPNS memakai "Lulusan SMA/SMK" plus jenjang pendidikan
+                      tinggi - di jalur itu pesertanya bisa saja wisudawan, dan
+                      wisudawan bukan gap year. */}
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {jenjangOptions(kategori).map((level) => (
                       <label
                         key={level}
                         className={`flex cursor-pointer items-center justify-center rounded-xl border-2 py-2 text-sm transition-colors ${
@@ -589,12 +636,19 @@ export default function FormCompleteProfile({
                           value={level}
                           className="hidden"
                           onChange={(e) => {
+                            const dipilih = e.target.value;
                             field.onChange(e);
-                            if (e.target.value === "Gap Year") {
+
+                            if (butuhKelas(dipilih)) {
+                              form.setValue("class_level", "Kelas 12");
+                            } else {
                               form.setValue("class_level", "");
                               form.clearErrors("class_level");
-                            } else {
-                              form.setValue("class_level", "Kelas 12");
+                            }
+
+                            if (!butuhJurusan(dipilih)) {
+                              form.setValue("education_major", "");
+                              form.clearErrors("education_major");
                             }
                           }}
                           checked={field.value === level}
@@ -608,7 +662,7 @@ export default function FormCompleteProfile({
               )}
             />
 
-            {!isGapYear && (
+            {butuhKelas(jenjangDipilih) && (
               <Controller
                 control={form.control}
                 name="class_level"
@@ -618,7 +672,7 @@ export default function FormCompleteProfile({
                       Kelas <Required />
                     </FieldLabel>
                     <div className="grid grid-cols-3 gap-2">
-                      {["Kelas 10", "Kelas 11", "Kelas 12"].map((kls) => (
+                      {KELAS_SMA.map((kls) => (
                         <label
                           key={kls}
                           className={`flex cursor-pointer items-center justify-center rounded-xl border-2 py-2 text-sm transition-colors ${
@@ -645,13 +699,40 @@ export default function FormCompleteProfile({
               />
             )}
 
+            {/* Jurusan hanya untuk jenjang pendidikan tinggi. Wisudawan yang
+                melamar CPNS umum tidak punya kelas - yang relevan justru
+                jenjang terakhir beserta jurusannya. */}
+            {butuhJurusan(jenjangDipilih) && (
+              <Controller
+                control={form.control}
+                name="education_major"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="education_major">
+                      Jurusan / Program studi <Required />
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="education_major"
+                      value={field.value ?? ""}
+                      placeholder={`Contoh: Akuntansi, Ilmu Hukum`}
+                    />
+                    {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            )}
+
             <Controller
               control={form.control}
               name="school_origin"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid} className="md:col-span-2">
                   <FieldLabel>
-                    Asal sekolah <Required />
+                    {/* Wisudawan mengisi kampusnya di kolom yang sama - labelnya
+                        ikut menyesuaikan supaya tidak terasa salah tempat. */}
+                    {butuhJurusan(jenjangDipilih) ? "Asal kampus" : "Asal sekolah"}{" "}
+                    <Required />
                   </FieldLabel>
                   <ReferenceCombobox
                     value={field.value || ""}
@@ -797,14 +878,17 @@ export default function FormCompleteProfile({
                 )}
               />
 
+              {/* Program studi hanya ada di jalur UTBK. Sekolah kedinasan
+                  didaftar sebagai satu pilihan utuh, jadi kolom jurusan di
+                  sini cuma ruang kosong yang harus dilewati peserta. */}
+              {!isCpns && (
               <Controller
                 control={form.control}
                 name="target_major_1"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      {isCpns ? "Program studi pilihan 1 (opsional)" : "Jurusan pilihan 1"}{" "}
-                      {!isCpns && <Required />}
+                      Jurusan pilihan 1 <Required />
                     </FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}
@@ -826,9 +910,10 @@ export default function FormCompleteProfile({
                   </Field>
                 )}
               />
+              )}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className={`grid grid-cols-1 gap-4 ${isCpns ? "" : "md:grid-cols-2"}`}>
               <Controller
                 control={form.control}
                 name="target_university_2"
@@ -856,14 +941,13 @@ export default function FormCompleteProfile({
                 )}
               />
 
+              {!isCpns && (
               <Controller
                 control={form.control}
                 name="target_major_2"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>
-                      {isCpns ? "Program studi pilihan 2 (opsional)" : "Jurusan pilihan 2"}
-                    </FieldLabel>
+                    <FieldLabel>Jurusan pilihan 2</FieldLabel>
                     <ReferenceCombobox
                       value={field.value ?? ""}
                       onChange={(label) => field.onChange(label)}
@@ -884,6 +968,7 @@ export default function FormCompleteProfile({
                   </Field>
                 )}
               />
+              )}
             </div>
           </div>
         </Section>
@@ -921,10 +1006,13 @@ export default function FormCompleteProfile({
                 </div>
               </div>
             )}
+            {/* Satu instansi saja. Pelamar CPNS mendaftar ke satu formasi di
+                satu instansi - slot kedua meniru pola "pilihan 1 dan 2" milik
+                UTBK, tempat memang ada dua pilihan, dan di sini hanya membuat
+                peserta mengira boleh melamar dua-duanya. */}
             {(
               [
                 {
-                  slot: 1 as const,
                   instansiName: "target_instansi_1" as const,
                   formasiName: "target_formasi_1" as const,
                   instansi: instansi1,
@@ -932,23 +1020,11 @@ export default function FormCompleteProfile({
                   setInstansiSearch: setInstansiSearch1,
                   setFormasiSearch: setFormasiSearch1,
                   setInstansiId: setInstansiId1,
-                  required: true,
-                },
-                {
-                  slot: 2 as const,
-                  instansiName: "target_instansi_2" as const,
-                  formasiName: "target_formasi_2" as const,
-                  instansi: instansi2,
-                  formasi: formasi2,
-                  setInstansiSearch: setInstansiSearch2,
-                  setFormasiSearch: setFormasiSearch2,
-                  setInstansiId: setInstansiId2,
-                  required: false,
                 },
               ]
             ).map((row) => (
               <div
-                key={row.slot}
+                key={row.instansiName}
                 className={
                   formasiOpen
                     ? "grid grid-cols-1 gap-4 md:grid-cols-2"
@@ -961,7 +1037,7 @@ export default function FormCompleteProfile({
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>
-                        Instansi pilihan {row.slot} {row.required && <Required />}
+                        Instansi tujuan <Required />
                       </FieldLabel>
                       <ReferenceCombobox
                         value={field.value || ""}
@@ -997,7 +1073,7 @@ export default function FormCompleteProfile({
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>
-                        Formasi pilihan {row.slot} {row.required && <Required />}
+                        Formasi tujuan <Required />
                       </FieldLabel>
                       <ReferenceCombobox
                         value={field.value || ""}

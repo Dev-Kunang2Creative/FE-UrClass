@@ -99,11 +99,18 @@ export default function ReferenceCombobox({
       </PopoverTrigger>
 
       <PopoverContent
-        // w-(--var), bukan w-[--var]: bentuk kurung siku adalah sintaks
-        // Tailwind v3, dan di v4 ia terkompilasi jadi
+        // min-w-(--var), bukan w-(--var): lebarnya mengikuti pemicu sebagai
+        // batas bawah, lalu boleh melebar sampai isinya muat. Saat kolom ini
+        // berada di kisi dua kolom pada layar laptop, pemicunya sempit - dan
+        // dengan lebar yang dikunci ke sana, nama seperti "Politeknik Keuangan
+        // Negara STAN" terpotong jadi "Politeknik Keuangan Negara…", persis di
+        // bagian yang membedakannya dari kampus lain.
+        //
+        // Tanda kurung biasa, bukan kurung siku: bentuk kurung siku adalah
+        // sintaks Tailwind v3, dan di v4 ia terkompilasi jadi
         // `width:--radix-popover-trigger-width` - tanpa var(), jadi nilainya
         // tidak sah dan popover-nya tidak pernah selebar pemicunya.
-        className="w-(--radix-popover-trigger-width) p-0"
+        className="min-w-(--radix-popover-trigger-width) w-auto max-w-[min(92vw,32rem)] p-0"
         align="start"
       >
         <Command shouldFilter={false}>
@@ -131,16 +138,24 @@ export default function ReferenceCombobox({
                         key={option.id}
                         value={option.id}
                         onSelect={() => commit(option.label, option)}
+                        // items-start supaya tanda centang sejajar baris
+                        // pertama nama, bukan melayang di tengah entri dua baris.
+                        className="items-start py-2"
                       >
                         <Check
-                          className={`mr-2 size-4 ${
+                          className={`mt-0.5 mr-2 size-4 ${
                             value === option.label ? "opacity-100" : "opacity-0"
                           }`}
                         />
+                        {/* Dibiarkan membungkus, bukan dipotong: daftar ini
+                            justru dibaca untuk membedakan satu nama panjang
+                            dari nama panjang lain yang awalannya sama. */}
                         <span className="flex min-w-0 flex-col">
-                          <span className="truncate">{option.label}</span>
+                          <span className="whitespace-normal break-words">
+                            {option.label}
+                          </span>
                           {option.hint && (
-                            <span className="truncate text-xs text-muted-foreground">
+                            <span className="whitespace-normal break-words text-xs text-muted-foreground">
                               {option.hint}
                             </span>
                           )}

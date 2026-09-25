@@ -1,4 +1,13 @@
 import { z } from "zod";
+import {
+  NAMA_MAKS,
+  NAMA_PESAN,
+  NAMA_REGEX,
+  TEKS_PENDEK_REGEX,
+  TELEPON_PESAN,
+  TELEPON_REGEX,
+} from "../../lib/input-rules.ts";
+import { butuhJurusan, butuhKelas } from "../../lib/jenjang.ts";
 
 /**
  * Mirrors what the backend actually enforces.
@@ -57,16 +66,28 @@ export function makeUpdateProfileSchema(
 
   return z
     .object({
-      name: z.string().min(1, "Nama lengkap harus diisi"),
+      name: z
+        .string()
+        .min(1, "Nama lengkap harus diisi")
+        .max(NAMA_MAKS, `Nama maksimal ${NAMA_MAKS} karakter`)
+        .regex(NAMA_REGEX, NAMA_PESAN),
+      // Nilainya sudah dalam bentuk baku "+62..." - kolomnya menormalkan apa
+      // pun yang diketik sebelum sampai ke sini.
       phone_number: isAdmin
         ? z.string().optional()
-        : z
-            .string()
-            .min(10, "Nomor HP minimal 10 angka")
-            .regex(/^[0-9+\-\s]+$/, "Nomor HP hanya boleh angka, +, - dan spasi"),
+        : z.string().min(1, "Nomor HP harus diisi").regex(TELEPON_REGEX, TELEPON_PESAN),
       grade_level: requiredForStudent(z.string(), "Jenjang harus dipilih"),
       class_level: z.string().optional(),
-      school_origin: requiredForStudent(z.string(), "Asal sekolah harus diisi"),
+      /** Jurusan pendidikan terakhir; hanya dipakai jenjang pendidikan tinggi. */
+      education_major: z
+        .string()
+        .regex(TEKS_PENDEK_REGEX, "Jurusan mengandung karakter yang tidak diperbolehkan")
+        .optional()
+        .or(z.literal("")),
+      school_origin: requiredForStudent(
+        z.string().regex(TEKS_PENDEK_REGEX, "Asal sekolah mengandung karakter yang tidak diperbolehkan"),
+        "Asal sekolah harus diisi",
+      ),
       gender: isAdmin
         ? z.enum(["L", "P"]).optional()
         : z.enum(["L", "P"], { message: "Jenis kelamin harus dipilih" }),
@@ -98,9 +119,16 @@ export function makeUpdateProfileSchema(
       target_instansi_2: z.string().optional(),
       target_formasi_2: z.string().optional(),
     })
+    // Kelas hanya untuk siswa SMA aktif; jurusan hanya untuk jenjang pendidikan
+    // tinggi. Keduanya diturunkan dari jenjang yang dipilih, bukan ditanyakan
+    // terpisah - dan aturannya sama persis dengan yang dijalankan server.
     .refine(
-      (data) => isAdmin || data.grade_level === "Gap Year" || !!data.class_level,
+      (data) => isAdmin || !butuhKelas(data.grade_level) || !!data.class_level,
       { message: "Kelas harus dipilih", path: ["class_level"] },
+    )
+    .refine(
+      (data) => isAdmin || !butuhJurusan(data.grade_level) || !!data.education_major,
+      { message: "Jurusan pendidikan terakhir harus diisi", path: ["education_major"] },
     );
 }
 

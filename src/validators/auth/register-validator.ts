@@ -1,8 +1,14 @@
 import { z } from "zod";
+import { NAMA_MAKS, NAMA_PESAN, NAMA_REGEX } from "@/lib/input-rules";
 
 export const registerSchema = z
   .object({
-    name: z.string().min(1, { message: "Nama wajib diisi" }).trim(),
+    name: z
+      .string()
+      .trim()
+      .min(1, { message: "Nama wajib diisi" })
+      .max(NAMA_MAKS, { message: `Nama maksimal ${NAMA_MAKS} karakter` })
+      .regex(NAMA_REGEX, { message: NAMA_PESAN }),
     email: z
       .string()
       .min(1, { message: "Email wajib diisi" })

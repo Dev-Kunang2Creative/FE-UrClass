@@ -40,7 +40,7 @@ const INFO_CARDS: { src: string; alt: string; href: string }[] = [
   },
   {
     src: "/images/carousel/slide-4.webp",
-    alt: "Tryout CPNS - siap sekarang, lolos sekarang",
+    alt: "Tryout sekolah kedinasan & CPNS - siap sekarang, lolos sekarang",
     href: "/dashboard/try-out",
   },
   {

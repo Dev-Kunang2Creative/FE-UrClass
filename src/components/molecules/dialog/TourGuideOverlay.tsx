@@ -68,7 +68,9 @@ export default function TourGuideOverlay() {
     {
       targetId: "hero-track-banner",
       title: `Mode Belajar Aktif: ${config.label}`,
-      description: `Halo! Kamu sedang berada di Mode Belajar ${config.label} (${config.full}). Seluruh latihan, tryout bertimer, dan analitik nilai menyesuaikan jalur ini.`,
+      // Tanpa kurung pengulangnya: sejak label memuat nama jalur selengkapnya,
+      // "Kedinasan & CPNS (Sekolah Kedinasan & CPNS - SKD)" jadi mengulang diri.
+      description: `Halo! Kamu sedang berada di Mode Belajar ${config.full}. Seluruh latihan, tryout bertimer, dan analitik nilai menyesuaikan jalur ini.`,
     },
     {
       targetId: "sidebar-nav",

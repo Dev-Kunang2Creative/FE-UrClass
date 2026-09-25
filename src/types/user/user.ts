@@ -14,6 +14,8 @@ export interface User {
   gender?: string;
   school_origin?: string;
   grade_level?: string;
+  /** Jurusan pendidikan terakhir; hanya terisi untuk jenjang D3 ke atas. */
+  education_major?: string | null;
   target_university_1?: string;
   target_university_2?: string;
   target_major_1?: string;

@@ -170,7 +170,12 @@ export default function SettingsContent() {
                   )}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Jalur UTBK - SNBT</h3>
+                  {/* Dari KATEGORI_CONFIG, bukan ditulis ulang di sini:
+                      kartu ini pernah menyimpang dan masih berbunyi "Jalur CPNS
+                      & Kedinasan" setelah nama jalurnya berubah di tempat lain. */}
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {KATEGORI_CONFIG.utbk.full}
+                  </h3>
                   <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                     Fokus TPS, Literasi Bahasa, Penalaran Matematika, dan prediksi kelulusan kampus impian berskala IRT.
                   </p>
@@ -207,7 +212,9 @@ export default function SettingsContent() {
                   )}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Jalur CPNS & Kedinasan</h3>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {KATEGORI_CONFIG.cpns.full}
+                  </h3>
                   <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                     Simulasi SKD CAT terpadu: TWK, TIU, dan TKP dengan indikator batas Passing Grade resmi KepmenPAN-RB.
                   </p>

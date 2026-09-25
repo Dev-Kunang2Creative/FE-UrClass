@@ -1,5 +1,6 @@
 import { api } from "@/lib/axios";
 import { UpdateProfileType } from "@/validators/profile/update-profile-validator";
+import { susunJenjangTersimpan } from "@/lib/jenjang";
 
 /**
  * Sends what the reader actually entered.
@@ -23,6 +24,9 @@ export const updateProfileApiHandler = async (
     // Gap Year carries no class, and the trailing space this used to send
     // ("Gap Year ") did not match what the session was told.
     grade_level: buildGradeLevel(body),
+    // Jurusan pendidikan terakhir. Dikosongkan untuk jenjang yang tidak
+    // memakainya, supaya nilai lama tidak tertinggal tanpa kolom di layar.
+    education_major: body.education_major || null,
     birth_date: body.birth_date,
     gender: body.gender,
     province: body.province || null,
@@ -50,6 +54,5 @@ export const updateProfileApiHandler = async (
 
 /** Single source of truth for the stored grade string. */
 export function buildGradeLevel(body: UpdateProfileType): string {
-  if (body.grade_level === "Gap Year") return "Gap Year";
-  return `${body.grade_level} ${body.class_level ?? ""}`.trim();
+  return susunJenjangTersimpan(body.grade_level ?? "", body.class_level);
 }

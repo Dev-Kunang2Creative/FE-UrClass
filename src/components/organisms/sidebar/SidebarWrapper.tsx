@@ -45,6 +45,7 @@ import {
   Ticket,
   TrendingUp,
   Users,
+  LayoutPanelTop,
   MessageSquareQuote,
 } from "lucide-react";
 import { SidebarUser } from "./SidebarUser";
@@ -103,8 +104,11 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
             />
           </Link>
           {session?.user.role === "user" && (
+            // whitespace-nowrap + shrink-0: labelnya kini "Kedinasan & CPNS",
+            // dan tanpa ini pil-nya pecah dua baris di dalam header setinggi
+            // 4rem atau mendesak logo di sebelahnya.
             <span
-              className={`px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-xs leading-none inline-flex items-center ${config.theme.badge}`}
+              className={`shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border shadow-xs leading-none inline-flex items-center ${config.theme.badge}`}
             >
               {config.label}
             </span>
@@ -255,6 +259,18 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       <Link href="/dashboard/admin/kritik-saran"><FileClock /><span>Kritik &amp; Saran Peserta</span></Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className={buttonClass("/dashboard/admin/kartu-jalur")}
+                    >
+                      <Link href="/dashboard/admin/kartu-jalur">
+                        <LayoutPanelTop />
+                        <span>Kartu Jalur</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild

@@ -66,12 +66,16 @@ export const KATEGORI_CONFIG: Record<
     ],
   },
   cpns: {
-    label: "CPNS",
-    full: "CPNS - SKD & Kedinasan",
-    deskripsi: "Seleksi Calon Aparatur Sipil Negara",
+    // Pil di sidebar ikut menyebut kedinasan atas permintaan pengguna: peserta
+    // sekolah kedinasan perlu melihat jalurnya sendiri di sana, bukan cuma
+    // "CPNS". Tetap dijaga sependek mungkin karena label ini juga jadi sisipan
+    // kalimat ("jalur Kedinasan & CPNS") dan isi pil yang sempit.
+    label: "Kedinasan & CPNS",
+    full: "Sekolah Kedinasan & CPNS - SKD",
+    deskripsi: "Seleksi Sekolah Kedinasan & Calon Aparatur Sipil Negara",
     icon: Landmark,
-    tagline: "Siapkan SKD terpadu: TWK, TIU, dan TKP lengkap dengan standar Passing Grade CAT resmi.",
-    heading: "Persiapan intensif target lolos SKD CPNS & Kedinasan",
+    tagline: "Siapkan SKD terpadu untuk sekolah kedinasan maupun CPNS: TWK, TIU, dan TKP lengkap dengan standar Passing Grade CAT resmi.",
+    heading: "Persiapan intensif target lolos SKD sekolah kedinasan & CPNS",
     maxScore: 550,
     scoreScale: "Standar SKD CAT (Maks. 550)",
     // Orange, not amber. Amber sits close to a warning colour and reads as

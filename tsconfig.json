@@ -10,6 +10,12 @@
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
+    // Diperlukan karena sebagian berkas sumber diimpor juga oleh `npm test`,
+    // yang menjalankan node --test langsung atas berkas .ts. Node 22.6+
+    // mewajibkan ekstensi eksplisit pada impor relatif, sementara tsc menolak
+    // ekstensi .ts tanpa flag ini. Aman dipasang karena noEmit aktif - bundler
+    // Next yang menyelesaikan modulnya, bukan tsc.
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",

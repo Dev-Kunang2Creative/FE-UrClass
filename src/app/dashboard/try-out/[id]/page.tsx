@@ -266,8 +266,8 @@ export default function TryoutDetailPage({
                 />
                 {/* truncate, not merely overflow-hidden on the parent: this
                     label is uppercase at 0.18em tracking, so a track name like
-                    CPNS - SKD & Kedinasan is wide enough to push a narrow
-                    phone sideways on its own. */}
+                    "Sekolah Kedinasan & CPNS - SKD" is wide enough to push a
+                    narrow phone sideways on its own. */}
                 <span className="relative truncate text-xs font-black uppercase tracking-[0.18em] text-primary-foreground">
                   {trackConfig.full}
                 </span>
