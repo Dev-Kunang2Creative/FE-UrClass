@@ -56,13 +56,11 @@ export default function KritikSaranPeserta() {
   });
   return (
     <section className="flex min-w-0 flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Kritik &amp; Saran Peserta</h1>
-          <p className="mt-2 text-muted-foreground">
-            Tinjau pengalaman peserta setelah menyelesaikan tryout.
-          </p>
-        </div>
+      {/* Judulnya dirender halaman lewat DashboardTitle, sama seperti halaman
+          admin lain - dulu ditulis sendiri di sini dengan ukuran yang berbeda
+          (text-2xl, tanpa baris tanggal) sehingga satu-satunya halaman yang
+          tampak beda sendiri. Yang tersisa di baris ini hanya aksinya. */}
+      <div className="flex flex-wrap items-start justify-end gap-4">
         <Button
           variant="outline"
           disabled={mengekspor || !query.data?.total}

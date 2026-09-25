@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Gift, Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
 import { toast } from "sonner";
+import DashboardTitle from "@/components/atoms/typography/DashboardTitle";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -158,15 +159,10 @@ export default function AdminRedeemCodePage() {
 
   return (
     <main className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-50 rounded-lg">
-          <Gift className="w-6 h-6 text-blue-600" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Kode Redeem Tiket</h1>
-          <p className="text-sm text-gray-500">Buat voucher tiket dengan kuota dan batas redeem per akun.</p>
-        </div>
-      </div>
+      {/* DashboardTitle, sama seperti halaman admin lain. Sebelumnya halaman ini
+          menulis judulnya sendiri dengan ikon dan ukuran berbeda, jadi satu dari
+          dua halaman yang tampak beda sendiri di panel admin. */}
+      <DashboardTitle title="Kode Redeem Tiket" />
 
       <Card>
         <CardContent className="pt-6">

@@ -845,15 +845,28 @@ export default function FormCompleteProfile({
               : "Pilih dari daftar PTN, atau ketik sendiri kalau kampusmu belum ada di daftar."
           }
         >
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* CPNS hanya punya dua kolom target - pilihan 1 dan 2 - sementara
+              UTBK punya empat (kampus + jurusan, dua kali). Kalau tiap baris
+              memakai kisinya sendiri, di CPNS baris pertama berisi satu kolom
+              dari dua sehingga tampil setengah lebar, dan baris kedua yang
+              sendirian tampil selebar penuh: kolom opsional jadi lebih panjang
+              daripada yang wajib.
+              
+              `contents` melarutkan pembungkus barisnya di jalur CPNS, sehingga
+              kedua kolom target menjadi anak langsung dari satu kisi dan duduk
+              berdampingan dengan lebar yang sama. */}
+          <div className={isCpns ? "grid grid-cols-1 gap-4 md:grid-cols-2" : "space-y-4"}>
+            <div className={isCpns ? "contents" : "grid grid-cols-1 gap-4 md:grid-cols-2"}>
               <Controller
                 control={form.control}
                 name="target_university_1"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      {isCpns ? "Instansi / Sekolah Kedinasan Tujuan" : "Universitas pilihan 1"}{" "}
+                      {/* Sepola dengan pilihan 2 di sebelahnya. "Instansi"
+                          dibuang: itu istilah sub-jalur CPNS umum, bukan
+                          kedinasan, dan di sini justru menyesatkan. */}
+                      {isCpns ? "Sekolah kedinasan pilihan 1" : "Universitas pilihan 1"}{" "}
                       <Required />
                     </FieldLabel>
                     <ReferenceCombobox
@@ -913,7 +926,7 @@ export default function FormCompleteProfile({
               )}
             </div>
 
-            <div className={`grid grid-cols-1 gap-4 ${isCpns ? "" : "md:grid-cols-2"}`}>
+            <div className={isCpns ? "contents" : "grid grid-cols-1 gap-4 md:grid-cols-2"}>
               <Controller
                 control={form.control}
                 name="target_university_2"
