@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
@@ -80,7 +81,12 @@ export default function KritikSaranPeserta() {
           {mengekspor ? "Mengekspor…" : "Ekspor CSV"}
         </Button>
       </div>
-      <form
+      {/* Penyaring dan tabelnya duduk di dalam kartu, sama seperti halaman data
+          admin lain. Tanpa ini isinya menempel langsung pada latar berbintik
+          dashboard - satu-satunya halaman yang tampak begitu. */}
+      <Card>
+        <CardContent className="space-y-6 py-6">
+          <form
         onSubmit={(event) => {
           event.preventDefault();
           setFilter({ ...filter, search: pencarian.trim(), page: 1 });
@@ -236,6 +242,8 @@ export default function KritikSaranPeserta() {
           </div>
         </>
       )}
+        </CardContent>
+      </Card>
     </section>
   );
 }
