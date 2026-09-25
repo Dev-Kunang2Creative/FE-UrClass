@@ -269,6 +269,38 @@ berorientasi siswa lain yang muncul di tampilan admin.
 
 ## 6. Deploy
 
+### Build produksi memakai webpack, bukan Turbopack
+
+`package.json` menjalankan `next build --webpack`. Jangan dikembalikan ke
+bawaan Turbopack tanpa menguji ulang di server.
+
+**Kejadiannya:** deploy gagal dengan `ERROR: Failed to build the application`,
+dan lognya bukan galat kode sama sekali:
+
+```
+Error [TurbopackInternalError]: [project]/src/app/globals.css [app-client] (css)
+Caused by:
+- Execution of PostCssTransformedAsset::process failed
+- Execution of evaluate_webpack_loader failed
+- creating new process
+- node process exited before we could connect to it with exit status: 0
+```
+
+Turbopack menjalankan loader PostCSS di **proses Node terpisah**, dan proses itu
+mati sebelum sempat tersambung — keluar dengan status 0 tanpa keluaran apa pun.
+Itu tanda proses yang ditolak atau dibunuh, bukan yang gagal. Paketnya Business
+shared hosting dengan batas entry process, dan hari itu origin API di akun yang
+sama juga menolak sekitar satu dari sepuluh sambungan.
+
+Build yang sama lolos di mesin lokal, dan pernah lolos di server beberapa hari
+sebelumnya. Jadi jangan mencari sebabnya di diff — carilah di batas resource.
+
+webpack menjalankan PostCSS tanpa menumpu pada proses tambahan, sehingga tidak
+punya titik gagal itu. Konsekuensinya build jadi lebih lambat; itu harga yang
+dibayar supaya deploy tidak bergantung pada keberuntungan.
+
+`next dev` tetap memakai Turbopack — batasnya tidak berlaku di mesin sendiri.
+
 ### Naikkan versi action, lalu periksa `using:`-nya
 
 `actions/checkout@v5` dan `actions/setup-python@v6` — dua-duanya `using: node24`.
