@@ -58,6 +58,7 @@ export default function FormCreateTryout() {
       end_date: "",
       is_published: false,
       is_free: false,
+      discussion_requires_ticket: true,
       use_irt: true,
       randomize_options: false,
       image: null,
@@ -68,6 +69,8 @@ export default function FormCreateTryout() {
   const [preview, setPreview] = useState<string | null>(null);
 
   const image = form.watch("image");
+  // Saklar pembahasan hanya berarti di tryout gratis.
+  const isFree = form.watch("is_free");
   const kategori = form.watch("kategori");
 
   useEffect(() => {
@@ -405,6 +408,31 @@ export default function FormCreateTryout() {
                 </Field>
               )}
             />
+
+            {isFree && (
+              <Controller
+                control={form.control}
+                name="discussion_requires_ticket"
+                render={({ field }) => (
+                  <Field>
+                    <FieldLabel>Pembahasan Pakai Tiket?</FieldLabel>
+
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+
+                      <span className="text-sm text-muted-foreground">
+                        {field.value
+                          ? "Peserta memakai 1 tiket untuk membuka pembahasan"
+                          : "Pembahasan langsung terbuka setelah tryout selesai"}
+                      </span>
+                    </div>
+                  </Field>
+                )}
+              />
+            )}
 
             <Controller
               control={form.control}

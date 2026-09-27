@@ -196,6 +196,14 @@ export interface ReviewData {
   tryout_id: string;
   tryout_title: string;
   attempt_number?: number;
+  /**
+   * Pembahasan masih terkunci dan perlu 1 tiket untuk dibuka.
+   *
+   * Dari server, bukan disimpulkan di sini: aturannya punya dua syarat
+   * (tryoutnya gratis, dan admin memang menyetelnya berbayar), dan
+   * menduplikasinya di frontend berarti dua tempat yang bisa menyimpang.
+   */
+  discussion_locked?: boolean;
   review: ReviewQuestion[];
 }
 

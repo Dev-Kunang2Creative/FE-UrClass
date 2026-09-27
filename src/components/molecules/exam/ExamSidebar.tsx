@@ -2,6 +2,7 @@
 import { useAmbangSkd } from '@/hooks/useAmbangSkd';
 
 import { useKategori } from "@/hooks/useKategori";
+import { NOMOR_SOAL_KOSONG, NOMOR_SOAL_TERJAWAB } from "@/lib/exam-nav";
 import { KATEGORI_CONFIG, findSubtestMeta } from "@/lib/kategori";
 import type {
   ReviewQuestionStatus,
@@ -131,8 +132,8 @@ export default function ExamSidebar({
                   ? "bg-red-600 text-white border border-red-600"
                   : "bg-gray-200 text-gray-700 border border-gray-300 hover:bg-gray-300"
               : isAnswered
-                ? "bg-[#3B9245] text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200";
+                ? NOMOR_SOAL_TERJAWAB
+                : NOMOR_SOAL_KOSONG;
 
             return (
               <button

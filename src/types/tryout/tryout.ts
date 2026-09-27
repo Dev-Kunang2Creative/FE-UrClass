@@ -7,6 +7,8 @@ export interface Tryout {
   description: string;
   is_published: boolean;
   is_free: boolean;
+  /** Pembahasan menagih 1 tiket. Hanya berlaku saat is_free true. */
+  discussion_requires_ticket?: boolean;
   use_irt: boolean;
   randomize_options: boolean;
   created_at: Date;

@@ -57,9 +57,10 @@ export default function ReviewPage({
   };
 
   const reviewItems = useMemo(() => beReview?.data?.review ?? [], [beReview]);
-  const isLocked = useMemo(() => {
-    return reviewItems.some(item => item.question.discussion === '(Gunakan 1 Tiket untuk pembahasan)');
-  }, [reviewItems]);
+  // Dari server. Sebelumnya status ini ditebak dengan mencocokkan teks
+  // "(Gunakan 1 Tiket untuk pembahasan)" di dalam pembahasan - mengubah satu
+  // kalimat di backend akan diam-diam mematikan tombol bukanya.
+  const isLocked = beReview?.data?.discussion_locked ?? false;
   const subtests = useMemo(() => {
     const map = new Map<string, string>();
     reviewItems.forEach((item) => {

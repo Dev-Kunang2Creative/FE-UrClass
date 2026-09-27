@@ -13,6 +13,13 @@ export const tryoutSchema = z.object({
 
   is_published: z.boolean(),
   is_free: z.boolean(),
+  /**
+   * Pembahasan tryout gratis menagih satu tiket atau tidak.
+   *
+   * Hanya berarti saat is_free true: tryout berbayar sudah memasukkan
+   * pembahasan ke dalam tiket yang dipakai mengerjakan.
+   */
+  discussion_requires_ticket: z.boolean(),
   use_irt: z.boolean(),
   randomize_options: z.boolean(),
 

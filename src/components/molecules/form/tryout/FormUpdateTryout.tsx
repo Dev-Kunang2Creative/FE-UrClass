@@ -105,6 +105,7 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
       end_date: "",
       is_published: false,
       is_free: false,
+      discussion_requires_ticket: true,
       use_irt: true,
       randomize_options: false,
       image: null,
@@ -134,6 +135,9 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
       end_date: formatDate(defaultData.end_date),
       is_published: defaultData.is_published ?? false,
       is_free: defaultData.is_free ?? false,
+      // Tryout lama belum punya kolomnya; bawaannya menagih tiket, sama seperti
+      // perilaku sebelum pengaturan ini ada.
+      discussion_requires_ticket: defaultData.discussion_requires_ticket ?? true,
       use_irt: defaultData.use_irt ?? true,
       randomize_options: defaultData.randomize_options ?? false,
       image: null,
@@ -143,6 +147,8 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
   }, [defaultData, form]);
 
   const image = form.watch("image");
+  // Saklar pembahasan hanya berarti di tryout gratis.
+  const isFree = form.watch("is_free");
   const kategori = form.watch("kategori");
   useEffect(() => {
     if (image instanceof File) {
@@ -485,6 +491,31 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
                 </Field>
               )}
             />
+
+            {isFree && (
+              <Controller
+                control={form.control}
+                name="discussion_requires_ticket"
+                render={({ field }) => (
+                  <Field>
+                    <FieldLabel>Pembahasan Pakai Tiket?</FieldLabel>
+
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+
+                      <span className="text-sm text-muted-foreground">
+                        {field.value
+                          ? "Peserta memakai 1 tiket untuk membuka pembahasan"
+                          : "Pembahasan langsung terbuka setelah tryout selesai"}
+                      </span>
+                    </div>
+                  </Field>
+                )}
+              />
+            )}
 
             <Controller
               control={form.control}

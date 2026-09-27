@@ -20,6 +20,7 @@ import {
 import ExamTimer from "./ExamTimer";
 import QuestionView from "./QuestionView";
 import { getErrorMessage } from "@/utils/get-error-message";
+import { kelasNomorSoal } from "@/lib/exam-nav";
 
 interface DataUjian {
   tryout: { id: string; title: string };
@@ -172,27 +173,29 @@ function SoalCpns({ data, token }: { data: DataUjian; token: string }) {
             aria-label="Nomor soal"
             className="grid max-h-44 grid-cols-5 gap-2 overflow-y-auto lg:max-h-none"
           >
-            {data.questions.map((q, i) =>
-              filter !== "Semua" && q.category !== filter ? null : (
-                <Button
+            {data.questions.map((q, i) => {
+              if (filter !== "Semua" && q.category !== filter) return null;
+
+              // Terisi berarti ada jawabannya, bukan sekadar pernah disentuh:
+              // string kosong adalah jawaban yang dibatalkan peserta.
+              const terjawab = !!jawaban[q.id];
+
+              return (
+                <button
                   key={q.id}
                   type="button"
-                  variant={
-                    i === indeks
-                      ? "default"
-                      : jawaban[q.id]
-                        ? "secondary"
-                        : "outline"
-                  }
                   aria-current={i === indeks ? "step" : undefined}
-                  aria-label={`Soal ${i + 1} ${q.category}${jawaban[q.id] ? ", terjawab" : ", belum dijawab"}`}
-                  className="min-h-11"
+                  aria-label={`Soal ${i + 1} ${q.category}${terjawab ? ", terjawab" : ", belum dijawab"}`}
+                  className={`flex min-h-11 w-full items-center justify-center rounded-lg text-sm font-bold transition-all ${kelasNomorSoal(
+                    i === indeks,
+                    terjawab,
+                  )}`}
                   onClick={() => setIndeks(i)}
                 >
                   {i + 1}
-                </Button>
-              ),
-            )}
+                </button>
+              );
+            })}
           </nav>
           <Button
             disabled={menyimpan || mengakhiri || habis}

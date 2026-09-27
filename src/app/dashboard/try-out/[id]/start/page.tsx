@@ -211,9 +211,15 @@ export default function TryoutStartPage({
                 finished. Stating the charge unconditionally was wrong, and
                 wrong on exactly the kind of tryout that shows this page. */}
             <li>
-              {tryout?.is_free
-                ? "Pembahasan dan kunci jawaban dibuka dengan 1 tiket setelah tryout selesai, terpisah dari tiket untuk mengerjakan."
-                : "Pembahasan dan kunci jawaban langsung terbuka setelah tryout selesai - sudah termasuk dalam tiket yang kamu pakai."}
+              {/* Tiga keadaan, bukan dua: tryout gratis kini boleh memilih
+                  pembahasannya berbayar atau tidak. Menyebut tagihan tiket pada
+                  tryout yang tidak menagihnya membuat peserta mengira harus
+                  membeli sesuatu yang sudah gratis. */}
+              {!tryout?.is_free
+                ? "Pembahasan dan kunci jawaban langsung terbuka setelah tryout selesai - sudah termasuk dalam tiket yang kamu pakai."
+                : tryout?.discussion_requires_ticket === false
+                  ? "Pembahasan dan kunci jawaban langsung terbuka setelah tryout selesai, tanpa tiket."
+                  : "Pembahasan dan kunci jawaban dibuka dengan 1 tiket setelah tryout selesai, terpisah dari tiket untuk mengerjakan."}
             </li>
             <li>
               Siapkan{" "}

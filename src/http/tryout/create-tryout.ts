@@ -54,6 +54,13 @@ export const CreateTryoutHandler = async (
     formData.append("is_free", body.is_free ? "1" : "0");
   }
 
+  if (body.discussion_requires_ticket !== undefined) {
+    formData.append(
+      "discussion_requires_ticket",
+      body.discussion_requires_ticket ? "1" : "0",
+    );
+  }
+
   if (body.use_irt !== undefined) {
     formData.append("use_irt", body.use_irt ? "1" : "0");
   }
