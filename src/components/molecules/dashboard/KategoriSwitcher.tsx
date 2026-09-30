@@ -12,7 +12,7 @@ export default function KategoriSwitcher() {
     <div
       role="group"
       aria-label="Ganti kategori belajar"
-      className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1"
+      className="flex w-full items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 sm:inline-flex sm:w-auto"
     >
       {KATEGORI_LIST.map((id) => {
         const { label, icon: Icon, deskripsi, theme } = KATEGORI_CONFIG[id];
@@ -27,7 +27,7 @@ export default function KategoriSwitcher() {
             aria-pressed={active}
             title={deskripsi}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60",
+              "inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60 sm:flex-none",
               active
                 ? theme.switcherActive
                 : "text-gray-600 hover:bg-gray-100",

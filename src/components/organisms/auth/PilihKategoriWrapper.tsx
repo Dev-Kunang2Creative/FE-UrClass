@@ -59,8 +59,8 @@ const CATEGORY_ITEMS: Array<{
     // Satu jalur, dua tujuan. Menyebut CPNS saja membuat calon peserta sekolah
     // kedinasan mengira jalur ini bukan untuk mereka, padahal SKD yang
     // dilatihkan sama persis dan sub-jalurnya memang dipilih di profil.
-    title: "Tryout Sekolah Kedinasan & CPNS",
-    cta: "Masuk ke Tryout Kedinasan & CPNS",
+    title: "Tryout SEKDIN & CPNS",
+    cta: "Masuk ke Tryout SEKDIN & CPNS",
     badge: "KEDINASAN & ASN",
     badgeClass: "bg-orange-100 text-orange-900 border-orange-300",
     description: "Fokus latihan CAT SKD - TWK, TIU, dan TKP - untuk seleksi sekolah kedinasan maupun CPNS umum, dengan sistem bobot nilai akurat.",

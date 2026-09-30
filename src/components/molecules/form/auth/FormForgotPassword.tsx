@@ -29,6 +29,7 @@ import {
   type ForgotPasswordType,
   type ResetPasswordType,
 } from "@/validators/auth/forgot-password-validator";
+import { TAUTAN_WHATSAPP_BANTUAN } from "@/lib/whatsapp";
 
 /**
  * Verifikasi dan pembuatan password baru terjadi di satu halaman, bergantian.
@@ -164,7 +165,7 @@ function LangkahVerifikasi({
         Percobaan dibatasi lima kali per jam. Profil belum lengkap atau datanya
         lupa?{" "}
         <a
-          href="https://wa.me/6281398169073"
+          href={TAUTAN_WHATSAPP_BANTUAN}
           target="_blank"
           rel="noopener noreferrer"
           className="font-semibold text-primary underline underline-offset-2"

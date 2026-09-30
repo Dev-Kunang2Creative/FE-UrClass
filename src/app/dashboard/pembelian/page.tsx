@@ -92,7 +92,8 @@ export default function PembelianPage() {
               <p className="text-xs sm:text-sm text-slate-600 leading-snug">
                 Tiket dari paket mana pun bisa kamu pakai untuk tryout{" "}
                 <strong className="text-slate-800">UTBK</strong> maupun{" "}
-                <strong className="text-slate-800">CPNS</strong> — tidak perlu beli dua kali.
+                <strong className="text-slate-800">SEKDIN &amp; CPNS</strong>.
+                Kamu tidak perlu membeli dua paket.
               </p>
             </div>
           </div>

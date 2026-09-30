@@ -68,10 +68,9 @@ export const KATEGORI_CONFIG: Record<
   cpns: {
     // Pil di sidebar ikut menyebut kedinasan atas permintaan pengguna: peserta
     // sekolah kedinasan perlu melihat jalurnya sendiri di sana, bukan cuma
-    // "CPNS". Tetap dijaga sependek mungkin karena label ini juga jadi sisipan
-    // kalimat ("jalur Kedinasan & CPNS") dan isi pil yang sempit.
-    label: "Kedinasan & CPNS",
-    full: "Sekolah Kedinasan & CPNS - SKD",
+    // "CPNS". Akronim SEKDIN menjaga labelnya tetap ringkas di ruang sempit.
+    label: "SEKDIN & CPNS",
+    full: "SEKDIN & CPNS - SKD",
     deskripsi: "Seleksi Sekolah Kedinasan & Calon Aparatur Sipil Negara",
     icon: Landmark,
     tagline: "Siapkan SKD terpadu untuk sekolah kedinasan maupun CPNS: TWK, TIU, dan TKP lengkap dengan standar Passing Grade CAT resmi.",

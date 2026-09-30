@@ -41,9 +41,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { id } from "date-fns/locale";
-
-/** Durasi SKD CPNS sesuai ketentuan resmi; admin bebas mengubahnya. */
-const DURASI_SKD_DEFAULT = 100;
+import { nilaiJalurTryout } from "@/lib/form-tryout";
 
 export default function FormCreateTryout() {
   const form = useForm<TryoutType>({
@@ -105,7 +103,10 @@ export default function FormCreateTryout() {
   });
 
   const onSubmit = (body: TryoutType) => {
-    createItemHandler(body);
+    createItemHandler({
+      ...body,
+      ...nilaiJalurTryout(body.kategori ?? "utbk"),
+    });
   };
 
   return (
@@ -159,14 +160,13 @@ export default function FormCreateTryout() {
                   <Select
                     onValueChange={(val: "utbk" | "cpns") => {
                       field.onChange(val);
-                      // Kategori adalah cermin jalurnya, bukan pilihan terpisah.
-                      form.setValue("category", val === "cpns" ? "CPNS" : "UTBK");
-                      // Durasi hanya milik CPNS. UTBK dikerjakan subtes per
-                      // subtes, waktunya ditetapkan di masing-masing subtes.
+                      const nilaiJalur = nilaiJalurTryout(val);
+                      form.setValue("category", nilaiJalur.category);
                       form.setValue(
                         "duration_minutes",
-                        val === "cpns" ? DURASI_SKD_DEFAULT : null,
+                        nilaiJalur.duration_minutes,
                       );
+                      form.setValue("use_irt", nilaiJalur.use_irt);
                     }}
                     value={field.value ?? "utbk"}
                   >
@@ -175,7 +175,7 @@ export default function FormCreateTryout() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="utbk">UTBK</SelectItem>
-                      <SelectItem value="cpns">CPNS</SelectItem>
+                      <SelectItem value="cpns">SEKDIN &amp; CPNS</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -434,38 +434,21 @@ export default function FormCreateTryout() {
               />
             )}
 
-            <Controller
-              control={form.control}
-              name="use_irt"
-              render={({ field }) => (
+            {kategori === "utbk" && (
+              <Controller
+                control={form.control}
+                name="use_irt"
+                render={() => (
                 <Field>
-                  <FieldLabel>Gunakan Skoring IRT?</FieldLabel>
-
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-
-                    <span className="text-sm text-muted-foreground">
-                      {field.value
-                        ? "IRT — skor akhir diskalakan menurut tingkat kesulitan soal, dihitung dari hasil seluruh peserta"
-                        : "Tanpa IRT — skor akhir memakai nilai jawaban apa adanya sesuai skema tiap subtes"}
-                    </span>
-                  </div>
-
-                  {/* Dua keputusan yang berbeda, sering dikira satu: subtes
-                      menentukan nilai satu jawaban, saklar ini menentukan cara
-                      nilai-nilai itu dijumlahkan jadi skor akhir. */}
+                  <FieldLabel>Skoring IRT</FieldLabel>
                   <FieldDescription>
-                    Nilai tiap jawaban tetap mengikuti skema di masing-masing
-                    subtes. Saklar ini hanya menentukan cara skor akhirnya
-                    dihitung. Untuk SKD CPNS yang ambang kelulusannya angka
-                    mutlak, matikan saklar ini.
+                    Aktif otomatis untuk UTBK. Bobot soal dihitung dari hasil
+                    seluruh peserta dan skor akhir memakai skala IRT.
                   </FieldDescription>
                 </Field>
-              )}
-            />
+                )}
+              />
+            )}
 
             <Controller
               control={form.control}

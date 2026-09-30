@@ -76,7 +76,7 @@ export default function DialogOnboardingTour({
       badge: "Menu Profil & Pengaturan",
       badgeClass: "bg-purple-100 text-purple-800 border-purple-300",
       description:
-        "Mau belajar jalur lain seperti CPNS atau UTBK? Kamu bisa dengan mudah berpindah mode kapan saja melalui menu Profil & Pengaturan di sidebar.",
+        "Mau berpindah antara UTBK dan SEKDIN & CPNS? Ganti jalurnya lewat menu Profil & Pengaturan di sidebar.",
       icon: Settings,
       iconBg: "bg-purple-100 text-purple-700",
       highlight:

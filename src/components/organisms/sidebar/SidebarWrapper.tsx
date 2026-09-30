@@ -55,6 +55,7 @@ import { useKategori } from "@/hooks/useKategori";
 import { useTickets } from "@/hooks/useTickets";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
 import { isRouteActive } from "@/lib/navigation";
+import { TAUTAN_WHATSAPP_BANTUAN } from "@/lib/whatsapp";
 
 interface SidebarWrapperProps {
   session: Session;
@@ -104,7 +105,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
             />
           </Link>
           {session?.user.role === "user" && (
-            // whitespace-nowrap + shrink-0: labelnya kini "Kedinasan & CPNS",
+            // whitespace-nowrap + shrink-0: labelnya kini "SEKDIN & CPNS",
             // dan tanpa ini pil-nya pecah dua baris di dalam header setinggi
             // 4rem atau mendesak logo di sebelahnya.
             <span
@@ -459,7 +460,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
             <Button
               className="bg-[#25D366] hover:bg-[#1ebe5d] text-white"
               onClick={() => {
-                window.open("https://wa.me/6281398169073", "_blank", "noopener,noreferrer");
+                window.open(TAUTAN_WHATSAPP_BANTUAN, "_blank", "noopener,noreferrer");
                 setWaModalOpen(false);
               }}
             >

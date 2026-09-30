@@ -624,17 +624,13 @@ export default function FormCompleteProfile({
                     {jenjangOptions(kategori).map((level) => (
                       <label
                         key={level}
-                        className={`flex cursor-pointer items-center justify-center rounded-xl border-2 py-2 text-sm transition-colors ${
-                          field.value === level
-                            ? "border-slate-900 bg-track-tint font-bold text-slate-900"
-                            : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                        }`}
+                        className="cursor-pointer"
                       >
                         <input
                           type="radio"
                           name="grade_level"
                           value={level}
-                          className="hidden"
+                          className="peer sr-only"
                           onChange={(e) => {
                             const dipilih = e.target.value;
                             field.onChange(e);
@@ -653,7 +649,15 @@ export default function FormCompleteProfile({
                           }}
                           checked={field.value === level}
                         />
-                        {level}
+                        <span
+                          className={`flex min-h-11 items-center justify-center rounded-xl border-2 px-2 py-2 text-center text-sm leading-tight transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary ${
+                            field.value === level
+                              ? "border-slate-900 bg-track-tint font-bold text-slate-900"
+                              : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                          }`}
+                        >
+                          {level}
+                        </span>
                       </label>
                     ))}
                   </div>

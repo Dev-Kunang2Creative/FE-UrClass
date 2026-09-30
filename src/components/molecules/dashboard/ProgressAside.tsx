@@ -119,7 +119,7 @@ export default function ProgressAside({
             </p>
             <p className="mt-1 text-[11px] leading-snug text-slate-500">
               {ticketCount > 0
-                ? "Satu tiket untuk satu tryout, berlaku di UTBK maupun CPNS."
+                ? "Satu tiket untuk satu tryout, berlaku di UTBK, sekolah kedinasan, maupun CPNS."
                 : "Tiket habis. Beli paket untuk mulai mengerjakan tryout."}
             </p>
           </>

@@ -144,7 +144,7 @@ export default function TryoutPage() {
               <ChevronLeft className="w-6 h-6" />
             </Link>
             <h1 className="text-xl font-black tracking-tight text-slate-900 md:text-2xl">
-              Daftar Tryout {isCpns ? "CPNS & Kedinasan" : "UTBK - SNBT"}
+              Daftar Tryout {isCpns ? "SEKDIN & CPNS" : "UTBK - SNBT"}
             </h1>
           </div>
           <p className="pl-9 text-sm text-slate-600">

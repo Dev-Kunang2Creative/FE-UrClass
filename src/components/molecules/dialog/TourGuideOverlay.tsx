@@ -112,13 +112,13 @@ export default function TourGuideOverlay() {
       targetId: "sidebar-user-profile",
       title: "Profil & Ganti Mode Belajar",
       description:
-        "Mau pindah jalur ke CPNS atau UTBK, atau melengkapi data diri? Semuanya lewat menu profil ini.",
+        "Mau pindah ke UTBK atau SEKDIN & CPNS, atau melengkapi data diri? Semuanya lewat menu profil ini.",
     },
     {
       targetId: "topbar-user-profile",
       title: "Profil & Ganti Mode Belajar",
       description:
-        "Mau pindah jalur ke CPNS atau UTBK, atau melengkapi data diri? Semuanya lewat menu profil di pojok kanan atas ini.",
+        "Mau pindah ke UTBK atau SEKDIN & CPNS, atau melengkapi data diri? Semuanya lewat menu profil di pojok kanan atas ini.",
     },
   ];
 

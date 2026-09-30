@@ -10,15 +10,16 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  // UrClass hanya punya dua jalur: UTBK dan CPNS. Judul sebelumnya menyebut SNBP
-  // dan UM PTN - dua hal yang tidak ada di aplikasi ini - jadi orang yang datang
-  // dari pencarian itu tidak menemukan apa yang dijanjikan judulnya.
-  title: "UrClass - UTBK dan CPNS Tryout",
+  // UrClass hanya punya dua mode: UTBK serta SEKDIN & CPNS. Judul sebelumnya
+  // menyebut SNBP dan UM PTN, dua hal yang tidak ada di aplikasi ini.
+  title: "UrClass | Tryout UTBK & SEKDIN & CPNS",
   description:
-    "UrClass adalah platform tryout untuk persiapan UTBK dan CPNS. Simulasi ujian real-time, pembahasan lengkap langkah demi langkah, papan peringkat, dan analitik progress untuk target PTN dan ASN impianmu.",
+    "Platform tryout untuk persiapan UTBK, sekolah kedinasan, dan CPNS dengan simulasi ujian, pembahasan, papan peringkat, dan analitik progres.",
   keywords: [
     "tryout utbk",
     "tryout cpns",
+    "tryout sekolah kedinasan",
+    "tryout sekdin",
     "simulasi utbk",
     "simulasi cpns",
     "latihan soal utbk",
@@ -53,14 +54,14 @@ export const metadata: Metadata = {
       index: true,
       follow: true,
       "max-video-preview": -1,
-      "max-image-preview": "large",
+      "max-image-preview": "none",
       "max-snippet": -1,
     },
   },
   openGraph: {
-    title: "UrClass - UTBK dan CPNS Tryout",
+    title: "UrClass | Tryout UTBK & SEKDIN & CPNS",
     description:
-      "Simulasi ujian real-time, pembahasan detail langkah demi langkah, dan analitik performa untuk target lolos PTN & ASN impianmu.",
+      "Simulasi ujian, pembahasan langkah demi langkah, dan analitik hasil untuk target PTN, sekolah kedinasan, dan ASN.",
     url: "https://urclass.id",
     siteName: "UrClass",
     images: [
@@ -68,7 +69,7 @@ export const metadata: Metadata = {
         url: "/images/logo/urclass.png",
         width: 1200,
         height: 630,
-        alt: "UrClass - UTBK dan CPNS Tryout",
+        alt: "UrClass, tryout UTBK, sekolah kedinasan, dan CPNS",
       },
     ],
     locale: "id_ID",
@@ -76,7 +77,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "UrClass - UTBK dan CPNS Tryout",
+    title: "UrClass | Tryout UTBK & SEKDIN & CPNS",
     description:
       "Simulasi ujian real-time, pembahasan lengkap, dan analitik akurasi di UrClass.",
     creator: "@UrClass",

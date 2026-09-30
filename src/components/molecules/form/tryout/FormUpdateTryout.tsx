@@ -46,13 +46,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { id } from "date-fns/locale";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import {
+  DURASI_SKD_DEFAULT,
+  nilaiJalurTryout,
+} from "@/lib/form-tryout";
 
 interface FormEditTryoutProps {
   tryoutId: string;
 }
-
-/** Durasi SKD CPNS sesuai ketentuan resmi; admin bebas mengubahnya. */
-const DURASI_SKD_DEFAULT = 100;
 
 /**
  * Durasi yang sedang berlaku untuk sebuah tryout CPNS.
@@ -138,7 +139,7 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
       // Tryout lama belum punya kolomnya; bawaannya menagih tiket, sama seperti
       // perilaku sebelum pengaturan ini ada.
       discussion_requires_ticket: defaultData.discussion_requires_ticket ?? true,
-      use_irt: defaultData.use_irt ?? true,
+      use_irt: defaultData.kategori !== "cpns",
       randomize_options: defaultData.randomize_options ?? false,
       image: null,
     });
@@ -177,12 +178,19 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
   });
 
   const onSubmit = (body: TryoutType) => {
+    const kategoriTerpilih =
+      body.kategori ?? (defaultData?.kategori === "cpns" ? "cpns" : "utbk");
+    const nilaiJalur = nilaiJalurTryout(
+      kategoriTerpilih,
+      defaultData ? durasiTersimpan(defaultData) : DURASI_SKD_DEFAULT,
+    );
+
     updateTryoutHandler({
       id: tryoutId,
       body: {
         ...body,
-        kategori: body.kategori ?? (defaultData?.kategori === "cpns" ? "cpns" : "utbk"),
-        category: categoryFor(body.kategori ?? defaultData?.kategori),
+        ...nilaiJalur,
+        kategori: kategoriTerpilih,
       },
     });
   };
@@ -256,16 +264,18 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
                   <Select
                     onValueChange={(val: "utbk" | "cpns") => {
                       field.onChange(val);
-                      // Kategori adalah cermin jalurnya, bukan pilihan terpisah.
-                      form.setValue("category", val === "cpns" ? "CPNS" : "UTBK");
-                      // Durasi hanya milik CPNS. UTBK dikerjakan subtes per
-                      // subtes, waktunya ditetapkan di masing-masing subtes.
+                      const nilaiJalur = nilaiJalurTryout(
+                        val,
+                        defaultData
+                          ? durasiTersimpan(defaultData)
+                          : DURASI_SKD_DEFAULT,
+                      );
+                      form.setValue("category", nilaiJalur.category);
                       form.setValue(
                         "duration_minutes",
-                        val === "cpns"
-                          ? (defaultData ? durasiTersimpan(defaultData) : DURASI_SKD_DEFAULT)
-                          : null,
+                        nilaiJalur.duration_minutes,
                       );
+                      form.setValue("use_irt", nilaiJalur.use_irt);
                     }}
                     value={field.value ?? "utbk"}
                   >
@@ -274,7 +284,7 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="utbk">UTBK</SelectItem>
-                      <SelectItem value="cpns">CPNS</SelectItem>
+                      <SelectItem value="cpns">SEKDIN &amp; CPNS</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -517,36 +527,21 @@ export default function FormEditTryout({ tryoutId }: FormEditTryoutProps) {
               />
             )}
 
-            <Controller
-              control={form.control}
-              name="use_irt"
-              render={({ field }) => (
+            {kategori === "utbk" && (
+              <Controller
+                control={form.control}
+                name="use_irt"
+                render={() => (
                 <Field>
-                  <FieldLabel>Gunakan Skoring IRT?</FieldLabel>
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {field.value
-                        ? "IRT — skor akhir diskalakan menurut tingkat kesulitan soal, dihitung dari hasil seluruh peserta"
-                        : "Tanpa IRT — skor akhir memakai nilai jawaban apa adanya sesuai skema tiap subtes"}
-                    </span>
-                  </div>
-
-                  {/* Dua keputusan yang berbeda, sering dikira satu: subtes
-                      menentukan nilai satu jawaban, saklar ini menentukan cara
-                      nilai-nilai itu dijumlahkan jadi skor akhir. */}
+                  <FieldLabel>Skoring IRT</FieldLabel>
                   <FieldDescription>
-                    Nilai tiap jawaban tetap mengikuti skema di masing-masing
-                    subtes. Saklar ini hanya menentukan cara skor akhirnya
-                    dihitung. Untuk SKD CPNS yang ambang kelulusannya angka
-                    mutlak, matikan saklar ini.
+                    Aktif otomatis untuk UTBK. Bobot soal dihitung dari hasil
+                    seluruh peserta dan skor akhir memakai skala IRT.
                   </FieldDescription>
                 </Field>
-              )}
-            />
+                )}
+              />
+            )}
 
             <Controller
               control={form.control}
