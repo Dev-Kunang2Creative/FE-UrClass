@@ -1,5 +1,8 @@
+/// <reference types="node" />
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
+
 import { makeUpdateProfileSchema } from './update-profile-validator.ts';
 
 // phone_number sudah dalam bentuk baku: kolom di FormCompleteProfile

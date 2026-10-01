@@ -1,5 +1,8 @@
+/// <reference types="node" />
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
+
 import {
   NAMA_REGEX,
   TELEPON_REGEX,
