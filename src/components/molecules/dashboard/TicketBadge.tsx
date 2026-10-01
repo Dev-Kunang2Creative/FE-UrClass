@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { Ticket } from "lucide-react";
 import { useTickets } from "@/hooks/useTickets";
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { shouldShowTicketBadge } from "@/lib/navigation";
 
 interface TicketBadgeProps {
   /** Hide the word "Tiket" below this breakpoint. Defaults to always showing it. */
@@ -22,8 +25,16 @@ interface TicketBadgeProps {
  * when there is not - at zero, history is not what the reader needs.
  */
 export default function TicketBadge({ className = "" }: TicketBadgeProps) {
+  const { data: session } = useSession();
+  const pathname = usePathname();
   const { ticketCount } = useTickets();
+
+  if (!shouldShowTicketBadge(session?.user?.role, pathname)) {
+    return null;
+  }
+
   const empty = ticketCount <= 0;
+
 
   return (
     <Link

@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PlusCircle, MinusCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { shouldShowTicketBadge } from "@/lib/navigation";
 import {
   SUPPRESS_NEXT_TICKET_MODAL_KEY,
   TICKET_BALANCE_UPDATED_EVENT,
@@ -11,7 +14,10 @@ import {
 } from "@/hooks/useTickets";
 
 export default function TicketChangeModal() {
+  const { data: session } = useSession();
+  const pathname = usePathname();
   const { ticketCount } = useTickets();
+
   const ticketCountRef = useRef(ticketCount);
   const [ticketChange, setTicketChange] = useState<{ amount: number; current: number } | null>(null);
 
@@ -54,9 +60,12 @@ export default function TicketChangeModal() {
     };
   }, []);
 
-  if (!ticketChange) return null;
+  if (!shouldShowTicketBadge(session?.user?.role, pathname) || !ticketChange) {
+    return null;
+  }
 
   const isPositiveChange = (ticketChange.amount ?? 0) > 0;
+
   const changeAmount = Math.abs(ticketChange.amount ?? 0);
 
   return (

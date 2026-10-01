@@ -3,6 +3,8 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import TicketBadge from "@/components/molecules/dashboard/TicketBadge";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { shouldShowTicketBadge } from "@/lib/navigation";
 
 /**
  * Mobile top bar. It held nothing but the sidebar trigger, so on a phone the
@@ -11,6 +13,8 @@ import { usePathname } from "next/navigation";
  */
 export default function BreadcrumbNav() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+
   if (/^\/dashboard\/try-out\/[^/]+\/exam\/?$/.test(pathname)) return null;
 
   return (
@@ -19,7 +23,8 @@ export default function BreadcrumbNav() {
         <SidebarTrigger />
       </div>
 
-      <TicketBadge />
+      {shouldShowTicketBadge(session?.user?.role, pathname) && <TicketBadge />}
     </nav>
   );
 }
+

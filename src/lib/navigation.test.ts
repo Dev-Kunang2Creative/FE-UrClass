@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { isRouteActive } from "./navigation.ts";
+import { isRouteActive, shouldShowTicketBadge } from "./navigation.ts";
 
 test("route aktif untuk halaman yang sama dan turunannya", () => {
   assert.equal(
@@ -33,3 +33,25 @@ test("route dengan awalan teks sama bukan turunan menu", () => {
     false,
   );
 });
+
+test("tiket badge hanya muncul untuk peserta dan di luar rute admin", () => {
+  assert.equal(shouldShowTicketBadge("user", "/dashboard"), true);
+  assert.equal(shouldShowTicketBadge("user", "/dashboard/try-out"), true);
+  assert.equal(shouldShowTicketBadge("admin", "/dashboard/admin"), false);
+  assert.equal(
+    shouldShowTicketBadge("admin", "/dashboard/admin/try-out/create"),
+    false,
+  );
+  assert.equal(shouldShowTicketBadge("admin", "/dashboard"), false);
+  assert.equal(shouldShowTicketBadge("user", "/dashboard/admin"), false);
+  assert.equal(
+    shouldShowTicketBadge("user", "/dashboard/admin/subtest"),
+    false,
+  );
+  assert.equal(
+    shouldShowTicketBadge(undefined, "/dashboard/admin/try-out"),
+    false,
+  );
+  assert.equal(shouldShowTicketBadge(undefined, "/dashboard"), true);
+});
+
