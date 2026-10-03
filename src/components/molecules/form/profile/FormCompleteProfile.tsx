@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { updateProfileApiHandler } from "@/http/profile/update-profile";
 import { toast } from "sonner";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Loader2, User, GraduationCap, Target, Clock } from "lucide-react";
 import ReferenceCombobox from "@/components/atoms/combobox/ReferenceCombobox";
@@ -40,11 +40,14 @@ import {
   butuhJurusan,
   butuhKelas,
   jenjangOptions,
+  kelompokJenjang,
 } from "@/lib/jenjang";
 import {
   bagianSetelahKodeNegara,
   keBentukInternasional,
 } from "@/lib/input-rules";
+import { normalkanInstagram } from "@/lib/instagram";
+import { ID_BAGIAN_TARGET } from "@/lib/profil";
 
 interface FormCompleteProfileProps {
   onSuccess: () => void;
@@ -55,12 +58,19 @@ interface FormCompleteProfileProps {
    * somewhere.
    */
   mode?: "onboarding" | "edit";
+  /**
+   * Bagian yang langsung dituju saat form terbuka. Dipakai kartu target di
+   * dashboard: peserta yang menekannya ingin mengubah targetnya, bukan
+   * menggulir melewati nama dan nomor HP lebih dulu.
+   */
+  fokus?: "target";
 }
 
 /** Field names the server can complain about, mapped onto the form. */
 const SERVER_FIELDS: FieldPath<UpdateProfileType>[] = [
   "name",
   "phone_number",
+  "instagram",
   "school_origin",
   "grade_level",
   "education_major",
@@ -80,18 +90,22 @@ const SERVER_FIELDS: FieldPath<UpdateProfileType>[] = [
 ];
 
 function Section({
+  id,
   icon: Icon,
   title,
   description,
   children,
 }: {
+  id?: string;
   icon: typeof User;
   title: string;
   description?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-4">
+    // scroll-mt: tanpa jarak ini, judul bagian yang dituju dari dashboard
+    // berhenti tepat di tepi atas layar dan tertutup bilah atas.
+    <section id={id} className="scroll-mt-24 space-y-4">
       <div className="flex items-start gap-2.5 border-b-2 border-dashed border-slate-200 pb-2.5">
         <span className="mt-0.5 rounded-lg border-2 border-slate-900 bg-track-tint p-1.5">
           <Icon className="size-4 text-primary" aria-hidden />
@@ -122,6 +136,7 @@ function Section({
 export default function FormCompleteProfile({
   onSuccess,
   mode = "onboarding",
+  fokus,
 }: FormCompleteProfileProps) {
   const { data: session, update } = useSession();
   const [isLoading, setIsLoading] = useState(false);
@@ -168,6 +183,19 @@ export default function FormCompleteProfile({
     !isAdmin && (kategori === "utbk" || (isCpns && cpnsTarget === "kedinasan"));
   const showFormasiTargets = !isAdmin && isCpns && cpnsTarget === "umum";
 
+  // Hanya menggulir, tidak mengubah state apa pun - jadi aman di effect. Satu
+  // bingkai ditunggu supaya tata letak form yang baru dipasang sudah final;
+  // tanpa itu guliran bisa berhenti di posisi yang masih bergeser.
+  useEffect(() => {
+    if (fokus !== "target") return;
+    const frame = requestAnimationFrame(() => {
+      document
+        .getElementById(ID_BAGIAN_TARGET)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [fokus]);
+
   /**
    * Rekap formasi diterbitkan SSCASN per periode seleksi, jadi ada masa di mana
    * instansinya sudah diketahui tetapi formasinya belum diumumkan sama sekali.
@@ -186,6 +214,9 @@ export default function FormCompleteProfile({
   // Selama statusnya belum diketahui, formasi dianggap belum dibuka. Menganggap
   // sebaliknya berarti picker sempat muncul lalu hilang begitu jawabannya tiba.
   const formasiOpen = formasiStatus.data?.is_open ?? false;
+  // Saklar admin. Selama mati - atau belum diketahui - formasi tidak disebut
+  // sama sekali, termasuk pemberitahuan "belum dibuka" di bawah.
+  const formasiAktif = formasiStatus.data?.is_enabled ?? false;
   const periodeFormasi = formasiStatus.data?.periode ?? new Date().getFullYear();
 
   const schema = useMemo(
@@ -205,6 +236,7 @@ export default function FormCompleteProfile({
       // Nomor lama tersimpan sebagai "08..."; dibakukan saat dimuat supaya
       // membuka form lalu menyimpannya tidak berubah jadi galat validasi.
       phone_number: keBentukInternasional(session?.user?.phone_number),
+      instagram: session?.user?.instagram || "",
       // Kolomnya menampung "SMA/SMK Kelas 12" sebagai satu string, jadi
       // dipisahkan lagi di sini - sekaligus memetakan "Gap Year" milik akun
       // CPNS lama ke istilah yang dipakai jalur itu sekarang.
@@ -247,6 +279,15 @@ export default function FormCompleteProfile({
   const [instansiId1, setInstansiId1] = useState<string | null>(null);
 
   const schools = useSearchSekolah({ search: schoolSearch });
+  // Untuk D3 ke atas, kolom yang sama menanyakan asal kampus - dan pilihannya
+  // harus kampus, bukan sekolah dari Dapodik. Tanpa saringan jenis: lulusan
+  // sekolah kedinasan juga bisa melamar CPNS umum. Kampus swasta yang belum
+  // ada di tabel tetap bisa diketik manual.
+  const asalKampus = useSearchPerguruanTinggi({
+    search: schoolSearch,
+    token,
+    enabled: butuhJurusan(form.watch("grade_level")),
+  });
 
   const instansi1 = useSearchInstansi({
     search: instansiSearch1,
@@ -487,6 +528,44 @@ export default function FormCompleteProfile({
 
             <Controller
               control={form.control}
+              name="instagram"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="instagram">
+                    Akun Instagram{" "}
+                    <span className="font-normal text-slate-400">(opsional)</span>
+                  </FieldLabel>
+                  {/* Sepola dengan nomor HP: "@" bagian dari kolom, dan yang
+                      disimpan form selalu username baku - jadi menempelkan
+                      tautan profil dari tombol bagikan langsung jadi
+                      username-nya di layar. */}
+                  <div className="flex items-stretch">
+                    <span className="flex select-none items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground">
+                      @
+                    </span>
+                    <Input
+                      id="instagram"
+                      autoComplete="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      className="rounded-l-none"
+                      placeholder="username"
+                      name={field.name}
+                      ref={field.ref}
+                      onBlur={field.onBlur}
+                      value={field.value ?? ""}
+                      onChange={(event) =>
+                        field.onChange(normalkanInstagram(event.target.value))
+                      }
+                    />
+                  </div>
+                  {fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              control={form.control}
               name="gender"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
@@ -605,7 +684,13 @@ export default function FormCompleteProfile({
         <Section
           icon={GraduationCap}
           title="Pendidikan"
-          description="Pilih sekolah dari data Dapodik supaya provinsi dan kota terisi otomatis."
+          // Isi otomatis provinsi dan kota hanya terjadi untuk sekolah - data
+          // kampus tidak membawa lokasi, jadi janji itu tidak berlaku di sana.
+          description={
+            butuhJurusan(form.watch("grade_level"))
+              ? "Pilih jenjang pendidikan terakhirmu, lalu kampus dan jurusannya."
+              : "Pilih sekolah dari data Dapodik supaya provinsi dan kota terisi otomatis."
+          }
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Controller
@@ -633,7 +718,21 @@ export default function FormCompleteProfile({
                           className="peer sr-only"
                           onChange={(e) => {
                             const dipilih = e.target.value;
+                            // Dibaca sebelum field.onChange menimpanya.
+                            const sebelumnya = form.getValues("grade_level");
                             field.onChange(e);
+
+                            // Asal sekolah berganti arti saat peserta pindah
+                            // antara sekolah dan kampus: nama SMA tidak menjawab
+                            // "asal kampus", dan sebaliknya. Dikosongkan supaya
+                            // diisi ulang, bukan dibiarkan tersimpan diam-diam
+                            // di bawah label yang sudah tidak cocok. Di dalam
+                            // satu kelompok - kelas 12 jadi lulusan, S1 jadi S2 -
+                            // nilainya bisa tetap benar, jadi dibiarkan.
+                            if (kelompokJenjang(sebelumnya) !== kelompokJenjang(dipilih)) {
+                              form.setValue("school_origin", "");
+                              setSchoolSearch("");
+                            }
 
                             if (butuhKelas(dipilih)) {
                               form.setValue("class_level", "Kelas 12");
@@ -758,12 +857,39 @@ export default function FormCompleteProfile({
                         );
                       }
                     }}
-                    options={schoolOptions(schools.data)}
-                    loading={schools.isFetching}
-                    placeholder="Cari nama sekolahmu"
-                    searchPlaceholder="Mis: SMAN 1 Surabaya"
-                    freeTextHint="Sekolahmu belum terdaftar?"
-                    emptyHint={`Ketik minimal ${SEKOLAH_SEARCH_MIN_LENGTH} huruf nama sekolah.`}
+                    options={
+                      butuhJurusan(jenjangDipilih)
+                        ? (asalKampus.data ?? []).map((kampus) => ({
+                            id: kampus.id,
+                            label: kampus.nama,
+                          }))
+                        : schoolOptions(schools.data)
+                    }
+                    loading={
+                      butuhJurusan(jenjangDipilih)
+                        ? asalKampus.isFetching
+                        : schools.isFetching
+                    }
+                    placeholder={
+                      butuhJurusan(jenjangDipilih)
+                        ? "Cari nama kampusmu"
+                        : "Cari nama sekolahmu"
+                    }
+                    searchPlaceholder={
+                      butuhJurusan(jenjangDipilih)
+                        ? "Mis: Universitas Indonesia"
+                        : "Mis: SMAN 1 Surabaya"
+                    }
+                    freeTextHint={
+                      butuhJurusan(jenjangDipilih)
+                        ? "Kampusmu belum terdaftar?"
+                        : "Sekolahmu belum terdaftar?"
+                    }
+                    emptyHint={
+                      butuhJurusan(jenjangDipilih)
+                        ? "Ketik nama kampus untuk mencari."
+                        : `Ketik minimal ${SEKOLAH_SEARCH_MIN_LENGTH} huruf nama sekolah.`
+                    }
                     onSearchChange={setSchoolSearch}
                   />
                   {fieldState.error && <FieldError errors={[fieldState.error]} />}
@@ -779,6 +905,9 @@ export default function FormCompleteProfile({
           Tanpa ini, salah satu pasangan field pasti terisi asal-asalan. */}
       {isCpns && !isAdmin && (
         <Section
+          // Di jalur CPNS, bagian target dimulai dari sini: pilihan sub-jalur
+          // inilah yang menentukan kolom target mana yang muncul di bawahnya.
+          id={ID_BAGIAN_TARGET}
           icon={Target}
           title="Tujuanmu"
           description="Pilih dulu, supaya kolom target di bawah menyesuaikan."
@@ -841,6 +970,7 @@ export default function FormCompleteProfile({
 
       {showTargets && (
         <Section
+          id={isCpns ? undefined : ID_BAGIAN_TARGET}
           icon={Target}
           title={isCpns ? "Target sekolah kedinasan" : "Target kampus"}
           description={
@@ -996,18 +1126,20 @@ export default function FormCompleteProfile({
       {showFormasiTargets && (
         <Section
           icon={Target}
-          title="Target instansi & formasi"
+          title={formasiAktif ? "Target instansi & formasi" : "Target instansi"}
           description={
             formasiOpen
               ? "Pilih dari daftar, atau ketik sendiri kalau instansi dan formasimu belum ada."
-              : "Pilih instansi tujuanmu dulu. Formasinya bisa diisi nanti."
+              : formasiAktif
+                ? "Pilih instansi tujuanmu dulu. Formasinya bisa diisi nanti."
+                : "Pilih dari daftar, atau ketik sendiri kalau instansimu belum ada."
           }
         >
           <div className="space-y-4">
             {/* Instansinya sudah bisa dipilih, formasinya belum ada. Peserta
                 perlu diberi tahu supaya tidak menganggap kolomnya rusak atau
                 menunda mengisi profilnya sampai formasi terbit. */}
-            {!formasiOpen && (
+            {formasiAktif && !formasiOpen && (
               <div className="flex items-start gap-3 rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-3">
                 <Clock className="mt-0.5 size-5 shrink-0 text-amber-600" />
                 <div className="space-y-1">

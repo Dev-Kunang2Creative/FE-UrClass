@@ -54,6 +54,8 @@ import {
 import Link from "next/link";
 import { formatJakartaDateTime } from "@/utils/date-time";
 import { cn } from "@/lib/utils";
+import { tautanInstagram } from "@/lib/instagram";
+import DialogDetailPeserta from "@/components/organisms/dashboard/admin/users/DialogDetailPeserta";
 
 interface DashboardAdminTryoutLeaderboardWrapperProps {
   tryoutId: string;
@@ -97,10 +99,10 @@ function getRankStyle(rank: number) {
       };
     case 3:
       return {
-        rankBox: "bg-indigo-50 text-indigo-800 border border-indigo-200",
-        avatar: "bg-indigo-100 text-indigo-800",
-        badge: "bg-indigo-50 text-indigo-800 border-indigo-200",
-        medal: "text-indigo-600",
+        rankBox: "bg-blue-50 text-blue-900 border border-blue-200",
+        avatar: "bg-blue-100 text-blue-900",
+        badge: "bg-blue-50 text-blue-900 border-blue-200",
+        medal: "text-blue-800",
         label: "Juara 3",
       };
     default:
@@ -182,12 +184,14 @@ function LeaderboardTableRow({
   isFullSkd,
   onViewProof,
   onDeleteDummy,
+  onViewDetail,
 }: {
   entry: LeaderboardEntry;
   tryoutId: string;
   isFullSkd: boolean;
   onViewProof: (entry: LeaderboardEntry) => void;
   onDeleteDummy: (entry: LeaderboardEntry) => void;
+  onViewDetail: (entry: LeaderboardEntry) => void;
 }) {
   const rankStyle = getRankStyle(entry.rank);
   const finishedAt = entry.finished_at
@@ -227,9 +231,20 @@ function LeaderboardTableRow({
           </Avatar>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <p className="font-semibold text-sm text-foreground truncate">
-                {entry.user_name}
-              </p>
+              {/* Peserta dummy tidak punya profil untuk dilihat. */}
+              {entry.is_dummy ? (
+                <p className="font-semibold text-sm text-foreground truncate">
+                  {entry.user_name}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onViewDetail(entry)}
+                  className="font-semibold text-sm text-foreground truncate text-left hover:underline"
+                >
+                  {entry.user_name}
+                </button>
+              )}
               {rankStyle && (
                 <Badge
                   variant="outline"
@@ -242,6 +257,18 @@ function LeaderboardTableRow({
                 </Badge>
               )}
             </div>
+            {/* Nama saja tidak cukup untuk mengenali siapa orangnya - itu
+                alasan kolom ini diminta. Hanya dikirim server untuk admin. */}
+            {entry.instagram && (
+              <a
+                href={tautanInstagram(entry.instagram)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-xs text-blue-700 hover:underline mt-0.5"
+              >
+                @{entry.instagram}
+              </a>
+            )}
             <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
               <Clock className="w-3 h-3 shrink-0" />
               Percobaan #{entry.attempt_number} · {duration} · {finishedAt}
@@ -538,6 +565,10 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
   const [selectedProofEntry, setSelectedProofEntry] = useState<LeaderboardEntry | null>(null);
   const [dummyDihapus, setDummyDihapus] = useState<LeaderboardEntry | null>(null);
   const [menghapus, setMenghapus] = useState(false);
+  // Peserta yang dipilih tetap disimpan setelah dialognya ditutup, supaya
+  // animasi tutupnya tidak menampilkan kepala dialog kosong sekejap.
+  const [pesertaDilihat, setPesertaDilihat] = useState<LeaderboardEntry | null>(null);
+  const [detailTerbuka, setDetailTerbuka] = useState(false);
 
   const { data, isPending, isError, refetch } = useGetTryoutLeaderboard({
     token: session?.access_token ?? "",
@@ -684,6 +715,10 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
                   isFullSkd={isFullSkd}
                   onViewProof={setSelectedProofEntry}
                   onDeleteDummy={setDummyDihapus}
+                  onViewDetail={(entry) => {
+                    setPesertaDilihat(entry);
+                    setDetailTerbuka(true);
+                  }}
                 />
               ))}
             </TableBody>
@@ -707,6 +742,13 @@ export default function DashboardAdminTryoutLeaderboardWrapper({
           }}>{menghapus ? 'Menghapus…' : 'Hapus Peserta Dummy'}</Button>
         </div></DialogContent>
       </Dialog>
+      <DialogDetailPeserta
+        userId={pesertaDilihat?.user_id ?? null}
+        nama={pesertaDilihat ? `Peringkat ${pesertaDilihat.rank} · ${pesertaDilihat.user_name}` : undefined}
+        token={session?.access_token ?? ""}
+        open={detailTerbuka}
+        onOpenChange={setDetailTerbuka}
+      />
       <ProofImagesDialog
         entry={selectedProofEntry}
         open={!!selectedProofEntry}

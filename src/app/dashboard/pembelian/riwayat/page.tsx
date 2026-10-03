@@ -16,7 +16,30 @@ export default function RiwayatPembelianPage() {
   const { data: session } = useSession();
   const token = session?.access_token || "";
 
-  const { data, isLoading } = useGetHistoryPembelian({ token });
+  // Halaman ini sengaja tidak memakai cache global (segar 60 detik, tidak
+  // mengambil ulang saat tab kembali aktif). Alurnya justru: bayar, kembali,
+  // lalu lihat riwayat - dan dengan cache itu peserta melihat status lama
+  // sampai ia me-refresh sendiri.
+  //
+  // - selalu ambil ulang saat halaman dibuka;
+  // - ambil ulang saat tab kembali aktif, karena QRIS dibayar di aplikasi lain
+  //   lalu peserta pindah lagi ke sini;
+  // - selama masih ada pesanan Menunggu, periksa tiap 5 detik. Pembayaran QRIS
+  //   baru tercatat begitu notifikasi Midtrans tiba, dan itu bisa beberapa
+  //   detik setelah peserta kembali. Berhenti sendiri begitu tidak ada lagi
+  //   yang menunggu, dan tidak berjalan saat tab tidak sedang dilihat.
+  const { data, isLoading } = useGetHistoryPembelian({
+    token,
+    options: {
+      staleTime: 0,
+      refetchOnMount: "always",
+      refetchOnWindowFocus: true,
+      refetchInterval: (query) =>
+        query.state.data?.data.some((trx) => trx.status === "pending")
+          ? 5000
+          : false,
+    },
+  });
   const transactions = data?.data || [];
 
   const queryClient = useQueryClient();

@@ -245,7 +245,7 @@ export default function DashboardAdminSubtestCategoryWrapper() {
         <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${
             row.original.exam_type === "cpns"
-              ? "bg-indigo-50 text-indigo-900 border-indigo-200"
+              ? "bg-blue-50 text-blue-950 border-blue-200"
               : "bg-blue-50 text-blue-800 border-blue-200"
           }`}
         >

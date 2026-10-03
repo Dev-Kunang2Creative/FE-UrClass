@@ -18,7 +18,12 @@ export interface FormasiOption {
 }
 
 export interface FormasiStatus {
-  /** Sudah ada minimal satu formasi, jadi picker-nya bisa dipakai. */
+  /**
+   * Saklar admin. Selama false, form profil tidak menyebut formasi sama sekali -
+   * bukan kolomnya, bukan juga pemberitahuan "belum dibuka".
+   */
+  is_enabled: boolean;
+  /** Ditampilkan dan sudah ada minimal satu formasi, jadi picker-nya bisa dipakai. */
   is_open: boolean;
   total: number;
   /** Tahun seleksi yang sedang berlaku, atau yang sedang ditunggu. */

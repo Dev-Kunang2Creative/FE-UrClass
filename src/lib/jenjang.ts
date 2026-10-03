@@ -33,6 +33,21 @@ export function butuhJurusan(jenjang: string | null | undefined): boolean {
   );
 }
 
+/**
+ * Asal pendidikan seorang peserta jatuh ke salah satu dari dua kelompok:
+ * sekolah (SMA/SMK, lulusannya, gap year) atau kampus (D3 ke atas).
+ *
+ * Kolom "asal sekolah" berganti arti saat peserta pindah kelompok - nama SMA
+ * tidak lagi menjawab pertanyaan "asal kampus". Di dalam satu kelompok artinya
+ * tetap: siswa kelas 12 yang lulus masih berasal dari sekolah yang sama, dan
+ * lulusan S1 yang lanjut S2 bisa saja di kampus yang sama.
+ */
+export type KelompokJenjang = "sekolah" | "kampus";
+
+export function kelompokJenjang(jenjang: string | null | undefined): KelompokJenjang {
+  return butuhJurusan(jenjang) ? "kampus" : "sekolah";
+}
+
 /** Hanya siswa SMA aktif yang memilih kelas. */
 export function butuhKelas(jenjang: string | null | undefined): boolean {
   return String(jenjang ?? "").trim() === JENJANG_SMA;

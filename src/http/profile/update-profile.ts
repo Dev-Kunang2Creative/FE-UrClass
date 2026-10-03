@@ -20,6 +20,8 @@ export const updateProfileApiHandler = async (
   const payload = {
     name: body.name,
     phone_number: body.phone_number,
+    // Kosong dikirim null, supaya menghapus isiannya benar-benar menghapus.
+    instagram: body.instagram || null,
     school_origin: body.school_origin,
     // Gap Year carries no class, and the trailing space this used to send
     // ("Gap Year ") did not match what the session was told.

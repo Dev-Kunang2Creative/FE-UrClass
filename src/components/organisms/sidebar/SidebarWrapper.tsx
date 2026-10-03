@@ -77,7 +77,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
 
   const activeMenuClass =
     kategori === "cpns"
-      ? "bg-indigo-50 text-indigo-950 font-bold border border-indigo-300 shadow-sm"
+      ? "bg-blue-50 text-blue-950 font-bold border border-blue-300 shadow-sm"
       : "bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-sm";
 
   const buttonClass = (href: string) =>

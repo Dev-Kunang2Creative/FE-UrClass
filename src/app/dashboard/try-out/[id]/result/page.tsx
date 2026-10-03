@@ -50,7 +50,7 @@ export default function ResultPage({
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoaderCircle
           aria-label="Memuat hasil tryout"
-          className={`size-10 animate-spin ${isCpns ? "text-indigo-800" : "text-blue-600"}`}
+          className={`size-10 animate-spin ${isCpns ? "text-blue-900" : "text-blue-600"}`}
         />
       </div>
     );
@@ -111,7 +111,7 @@ export default function ResultPage({
   const accuracy = Math.round(score_result?.accuracy ?? 0);
 
   const heroCardClass = isCpns
-    ? "bg-linear-to-br from-indigo-800 via-indigo-900 to-slate-900 border-2 border-slate-900 text-white"
+    ? "bg-linear-to-br from-blue-900 via-blue-950 to-slate-900 border-2 border-slate-900 text-white"
     : "bg-linear-to-br from-blue-600 via-blue-700 to-slate-900 border-2 border-slate-900 text-white";
 
   return (
@@ -279,7 +279,7 @@ export default function ResultPage({
           </div>
         </div>
       ) : (
-        <div className="rounded-3xl border-2 border-slate-900 bg-indigo-50/90 p-6 sm:p-8 text-center shadow-[5px_5px_0px_0px_#0f172a]">
+        <div className="rounded-3xl border-2 border-slate-900 bg-amber-50/90 p-6 sm:p-8 text-center shadow-[5px_5px_0px_0px_#0f172a]">
           <div className="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-amber-950 bg-amber-400 text-amber-950 shadow-[2px_2px_0px_0px_#451a03]">
             <Clock className="h-7 w-7" />
           </div>
@@ -317,10 +317,10 @@ export default function ResultPage({
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <SummaryCard
-          icon={<Target className={`w-5 h-5 ${isCpns ? "text-indigo-700" : "text-blue-600"}`} />}
+          icon={<Target className={`w-5 h-5 ${isCpns ? "text-blue-900" : "text-blue-600"}`} />}
           label="Total Soal"
           value={summary.total_questions}
-          iconBg={isCpns ? "bg-indigo-100 text-indigo-800 border-indigo-200" : "bg-blue-100 text-blue-700 border-blue-200"}
+          iconBg={isCpns ? "bg-blue-100 text-blue-900 border-blue-200" : "bg-blue-100 text-blue-700 border-blue-200"}
         />
         <SummaryCard
           icon={<BarChart3 className="w-5 h-5 text-purple-600" />}

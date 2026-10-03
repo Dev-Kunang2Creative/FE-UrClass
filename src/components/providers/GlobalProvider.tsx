@@ -60,7 +60,35 @@ export default function GlobalProvider({ children }: PropsWithChildren) {
         <QueryClientProvider client={queryClient}>
           <DataModeProvider>{children}</DataModeProvider>
         </QueryClientProvider>
-        <Toaster position="top-right" />
+        {/* closeButton: tombol X di setiap toast, supaya notifikasi bisa
+            ditutup tanpa menunggu durasinya habis - terutama yang panjang
+            seperti galat pembayaran.
+
+            Sonner meletakkan tombol itu di pojok KIRI atas. Toast di sini
+            muncul di kanan atas, jadi X di kiri berada di sisi yang jauh dari
+            tepi layar, tempat yang tidak dicari orang. Dipindah ke kanan lewat
+            variabel milik Sonner sendiri, bukan menimpa posisinya dengan CSS,
+            supaya tetap ikut kalau Sonner mengubah tata letaknya.
+
+            Catatan: komponen di src/components/ui/sonner.tsx TIDAK dipakai di
+            mana pun - Toaster yang aktif adalah yang ini, langsung dari paket
+            sonner. Mengubah berkas itu tidak berefek apa-apa. */}
+        <Toaster
+          position="top-right"
+          closeButton
+          toastOptions={{
+            // Bawaannya "Close toast" - satu-satunya kalimat bahasa Inggris
+            // yang dibacakan pembaca layar di seluruh antarmuka.
+            closeButtonAriaLabel: "Tutup notifikasi",
+          }}
+          style={
+            {
+              "--toast-close-button-start": "unset",
+              "--toast-close-button-end": "0",
+              "--toast-close-button-transform": "translate(35%, -35%)",
+            } as React.CSSProperties
+          }
+        />
       </SessionProvider>
     </>
   );

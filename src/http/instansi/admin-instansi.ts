@@ -176,3 +176,29 @@ export const useImportFormasi = ({ token }: { token: string }) => {
     },
   });
 };
+
+/**
+ * Menampilkan atau menyembunyikan formasi dari form profil peserta. Datanya
+ * tidak disentuh - hanya apakah peserta melihatnya.
+ */
+export const useAturTampilanFormasi = ({ token }: { token: string }) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { message: string; data: { ditampilkan: boolean } },
+    AxiosError<{ message?: string }>,
+    boolean
+  >({
+    mutationFn: async (ditampilkan) => {
+      const { data } = await api.put(
+        "/admin/formasi/tampilan",
+        { ditampilkan },
+        auth(token),
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["formasi-status"] });
+    },
+  });
+};

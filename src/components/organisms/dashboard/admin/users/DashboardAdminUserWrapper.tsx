@@ -2,6 +2,7 @@
 
 import AlertDialogDeleteUser from "@/components/atoms/alert-dialog/user/AlertDialogDeleteUser";
 import DialogAturTiket from "@/components/organisms/dashboard/admin/users/DialogAturTiket";
+import DialogDetailPeserta from "@/components/organisms/dashboard/admin/users/DialogDetailPeserta";
 import {
   AdminDataToolbar,
   AdminExportColumn,
@@ -31,6 +32,7 @@ const userExportColumns: AdminExportColumn<User>[] = [
   { header: "Email", accessor: (row) => row.email },
   { header: "Role", accessor: (row) => (row.role === "admin" ? "Admin" : "Siswa") },
   { header: "No HP", accessor: (row) => row.phone_number || "-" },
+  { header: "Instagram", accessor: (row) => (row.instagram ? `@${row.instagram}` : "-") },
   { header: "Asal Sekolah", accessor: (row) => row.school_origin || "-" },
   { header: "Kelas", accessor: (row) => row.grade_level || "-" },
   { header: "Tiket", accessor: (row) => row.ticket_balance ?? 0 },
@@ -64,6 +66,9 @@ export default function DashboardAdminUserWrapper() {
   // animasi tutupnya tidak menampilkan panel kosong sekejap.
   const [selectedTicketUser, setSelectedTicketUser] = useState<User | null>(null);
 
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [selectedDetailUser, setSelectedDetailUser] = useState<User | null>(null);
+
   const { data, isPending } = useGetAllUsers({
     token: session?.access_token as string,
     page,
@@ -86,7 +91,7 @@ export default function DashboardAdminUserWrapper() {
   ];
   const controls = useAdminTableControls({
     data: userRows,
-    searchFields: [(row) => row.name, (row) => row.email, (row) => row.school_origin, (row) => row.grade_level],
+    searchFields: [(row) => row.name, (row) => row.email, (row) => row.instagram, (row) => row.school_origin, (row) => row.grade_level],
     filters: userFilters,
     sortOptions: userSortOptions,
     defaultSort: "newest",
@@ -99,7 +104,7 @@ export default function DashboardAdminUserWrapper() {
       search: controls.search,
       filterValues: controls.filterValues,
       sortKey: controls.sortKey,
-      searchFields: [(row) => row.name, (row) => row.email, (row) => row.school_origin, (row) => row.grade_level],
+      searchFields: [(row) => row.name, (row) => row.email, (row) => row.instagram, (row) => row.school_origin, (row) => row.grade_level],
       filters: userFilters,
       sortOptions: userSortOptions,
     });
@@ -142,7 +147,7 @@ export default function DashboardAdminUserWrapper() {
             <div className="space-y-3">
               <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
                 <Input
-                  placeholder="Cari nama atau email pengguna..."
+                  placeholder="Cari nama, email, atau Instagram..."
                   className="max-w-xs"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
@@ -178,6 +183,10 @@ export default function DashboardAdminUserWrapper() {
                 manageTicketHandler: (user) => {
                   setSelectedTicketUser(user);
                   setIsTicketDialogOpen(true);
+                },
+                detailHandler: (user) => {
+                  setSelectedDetailUser(user);
+                  setIsDetailDialogOpen(true);
                 },
               })}
               data={controls.rows}
@@ -239,6 +248,14 @@ export default function DashboardAdminUserWrapper() {
           isPending={isDeleting}
         />
       )}
+
+      <DialogDetailPeserta
+        userId={selectedDetailUser?.id ?? null}
+        nama={selectedDetailUser ? `${selectedDetailUser.name} · ${selectedDetailUser.email}` : undefined}
+        token={session?.access_token as string}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+      />
 
       <DialogAturTiket
         user={selectedTicketUser}

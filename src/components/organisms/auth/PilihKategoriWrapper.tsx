@@ -62,7 +62,7 @@ const CATEGORY_ITEMS: Array<{
     title: "Tryout SEKDIN & CPNS",
     cta: "Masuk ke Tryout SEKDIN & CPNS",
     badge: "KEDINASAN & ASN",
-    badgeClass: "bg-indigo-100 text-indigo-950 border-indigo-300",
+    badgeClass: "bg-blue-100 text-blue-950 border-blue-300",
     description: "Fokus latihan CAT SKD - TWK, TIU, dan TKP - untuk seleksi sekolah kedinasan maupun CPNS umum, dengan sistem bobot nilai akurat.",
     features: [
       "Simulasi CAT BKN realistis",
@@ -70,10 +70,10 @@ const CATEGORY_ITEMS: Array<{
       "Ranking 3 level (Nasional/Daerah/Instansi)",
     ],
     icon: Landmark,
-    iconBg: "bg-indigo-50 border-2 border-indigo-200",
-    iconColor: "text-indigo-800",
-    btnClass: "bg-indigo-900 hover:bg-indigo-900 text-white shadow-[2px_2px_0px_0px_#1e293b]",
-    hoverBorder: "hover:border-indigo-800",
+    iconBg: "bg-blue-50 border-2 border-blue-200",
+    iconColor: "text-blue-900",
+    btnClass: "bg-blue-950 hover:bg-blue-950 text-white shadow-[2px_2px_0px_0px_#1e293b]",
+    hoverBorder: "hover:border-blue-900",
   },
 ];
 

@@ -129,6 +129,8 @@ export interface LeaderboardEntry {
   rank: number;
   user_id: string;
   user_name: string;
+  /** Hanya dikirim untuk admin. */
+  instagram?: string | null;
   attempt_number: number;
   started_at: string | null;
   finished_at: string | null;

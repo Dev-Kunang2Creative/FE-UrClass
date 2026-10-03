@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Trash2, Ticket, Coins, Sparkles } from "lucide-react";
+import { Trash2, Ticket, Coins, Sparkles, IdCard } from "lucide-react";
 import ActionButton from "@/components/molecules/datatable/ActionButton";
 import {
   DropdownMenuItem,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import type { User } from "@/types/user/user";
+import { tautanInstagram } from "@/lib/instagram";
 
 /**
  * Angka besar diringkas: 407.074 jadi "407 rb".
@@ -28,6 +29,8 @@ interface DataUserProps {
   deleteUserHandler: (data: User) => void;
   /** Membuka panel tiket dan pemakaian AI akun ini. */
   manageTicketHandler: (data: User) => void;
+  /** Membuka profil lengkap peserta. */
+  detailHandler: (data: User) => void;
 }
 
 export const userColumns: (props: DataUserProps) => ColumnDef<User>[] = (
@@ -41,11 +44,23 @@ export const userColumns: (props: DataUserProps) => ColumnDef<User>[] = (
   {
     id: "name",
     header: "Nama",
-    cell: ({ row }) => (
-      <p suppressHydrationWarning className="font-medium">
-        {row.original.name}
-      </p>
-    ),
+    // Nama yang bisa ditekan: tempat pertama yang dicari mata saat ingin tahu
+    // lebih banyak tentang seseorang, lebih dekat daripada menu titik tiga.
+    cell: ({ row }) =>
+      row.original.role === "admin" ? (
+        <p suppressHydrationWarning className="font-medium">
+          {row.original.name}
+        </p>
+      ) : (
+        <button
+          type="button"
+          suppressHydrationWarning
+          onClick={() => props.detailHandler(row.original)}
+          className="text-left font-medium hover:underline"
+        >
+          {row.original.name}
+        </button>
+      ),
   },
   {
     id: "email",
@@ -116,6 +131,25 @@ export const userColumns: (props: DataUserProps) => ColumnDef<User>[] = (
     ),
   },
   {
+    id: "instagram",
+    header: "Instagram",
+    cell: ({ row }) => {
+      const username = row.original.instagram;
+      if (!username) return <p className="text-sm text-gray-400">-</p>;
+
+      return (
+        <a
+          href={tautanInstagram(username)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-blue-700 hover:underline"
+        >
+          @{username}
+        </a>
+      );
+    },
+  },
+  {
     id: "school_origin",
     header: "Asal Sekolah",
     cell: ({ row }) => (
@@ -142,6 +176,15 @@ export const userColumns: (props: DataUserProps) => ColumnDef<User>[] = (
       return (
         <ActionButton>
           <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+          <DropdownMenuItem asChild>
+            <div
+              onClick={() => props.detailHandler(data)}
+              className="flex cursor-pointer items-center hover:underline"
+            >
+              <IdCard className="h-4 w-4" />
+              <span className="ml-2">Detail peserta</span>
+            </div>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <div
               onClick={() => props.manageTicketHandler(data)}

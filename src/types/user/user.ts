@@ -4,6 +4,8 @@ export interface User {
   name: string;
   google_id?: string;
   phone_number?: string;
+  /** Username Instagram tanpa "@", huruf kecil. Opsional. */
+  instagram?: string | null;
   email_verified_at?: string;
   password: string;
   role: "admin" | "user";

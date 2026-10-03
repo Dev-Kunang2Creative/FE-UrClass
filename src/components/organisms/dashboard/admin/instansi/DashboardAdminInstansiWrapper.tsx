@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Clock,
   Eye,
+  EyeOff,
   FileSpreadsheet,
   Plus,
   Search,
@@ -17,10 +18,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { getErrorMessage } from "@/utils/get-error-message";
 import {
   useAdminFormasi,
   useAdminInstansi,
+  useAturTampilanFormasi,
   useCreateFormasi,
   useDeleteFormasi,
 } from "@/http/instansi/admin-instansi";
@@ -57,6 +60,18 @@ export default function DashboardAdminInstansiWrapper() {
     token,
     instansiId: openId,
   });
+
+  const aturTampilan = useAturTampilanFormasi({ token });
+  const formasiAktif = formasiStatus.data?.is_enabled ?? true;
+
+  const ubahTampilan = (ditampilkan: boolean) =>
+    aturTampilan.mutate(ditampilkan, {
+      onSuccess: (hasil) => toast.success(hasil.message),
+      onError: (error) =>
+        toast.error("Gagal mengubah tampilan formasi", {
+          description: getErrorMessage(error, "Terjadi kesalahan."),
+        }),
+    });
 
   const create = useCreateFormasi({ token });
   const remove = useDeleteFormasi({ token });
@@ -96,7 +111,45 @@ export default function DashboardAdminInstansiWrapper() {
             </p>
           </div>
 
+          {/* Saklar untuk menahan formasi dari peserta tanpa menghapus
+              datanya - misalnya selama rekapnya masih diisi atau diperiksa. */}
           {formasiStatus.data && (
+            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border-2 border-slate-200 px-4 py-3">
+              <div className="space-y-0.5">
+                <p className="text-sm font-bold text-slate-900">
+                  Tampilkan formasi ke peserta
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Kalau dimatikan, form profil peserta CPNS umum hanya
+                  menanyakan instansi.
+                </p>
+              </div>
+              <Switch
+                checked={formasiAktif}
+                disabled={aturTampilan.isPending}
+                onCheckedChange={ubahTampilan}
+              />
+            </label>
+          )}
+
+          {formasiStatus.data && !formasiAktif && (
+            <div className="flex items-start gap-3 rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3">
+              <EyeOff className="mt-0.5 size-5 shrink-0 text-slate-500" />
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-slate-900">
+                  Formasi disembunyikan dari peserta
+                </p>
+                <p className="text-xs leading-relaxed text-slate-600">
+                  Peserta tidak melihat kolom formasi maupun pemberitahuan
+                  &quot;belum dibuka&quot;, dan formasi tidak wajib diisi. Data
+                  formasi di bawah dan pilihan yang sudah disimpan peserta
+                  tetap ada, dan muncul lagi begitu saklar dinyalakan.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {formasiStatus.data && formasiAktif && (
             <div
               className={`flex items-start gap-3 rounded-xl border-2 px-4 py-3 ${
                 formasiStatus.data.is_open

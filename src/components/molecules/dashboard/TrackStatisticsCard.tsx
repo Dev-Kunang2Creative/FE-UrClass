@@ -13,10 +13,13 @@ import {
   Sparkles,
   ArrowRight,
   Target,
+  PencilLine,
 } from "lucide-react";
 import Link from "next/link";
 import type { TryoutHistoryData } from "@/http/tryout/get-history-tryout";
 import { scoreSummary } from "@/lib/dashboard-tasks";
+import { UBAH_TARGET_HREF } from "@/lib/profil";
+import { useFormasiStatus } from "@/http/reference/get-instansi";
 
 interface TrackStatisticsCardProps {
   histories?: TryoutHistoryData[];
@@ -31,6 +34,13 @@ export default function TrackStatisticsCard({
   const config = KATEGORI_CONFIG[kategori];
   const { data: session } = useSession();
   const user = session?.user;
+  // Selama admin menyembunyikan formasi, kartu target tidak menyebutnya juga -
+  // "Atur di profil" akan menunjuk ke kolom yang tidak ada di sana.
+  const formasiStatus = useFormasiStatus({
+    token: session?.access_token ?? "",
+    enabled: kategori === "cpns" && user?.cpns_target_type === "umum",
+  });
+  const formasiAktif = formasiStatus.data?.is_enabled ?? false;
 
   // Shared with ProgressAside so the average shown up in the sidebar and the
   // one shown here cannot drift apart.
@@ -84,8 +94,8 @@ export default function TrackStatisticsCard({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300">
-                <Award className="w-5 h-5 text-indigo-800" />
+              <span className="p-1.5 rounded-lg bg-blue-100 text-blue-950 border border-blue-300">
+                <Award className="w-5 h-5 text-blue-900" />
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                 Statistik Evaluasi SKD CPNS
@@ -97,12 +107,12 @@ export default function TrackStatisticsCard({
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <div className="bg-indigo-50 border-2 border-indigo-300 rounded-2xl px-4 py-2 text-center">
-              <span className="text-xs font-bold text-indigo-900 uppercase block">
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl px-4 py-2 text-center">
+              <span className="text-xs font-bold text-blue-950 uppercase block">
                 Rata-rata Skor SKD
               </span>
-              <span className="text-2xl font-black text-indigo-950">
-                {avgScore} <span className="text-xs font-semibold text-indigo-800">/ 550</span>
+              <span className="text-2xl font-black text-blue-950">
+                {avgScore} <span className="text-xs font-semibold text-blue-900">/ 550</span>
               </span>
             </div>
           </div>
@@ -114,13 +124,13 @@ export default function TrackStatisticsCard({
             className={`p-4 rounded-2xl border-2 flex items-center gap-3 ${
               isAllPGPassed
                 ? "bg-emerald-50 border-emerald-500 text-emerald-900"
-                : "bg-indigo-50 border-indigo-400 text-indigo-950"
+                : "bg-blue-50 border-blue-400 text-blue-950"
             }`}
           >
             {isAllPGPassed ? (
               <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
             ) : (
-              <Sparkles className="w-6 h-6 text-indigo-700 shrink-0" />
+              <Sparkles className="w-6 h-6 text-blue-900 shrink-0" />
             )}
             <div className="text-sm">
               <span className="font-bold">
@@ -134,7 +144,7 @@ export default function TrackStatisticsCard({
             </div>
           </div>
         ) : (
-          <div className="p-4 rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+          <div className="p-4 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <div className="space-y-0.5">
               <span className="font-bold text-sm text-slate-800">
                 Belum ada data tryout CPNS
@@ -145,7 +155,7 @@ export default function TrackStatisticsCard({
             </div>
             <Link
               href="/dashboard/try-out"
-              className="px-4 py-2 rounded-xl bg-indigo-800 hover:bg-indigo-900 text-white font-bold text-xs shadow-[2px_2px_0px_0px_#0f172a] transition-all flex items-center gap-1.5 shrink-0"
+              className="px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs shadow-[2px_2px_0px_0px_#0f172a] transition-all flex items-center gap-1.5 shrink-0"
             >
               <span>Mulai Tryout Sekarang</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -155,12 +165,12 @@ export default function TrackStatisticsCard({
 
         {/* Target CPNS / Kedinasan Info Card */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-indigo-50/80 to-indigo-50/60 rounded-2xl border-2 border-indigo-200 p-4 flex items-start gap-3.5">
-            <div className="p-2.5 rounded-xl bg-indigo-800 text-white shadow-sm shrink-0">
+          <KartuTarget className="bg-gradient-to-br from-blue-50/80 to-slate-50/60 rounded-2xl border-2 border-blue-200 p-4 flex items-start gap-3.5">
+            <div className="p-2.5 rounded-xl bg-blue-900 text-white shadow-sm shrink-0">
               <Target className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-900 block">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-950 block">
                 {user?.cpns_target_type === "umum"
                   ? "Target Instansi Pilihan 1"
                   : "Target Sekolah Kedinasan 1"}
@@ -171,14 +181,16 @@ export default function TrackStatisticsCard({
                   : user?.target_university_1) || "Belum ditentukan"}
               </h4>
               <p className="text-xs text-slate-600 truncate">
-                {(user?.cpns_target_type === "umum"
-                  ? user?.target_formasi_1
-                  : user?.target_major_1) || "Atur di profil"}
+                {user?.cpns_target_type === "umum"
+                  ? formasiAktif
+                    ? user?.target_formasi_1 || "Atur formasi di profil"
+                    : "CPNS Umum"
+                  : user?.target_major_1 || "Atur di profil"}
               </p>
             </div>
-          </div>
+          </KartuTarget>
 
-          <div className="bg-gradient-to-br from-indigo-50/80 to-yellow-50/60 rounded-2xl border-2 border-amber-200 p-4 flex items-start gap-3.5">
+          <KartuTarget className="bg-gradient-to-br from-amber-50/80 to-yellow-50/60 rounded-2xl border-2 border-amber-200 p-4 flex items-start gap-3.5">
             <div className="p-2.5 rounded-xl bg-amber-600 text-white shadow-sm shrink-0">
               <Building2 className="w-5 h-5" />
             </div>
@@ -199,7 +211,7 @@ export default function TrackStatisticsCard({
                   : user?.target_major_2) || "Atur di profil"}
               </p>
             </div>
-          </div>
+          </KartuTarget>
         </div>
 
         {/* 3 Subtest Passing Grade Breakdown */}
@@ -314,7 +326,7 @@ export default function TrackStatisticsCard({
 
       {/* Target PTN Info Card */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-gradient-to-br from-blue-50/80 to-indigo-50/60 rounded-2xl border-2 border-blue-200 p-4 flex items-start gap-3.5">
+        <KartuTarget className="bg-gradient-to-br from-blue-50/80 to-indigo-50/60 rounded-2xl border-2 border-blue-200 p-4 flex items-start gap-3.5">
           <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-sm shrink-0">
             <Target className="w-5 h-5" />
           </div>
@@ -329,9 +341,9 @@ export default function TrackStatisticsCard({
               {ptnMajor1 || (isKedinasanTarget ? "Atur target PTN di profil" : "Atur jurusan di profil")}
             </p>
           </div>
-        </div>
+        </KartuTarget>
 
-        <div className="bg-gradient-to-br from-sky-50/80 to-blue-50/60 rounded-2xl border-2 border-sky-200 p-4 flex items-start gap-3.5">
+        <KartuTarget className="bg-gradient-to-br from-sky-50/80 to-blue-50/60 rounded-2xl border-2 border-sky-200 p-4 flex items-start gap-3.5">
           <div className="p-2.5 rounded-xl bg-sky-700 text-white shadow-sm shrink-0">
             <Building2 className="w-5 h-5" />
           </div>
@@ -346,7 +358,7 @@ export default function TrackStatisticsCard({
               {ptnMajor2 || (isKedinasanTarget ? "Atur target PTN di profil" : "Atur jurusan di profil")}
             </p>
           </div>
-        </div>
+        </KartuTarget>
       </div>
 
       {/* Subtests Grid */}
@@ -377,5 +389,33 @@ export default function TrackStatisticsCard({
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Kartu target yang bisa ditekan. Dulu hanya teks "Atur di profil", jadi
+ * peserta harus mencari sendiri jalannya ke Pengaturan, membuka Edit Profil,
+ * lalu menggulir sampai ketemu kolom target. Sekarang seluruh kartunya membawa
+ * ke sana dan berhenti tepat di bagian target.
+ */
+function KartuTarget({
+  className,
+  children,
+}: {
+  className: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={UBAH_TARGET_HREF}
+      className={`${className} group relative transition-all hover:-translate-y-0.5 hover:border-slate-900 hover:shadow-[3px_3px_0px_0px_#0f172a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900`}
+    >
+      {children}
+      <PencilLine
+        className="size-4 shrink-0 self-center text-slate-400 transition-colors group-hover:text-slate-900"
+        aria-hidden
+      />
+      <span className="sr-only">Ubah target di profil</span>
+    </Link>
   );
 }

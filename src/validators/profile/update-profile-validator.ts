@@ -7,6 +7,7 @@ import {
   TELEPON_PESAN,
   TELEPON_REGEX,
 } from "../../lib/input-rules.ts";
+import { INSTAGRAM_PESAN, INSTAGRAM_REGEX } from "../../lib/instagram.ts";
 import { butuhJurusan, butuhKelas } from "../../lib/jenjang.ts";
 
 /**
@@ -76,6 +77,13 @@ export function makeUpdateProfileSchema(
       phone_number: isAdmin
         ? z.string().optional()
         : z.string().min(1, "Nomor HP harus diisi").regex(TELEPON_REGEX, TELEPON_PESAN),
+      // Opsional. Kolomnya sudah membakukan apa pun yang ditempel ("@nama",
+      // tautan profil) sebelum sampai ke sini.
+      instagram: z
+        .string()
+        .regex(INSTAGRAM_REGEX, INSTAGRAM_PESAN)
+        .optional()
+        .or(z.literal("")),
       grade_level: requiredForStudent(z.string(), "Jenjang harus dipilih"),
       class_level: z.string().optional(),
       /** Jurusan pendidikan terakhir; hanya dipakai jenjang pendidikan tinggi. */
