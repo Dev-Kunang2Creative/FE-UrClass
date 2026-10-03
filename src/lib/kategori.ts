@@ -77,23 +77,30 @@ export const KATEGORI_CONFIG: Record<
     heading: "Persiapan intensif target lolos SKD sekolah kedinasan & CPNS",
     maxScore: 550,
     scoreScale: "Standar SKD CAT (Maks. 550)",
-    // Orange, not amber. Amber sits close to a warning colour and reads as
-    // less distinct from blue than a true orange does.
+    // Indigo - biru tua keunguan - bukan oranye seperti sebelumnya. Diminta
+    // pengguna supaya kedua jalur sama-sama biru: UTBK biru terang, CPNS biru
+    // gelap.
     //
-    // Anything carrying white text uses orange-700 (#ca3500, 5.23:1) rather
-    // than orange-600 (#f54900, 3.59:1), which fails WCAG AA for body text.
-    // The brighter tone is reserved for tints under dark text.
+    // Karena hue tidak lagi memisahkan kedua jalur, yang membedakannya tinggal
+    // jarak terang-gelapnya. Jadi nada padat di sini sengaja diambil dari
+    // langkah yang jauh lebih gelap daripada blue-600/700 milik UTBK, dan
+    // jangan dinaikkan terangnya tanpa menggelapkan UTBK lebih dulu - kalau
+    // keduanya bertemu di tengah, peserta tidak lagi bisa menebak sedang di
+    // jalur mana hanya dari warnanya.
+    //
+    // Yang membawa teks putih memakai indigo-800 (#3730a3, 9.93:1) dan
+    // indigo-900 (#312e81), dua-duanya jauh melewati WCAG AA.
     theme: {
-      accent: "bg-orange-50 text-orange-800 border-orange-200",
-      badge: "bg-orange-100 text-orange-900 border-orange-300",
-      btn: "bg-orange-700 hover:bg-orange-800 text-white",
-      cardBorder: "border-orange-200 hover:border-orange-400",
-      cardBg: "bg-gradient-to-br from-orange-50/70 to-red-50/40",
-      statIcon: "text-orange-700 bg-orange-50 border-orange-200",
-      statCard: "border-orange-300 hover:border-orange-500 shadow-[4px_4px_0px_0px_#9a3412]",
-      dot: "bg-orange-600",
-      progress: "bg-orange-600",
-      switcherActive: "bg-orange-700 text-white shadow-sm",
+      accent: "bg-indigo-50 text-indigo-900 border-indigo-200",
+      badge: "bg-indigo-100 text-indigo-950 border-indigo-300",
+      btn: "bg-indigo-800 hover:bg-indigo-900 text-white",
+      cardBorder: "border-indigo-200 hover:border-indigo-400",
+      cardBg: "bg-gradient-to-br from-indigo-50/70 to-slate-100/50",
+      statIcon: "text-indigo-800 bg-indigo-50 border-indigo-200",
+      statCard: "border-indigo-300 hover:border-indigo-500 shadow-[4px_4px_0px_0px_#312e81]",
+      dot: "bg-indigo-700",
+      progress: "bg-indigo-700",
+      switcherActive: "bg-indigo-800 text-white shadow-sm",
     },
     subtests: [
       { name: "Tes Wawasan Kebangsaan (TWK)", code: "TWK", maxScore: 150, description: "Pancasila, UUD 1945, NKRI, Bela Negara, Bahasa Indo" },

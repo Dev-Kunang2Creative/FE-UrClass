@@ -43,13 +43,13 @@ export default function HeroBanner({ userName }: HeroBannerProps) {
         id="hero-track-banner"
         className="overflow-hidden rounded-3xl border-2 border-slate-900 shadow-[6px_6px_0px_0px_#0f172a]"
       >
-        <div className="flex flex-col gap-3 bg-gradient-to-r from-orange-800 to-orange-700 px-5 py-4 text-white sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 bg-gradient-to-r from-indigo-900 to-indigo-800 px-5 py-4 text-white sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-orange-950/40 ring-1 ring-orange-300/40">
-              <Landmark className="size-4.5 text-orange-200" />
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-indigo-950/40 ring-1 ring-indigo-300/40">
+              <Landmark className="size-4.5 text-indigo-200" />
             </span>
             <div className="min-w-0">
-              <p className="text-[11px] font-black uppercase tracking-widest text-orange-200">
+              <p className="text-[11px] font-black uppercase tracking-widest text-indigo-200">
                 Jalur CPNS &amp; Kedinasan
               </p>
               <h1 className="truncate text-lg font-black leading-tight sm:text-xl">
@@ -58,7 +58,7 @@ export default function HeroBanner({ userName }: HeroBannerProps) {
             </div>
           </div>
 
-          <p className="max-w-md text-[11px] leading-snug text-orange-100/90 sm:text-right">
+          <p className="max-w-md text-[11px] leading-snug text-indigo-100/90 sm:text-right">
             Penilaian mengikuti standar SKD CAT. Ketiga ambang di bawah wajib
             terlampaui — gagal satu berarti gagal seluruhnya.
           </p>
@@ -67,13 +67,13 @@ export default function HeroBanner({ userName }: HeroBannerProps) {
         <div className="grid grid-cols-3 divide-x-2 divide-slate-900 border-t-2 border-slate-900 bg-white">
           {config.subtests.map((s) => (
             <div key={s.code} className="px-3 py-3 text-center sm:px-4">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-orange-800/70">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-900/70">
                 {s.code}
               </p>
-              <p className="mt-0.5 text-xl font-black text-orange-900 sm:text-2xl">
+              <p className="mt-0.5 text-xl font-black text-indigo-950 sm:text-2xl">
                 {ambang.data?.[s.code] ?? (ambang.isError ? 'Tidak tersedia' : '…')}
               </p>
-              <p className="text-[10px] font-semibold text-orange-700/60">
+              <p className="text-[10px] font-semibold text-indigo-800/60">
                 dari {s.maxScore}
               </p>
             </div>

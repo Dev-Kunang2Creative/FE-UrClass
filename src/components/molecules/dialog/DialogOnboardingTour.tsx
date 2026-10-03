@@ -68,7 +68,7 @@ export default function DialogOnboardingTour({
       badgeClass: config.theme.badge,
       description: `Akunmu saat ini berada dalam Mode ${config.label}. Seluruh bank soal, simulasi tryout, paket pembelian, dan analitik performa diatur khusus untuk jalur persiapan ini.`,
       icon: kategori === "cpns" ? Landmark : BookOpenCheck,
-      iconBg: kategori === "cpns" ? "bg-orange-100 text-orange-800" : "bg-blue-100 text-blue-800",
+      iconBg: kategori === "cpns" ? "bg-indigo-100 text-indigo-900" : "bg-blue-100 text-blue-800",
       highlight: "Kamu siap memulai persiapan intensif meraih target impianmu!",
     },
     {

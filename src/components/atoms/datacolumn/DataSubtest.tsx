@@ -49,7 +49,7 @@ export const subtestColumns = (
         <Badge
           className={
             isCpns
-              ? "bg-orange-100 text-orange-900 hover:bg-orange-100 border border-orange-300 text-xs font-bold"
+              ? "bg-indigo-100 text-indigo-950 hover:bg-indigo-100 border border-indigo-300 text-xs font-bold"
               : "bg-blue-100 text-blue-900 hover:bg-blue-100 border border-blue-300 text-xs font-bold"
           }
         >

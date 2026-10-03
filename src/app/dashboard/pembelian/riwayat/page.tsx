@@ -4,7 +4,11 @@ import React from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useGetHistoryPembelian } from "@/http/pembelian/get-history-pembelian";
+import { useCancelOrder } from "@/http/pembelian/cancel-order";
+import { getErrorMessage } from "@/utils/get-error-message";
 import { formatJakartaDate } from "@/utils/date-time";
 import Mascot from "@/components/atoms/mascot/Mascot";
 
@@ -14,6 +18,22 @@ export default function RiwayatPembelianPage() {
 
   const { data, isLoading } = useGetHistoryPembelian({ token });
   const transactions = data?.data || [];
+
+  const queryClient = useQueryClient();
+  const [membatalkan, setMembatalkan] = React.useState<string | null>(null);
+
+  // Membatalkan pesanan yang belum dibayar membebaskan peserta memesan ulang
+  // saat itu juga. Tanpa ini ia harus menunggu token pembayarannya kedaluwarsa
+  // - 15 menit - hanya karena salah memilih metode pembayaran.
+  const batal = useCancelOrder({
+    onSuccess: () => {
+      toast.success("Pesanan dibatalkan. Kamu bisa memesan ulang sekarang.");
+      queryClient.invalidateQueries({ queryKey: ["get-history-pembelian"] });
+    },
+    onError: (error) =>
+      toast.error(getErrorMessage(error, "Pesanan gagal dibatalkan.")),
+    onSettled: () => setMembatalkan(null),
+  });
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
@@ -108,6 +128,17 @@ export default function RiwayatPembelianPage() {
                           Lanjut Bayar
                         </Link>
                       )}
+                      <button
+                        type="button"
+                        disabled={membatalkan === trx.orderId}
+                        onClick={() => {
+                          setMembatalkan(trx.orderId);
+                          batal.mutate({ orderId: trx.orderId, token });
+                        }}
+                        className="text-xs sm:text-sm font-bold text-slate-600 px-3.5 py-1.5 rounded-xl border-2 border-slate-300 transition-colors hover:border-slate-900 hover:text-slate-900 disabled:opacity-50"
+                      >
+                        {membatalkan === trx.orderId ? "Membatalkan…" : "Batalkan"}
+                      </button>
                     </div>
                   )}
                   {trx.status === "failed" && (

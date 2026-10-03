@@ -94,7 +94,7 @@ export default function TourGuideOverlay() {
       targetId: "sidebar-menu-tiket",
       title: "Riwayat & Saldo Tiket",
       description:
-        "Angka di sebelah kanan menu ini adalah sisa tiketmu. Satu tiket berlaku untuk satu kali pengerjaan tryout, jadi mengulang tryout yang sama memakai tiket lagi.",
+        "Angka di sebelah kanan menu ini adalah sisa tiketmu. Satu tiket dipakai sekali saat mendaftar tryout premium - setelah itu kamu boleh mengerjakannya ulang sebanyak yang kamu mau, tanpa tiket tambahan.",
     },
     {
       targetId: "sidebar-menu-bantuan",

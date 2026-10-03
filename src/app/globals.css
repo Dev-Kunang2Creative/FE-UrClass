@@ -174,13 +174,16 @@ body {
    Set by data-track on the dashboard wrapper (server-rendered from the
    session, so there is no hydration flash).
 
-   Contrast against white was measured, not guessed:
-     UTBK  #004aab  8.18:1
-     CPNS  #c14100  5.21:1
-   Both clear WCAG AA for body text. The brighter oranges you might reach for
-   first - #ff6900 at 2.89:1 and #f54900 at 3.59:1 - cannot carry white text,
-   so the bright tone is confined to --track-accent, which is only ever used on
-   light surfaces with dark text.
+   Kedua jalur kini sama-sama biru, dibedakan terang-gelapnya: UTBK biru terang,
+   CPNS biru tua keunguan (indigo). Karena hue tidak lagi memisahkan keduanya,
+   dua hal lain yang menanggungnya: jarak terang yang lebar antara kedua
+   --primary, dan tekstur .track-surface yang memang sudah berbeda (titik untuk
+   UTBK, garis miring untuk CPNS). Jangan menyamakan tekstur itu.
+
+   Kontras terhadap putih diukur, bukan ditebak:
+     UTBK  #004aab   8.18:1
+     CPNS  #3730a3   9.93:1
+   Keduanya melewati WCAG AA untuk teks biasa.
    --------------------------------------------------------------------------- */
 
 [data-track="utbk"] {
@@ -203,21 +206,23 @@ body {
 }
 
 [data-track="cpns"] {
-  --primary: oklch(0.55 0.18 45);
+  --primary: oklch(0.3906 0.1551 275.75);
   --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.646 0.222 41.116);
-  --sidebar-primary: oklch(0.55 0.18 45);
-  --sidebar-ring: oklch(0.646 0.222 41.116);
+  --ring: oklch(0.457 0.188 277.02);
+  --sidebar-primary: oklch(0.3906 0.1551 275.75);
+  --sidebar-ring: oklch(0.457 0.188 277.02);
 
-  --chart-1: oklch(0.82 0.09 60);
-  --chart-2: oklch(0.72 0.16 52);
-  --chart-3: oklch(0.646 0.222 41.116);
-  --chart-4: oklch(0.553 0.195 38.402);
-  --chart-5: oklch(0.47 0.16 35);
+  --chart-1: oklch(0.785 0.103 274.713);
+  --chart-2: oklch(0.673 0.182 276.935);
+  --chart-3: oklch(0.585 0.233 277.117);
+  --chart-4: oklch(0.457 0.188 277.02);
+  --chart-5: oklch(0.3906 0.1551 275.75);
 
-  --track-accent: oklch(0.646 0.222 41.116);
-  --track-tint: oklch(0.971 0.021 55);
-  --track-border: oklch(0.885 0.062 55);
+  /* Lebih gelap daripada --track-accent milik UTBK, bukan sekadar hue lain:
+     itulah satu-satunya hal yang membedakan keduanya sekarang. */
+  --track-accent: oklch(0.511 0.212 276.966);
+  --track-tint: oklch(0.962 0.018 272);
+  --track-border: oklch(0.87 0.065 273);
 }
 
 /* Exposed to Tailwind so the track tokens are usable as bg-track-tint,

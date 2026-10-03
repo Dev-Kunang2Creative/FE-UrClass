@@ -11,16 +11,18 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 import { useKategori } from "@/hooks/useKategori";
+import { useGetPromoBanners } from "@/http/promo-banners/promo-banners";
 import { KATEGORI_CONFIG } from "@/lib/kategori";
 
 /**
- * Enam banner promosi, tampil berurutan sesuai nomor asetnya.
+ * Banner cadangan, dipakai selagi permintaan ke server berjalan dan kalau
+ * belum ada satu pun banner yang diunggah admin.
  *
- * Sebelumnya daftarnya dipisah per jalur dan sisi CPNS hanya memakai ulang
- * gambar UTBK karena belum ada karyanya. Aset sekarang sudah mencakup keduanya
- * - biru untuk UTBK, oranye untuk CPNS dan promo - jadi keduanya memakai satu
- * urutan yang sama.
+ * Isi sebenarnya datang dari `GET /api/promo-banners`, sudah disaring menurut
+ * jalur peserta. Daftar di sini tidak disaring apa pun - ia hanya penahan
+ * supaya baris banner tidak berkedip kosong sebelum datanya tiba.
  */
 const INFO_CARDS: { src: string; alt: string; href: string }[] = [
   {
@@ -56,7 +58,20 @@ const INFO_CARDS: { src: string; alt: string; href: string }[] = [
 ];
 export default function InfoCardCarousel() {
   const { kategori } = useKategori();
-  const cards = INFO_CARDS;
+  const { data: session } = useSession();
+  const { data: dariServer } = useGetPromoBanners(session?.access_token ?? "");
+
+  // Cadangan dipakai sampai server menjawab. Jawaban kosong berarti admin
+  // memang belum mengunggah apa pun untuk jalur ini - dan itu pun lebih baik
+  // ditutupi cadangan daripada menyisakan baris kosong di beranda.
+  const cards =
+    dariServer && dariServer.length > 0
+      ? dariServer.map((banner) => ({
+          src: banner.image_url ?? "",
+          alt: banner.alt,
+          href: banner.href,
+        }))
+      : INFO_CARDS;
   const [api, setApi] = useState<CarouselApi>();
   const [activeIndex, setActiveIndex] = useState(0);
   const [snapCount, setSnapCount] = useState(0);

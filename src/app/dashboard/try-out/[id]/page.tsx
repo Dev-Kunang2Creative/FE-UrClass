@@ -79,7 +79,6 @@ export default function TryoutDetailPage({
     isEnrolled,
     hasAttempted,
     sessionStatus: tryout?.user_session_status,
-    isFree: tryout?.is_free,
   });
   // One shadow for both variants. The old pair hardcoded yellow-700 and a
   // green, matching variant names that no longer exist and neither track.

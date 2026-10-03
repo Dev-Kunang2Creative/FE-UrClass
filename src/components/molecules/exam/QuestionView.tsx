@@ -140,7 +140,7 @@ export default function QuestionView({
                       : "border-gray-200 bg-white text-gray-900"
                   : isSelected
                     ? isCpns
-                      ? "border-orange-700 bg-orange-50/70"
+                      ? "border-indigo-800 bg-indigo-50/70"
                       : "border-blue-600 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50";
 
@@ -154,11 +154,11 @@ export default function QuestionView({
                         : "bg-gray-100 text-gray-600"
                   : isSelected
                     ? isCpns
-                      ? "bg-orange-800 text-white shadow-sm"
+                      ? "bg-indigo-900 text-white shadow-sm"
                       : "bg-blue-600 text-white shadow-sm"
                     : isShuffled
                       ? isCpns
-                        ? "bg-white border-2 border-gray-300 text-gray-400 group-hover:border-orange-500"
+                        ? "bg-white border-2 border-gray-300 text-gray-400 group-hover:border-indigo-600"
                         : "bg-white border-2 border-gray-300 text-gray-400 group-hover:border-blue-400"
                       : "bg-gray-100 text-gray-600";
 
@@ -170,7 +170,7 @@ export default function QuestionView({
                       : "text-gray-700"
                   : isSelected
                     ? isCpns
-                      ? "text-orange-900 font-semibold"
+                      ? "text-indigo-950 font-semibold"
                       : "text-blue-600 font-semibold"
                     : "text-gray-700";
 
@@ -247,13 +247,13 @@ export default function QuestionView({
           <div
             className={`mt-6 rounded-xl border p-5 ${
               isCpns
-                ? "border-orange-200 bg-orange-50/70"
+                ? "border-indigo-200 bg-indigo-50/70"
                 : "border-blue-100 bg-blue-50"
             }`}
           >
             <h3
               className={`mb-3 text-sm font-bold ${
-                isCpns ? "text-orange-800" : "text-blue-600"
+                isCpns ? "text-indigo-900" : "text-blue-600"
               }`}
             >
               Kunci Jawaban &amp; Pembahasan
@@ -276,7 +276,7 @@ export default function QuestionView({
               />
             )}
             {!isEssay && !question.correct_answer && (
-              <p className="mt-3 text-xs font-medium text-orange-700">
+              <p className="mt-3 text-xs font-medium text-indigo-800">
                 Kunci jawaban belum tersedia.
               </p>
             )}
@@ -303,7 +303,7 @@ export default function QuestionView({
             onClick={onNext}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors text-white ${
               isCpns
-                ? "bg-orange-700 hover:bg-orange-800"
+                ? "bg-indigo-800 hover:bg-indigo-900"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
@@ -315,7 +315,7 @@ export default function QuestionView({
             onClick={onFinish}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors text-white ${
               isCpns
-                ? "bg-orange-700 hover:bg-orange-800"
+                ? "bg-indigo-800 hover:bg-indigo-900"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >

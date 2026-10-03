@@ -15,13 +15,6 @@ export interface GetTryoutButtonStateParams {
    * "Kerjakan Ulang" - which tells someone mid-exam to start over.
    */
   sessionStatus?: "not_started" | "in_progress" | "finished" | "expired";
-  /**
-   * Satu tiket berlaku untuk satu kali pengerjaan, jadi mengulang tryout
-   * premium memotong tiket lagi. Harganya disebut di tombolnya, bukan baru
-   * ketahuan setelah saldo berkurang. Opsional supaya pemanggil lama tetap
-   * jalan; tanpa nilai ini tombolnya tidak menyebut harga apa pun.
-   */
-  isFree?: boolean;
 }
 
 /**
@@ -30,13 +23,12 @@ export interface GetTryoutButtonStateParams {
  * - Not enrolled           → "Daftar"
  * - Enrolled, in progress  → "Lanjutkan" — resumes, never restarts
  * - Enrolled, not started  → "Mulai Kerjakan"
- * - Enrolled, attempted    → "Kerjakan Ulang" (outlined, 1 tiket kalau premium)
+ * - Enrolled, attempted    → "Kerjakan Ulang" (outlined, tanpa biaya)
  */
 export function getTryoutButtonState({
   isEnrolled,
   hasAttempted,
   sessionStatus,
-  isFree,
 }: GetTryoutButtonStateParams): TryoutButtonState {
   if (!isEnrolled) {
     return { label: "Daftar", variant: "primary", action: "open_detail" };
@@ -53,7 +45,7 @@ export function getTryoutButtonState({
   }
 
   return {
-    label: isFree === false ? "Kerjakan Ulang (1 Tiket)" : "Kerjakan Ulang",
+    label: "Kerjakan Ulang",
     variant: "outline",
     action: "retry_tryout",
   };

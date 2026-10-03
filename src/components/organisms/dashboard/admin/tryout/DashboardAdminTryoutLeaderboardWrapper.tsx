@@ -97,10 +97,10 @@ function getRankStyle(rank: number) {
       };
     case 3:
       return {
-        rankBox: "bg-orange-50 text-orange-700 border border-orange-200",
-        avatar: "bg-orange-100 text-orange-700",
-        badge: "bg-orange-50 text-orange-700 border-orange-200",
-        medal: "text-orange-500",
+        rankBox: "bg-indigo-50 text-indigo-800 border border-indigo-200",
+        avatar: "bg-indigo-100 text-indigo-800",
+        badge: "bg-indigo-50 text-indigo-800 border-indigo-200",
+        medal: "text-indigo-600",
         label: "Juara 3",
       };
     default:

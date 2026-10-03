@@ -45,6 +45,7 @@ import {
   Ticket,
   TrendingUp,
   Users,
+  GalleryHorizontal,
   LayoutPanelTop,
   MessageSquareQuote,
 } from "lucide-react";
@@ -76,7 +77,7 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
 
   const activeMenuClass =
     kategori === "cpns"
-      ? "bg-orange-50 text-orange-900 font-bold border border-orange-300 shadow-sm"
+      ? "bg-indigo-50 text-indigo-950 font-bold border border-indigo-300 shadow-sm"
       : "bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-sm";
 
   const buttonClass = (href: string) =>
@@ -260,6 +261,18 @@ export function SidebarWrapper({ session }: SidebarWrapperProps) {
                       <Link href="/dashboard/admin/kritik-saran"><FileClock /><span>Kritik &amp; Saran Peserta</span></Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className={buttonClass("/dashboard/admin/banner-promosi")}
+                    >
+                      <Link href="/dashboard/admin/banner-promosi">
+                        <GalleryHorizontal />
+                        <span>Banner Promosi</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild

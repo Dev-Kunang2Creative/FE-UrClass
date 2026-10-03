@@ -51,7 +51,7 @@ export default function TryoutLeaderboardPage({
       <div
         className={`rounded-2xl p-6 md:p-8 text-white mb-6 shadow-lg ${
           isCpns
-            ? "bg-linear-to-br from-orange-700 via-orange-800 to-orange-950 border-2 border-orange-800"
+            ? "bg-linear-to-br from-indigo-800 via-indigo-900 to-indigo-950 border-2 border-indigo-900"
             : "bg-linear-to-br from-blue-600 to-blue-900 border-2 border-blue-700"
         }`}
       >
@@ -108,7 +108,7 @@ export default function TryoutLeaderboardPage({
       {/* Angkanya nyata, hanya belum final. Menahan seluruh papan sampai periode
           ditutup membuatnya kosong justru saat orang paling ingin melihatnya. */}
       {leaderboardData?.is_final === false && (
-        <div className="mb-4 flex items-start gap-2.5 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+        <div className="mb-4 flex items-start gap-2.5 rounded-2xl border-2 border-amber-300 bg-indigo-50 p-4">
           <Clock className="mt-0.5 size-5 shrink-0 text-amber-700" />
           <div className="text-sm">
             <p className="font-bold text-amber-900">Peringkat masih sementara</p>
@@ -208,7 +208,7 @@ function LeaderboardRow({
       className={`grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto_auto] gap-4 items-center p-5 transition-colors ${
         isMe
           ? isCpns
-            ? "bg-orange-50/70"
+            ? "bg-indigo-50/70"
             : "bg-blue-50"
           : ""
       }`}
@@ -217,7 +217,7 @@ function LeaderboardRow({
         className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
           isMe
             ? isCpns
-              ? "bg-orange-800 text-white"
+              ? "bg-indigo-900 text-white"
               : "bg-blue-600 text-white"
             : "bg-slate-100 text-slate-700"
         }`}
@@ -229,7 +229,7 @@ function LeaderboardRow({
                 ? "text-yellow-500"
                 : entry.rank === 2
                   ? "text-slate-400"
-                  : "text-orange-500"
+                  : "text-indigo-600"
             } ${isMe ? "brightness-0 invert" : ""}`}
           />
         ) : (
@@ -254,7 +254,7 @@ function LeaderboardRow({
           {isMe && (
             <span
               className={`shrink-0 text-[0.65rem] font-bold text-white px-2 py-0.5 rounded-full ${
-                isCpns ? "bg-orange-700" : "bg-blue-600"
+                isCpns ? "bg-indigo-800" : "bg-blue-600"
               }`}
             >
               Anda
@@ -277,7 +277,7 @@ function LeaderboardRow({
         <p className="text-xs text-slate-500">Skor</p>
         <p
           className={`text-xl font-bold ${
-            isCpns ? "text-orange-700" : "text-blue-600"
+            isCpns ? "text-indigo-800" : "text-blue-600"
           }`}
         >
           {entry.score.final_score}

@@ -50,11 +50,11 @@ export default function TryoutStartPage({
 
   const scoring = describeScoring(tryout?.tryout_subtests);
 
-  // Percobaan pertama sudah dibayar saat mendaftar. Yang memotong tiket lagi
-  // hanya pengerjaan ulang tryout premium - dan harganya disebut sebelum
-  // tombolnya ditekan, bukan setelah saldo berkurang.
-  const willSpendTicket =
-    tryout?.is_free === false &&
+  // Pengerjaan ulang, bukan yang pertama. Tidak ada tiket yang dipotong -
+  // satu tiket membeli akses ke tryoutnya, bukan satu kali pengerjaan - jadi
+  // penanda ini hanya mengubah kalimat konfirmasinya, bukan memperingatkan
+  // soal biaya.
+  const isMengulang =
     Number(tryout?.user_attempt_count ?? 0) > 0 &&
     tryout?.user_session_status === "finished";
 
@@ -78,16 +78,14 @@ export default function TryoutStartPage({
     token,
     options: {
       onSuccess: (data: StartTryoutResponse) => {
-        // Satu tiket untuk satu kali pengerjaan, jadi mengulang tryout premium
-        // memotong tiket lagi. Saldo di header harus ikut berubah saat itu juga,
-        // bukan setelah sesi berikutnya dimuat ulang.
+        // Mengulang tidak lagi memotong tiket, jadi server tidak pernah
+        // mengirim saldo baru di sini. Penyelarasan ini dipertahankan agar
+        // header tetap benar kalau suatu saat ada jalur lain yang memotong.
         if (data.ticket_balance_remaining != null) {
           notifyTicketBalanceUpdated({
             ticketBalance: data.ticket_balance_remaining,
-            delta: -1,
             suppressModal: true,
           });
-          toast.success("1 tiket digunakan untuk pengerjaan ulang ini.");
         }
 
         const activeIndex = data.data.active_subtest_index ?? 0;
@@ -347,14 +345,14 @@ export default function TryoutStartPage({
               <span className="text-4xl">🚀</span>
             </div>
             <DialogTitle className="text-xl font-bold text-gray-900 mt-2">
-              {willSpendTicket ? "Kerjakan Ulang Tryout Ini?" : "Siap Mulai Tryout?"}
+              {isMengulang ? "Kerjakan Ulang Tryout Ini?" : "Siap Mulai Tryout?"}
             </DialogTitle>
             <DialogDescription className="text-gray-600 mb-4 px-2">
               Pastikan kamu sudah siap. Setelah dimulai, waktu pengerjaan akan langsung berjalan.
-              {willSpendTicket && (
+              {isMengulang && (
                 <span className="mt-2 block font-semibold text-slate-900">
-                  Pengerjaan ulang ini memotong 1 tiket. Satu tiket berlaku
-                  untuk satu kali pengerjaan.
+                  Pengerjaan ulang ini tidak memotong tiket, dan skor terbaikmu
+                  yang dipakai di leaderboard.
                 </span>
               )}
             </DialogDescription>
@@ -369,7 +367,7 @@ export default function TryoutStartPage({
                 onClick={handleStartExam}
                 className="flex-1 cursor-pointer rounded-xl border-2 border-slate-900 bg-primary py-3 font-bold text-primary-foreground transition-all hover:brightness-95 active:translate-y-0.5"
               >
-                {willSpendTicket ? "Ya, Pakai 1 Tiket" : "Mulai Try Out"}
+                {isMengulang ? "Ya, Kerjakan Ulang" : "Mulai Try Out"}
               </button>
             </div>
           </div>

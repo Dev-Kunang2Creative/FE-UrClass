@@ -64,7 +64,6 @@ export default function TryoutCard({
     isEnrolled,
     hasAttempted,
     sessionStatus,
-    isFree: type === "Gratis",
   });
   // Resume and start share /start on purpose: the backend reuses an unfinished
   // session rather than opening a new attempt, while /exam would default to
